@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+
+{% block headding %}
+<h1 class="title">Employees</h1>
+{% endblock headding %}
+    
+{% block content %}
+{% if not user.is_authenticated %}
+<div>
+    <a href="{% url 'ledger:register' %}">Register Account</a>
+</div>
+{% endif %}
+    {% if employees %}
+    {% for employee in employees %}
+    <div class='box'>{{ employee.name }} || {{ employee.phone }}
+      <p>From: {{ employee.start_work_at }} </p> 
+      <p>To: {{ employee.end_work }} </p> 
+      {% comment %} <p>Clients: {{ employee.khachs.all }} </p>  {% endcomment %}
+    </div>
+    {% endfor %}
+    {% endif %}
+<section class="hero is-small">
+  <div class="hero-body">
+    <div class="container">
+      
+      <h3>get in -></h3>
+      {% if henTech %}
+      <p>{{ henTech.name }}</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock content %}
+    
+{% block footer %}
+    <strong>Quang</strong> here to <a href="{% url 'password_change' %}">Change Password</a>.
+{% endblock footer %}
+        

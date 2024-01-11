@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+
+{% block nutChinh %}
+{% comment %} <a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
+<strong>|</strong>
+<a class="navbar-item" href="{% url 'datHen:exist_client' %}"><h1 class='title'>Been here</h1></a> {% endcomment %}
+{% endblock nutChinh %}
+
+{% block headding %}
+    <h1 class='title'>Client's Schedule One</h1>
+    {% if messages %} 
+    {% for tin in messages %} 
+    <li>{{ tin }}</li>
+    {% endfor %}
+    {% endif %}
+{% endblock headding %}
+
+
+{% block content %}
+{% comment %} <form action='' method='get'>
+    {% csrf_token %}
+    <div class="table-responsive">
+        <div class="form-group tech">
+            {{ first_step | crispy }}
+            
+          </div>
+          
+        
+        <input type='submit' value='Next'>
+        <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
+    </div>
+</form> {% endcomment %}
+
+
+    <h1>Favor one?</h1>
+    
+     
+    {% for employee in tech %}
+    <div>
+        <a href="{{ employee.get_absolute_url }}"> {{ employee.name }} </a>
+</div>
+     {% endfor %}
+
+{% comment %} <form action='' method='post'>
+    {% csrf_token %}
+    <div class="table-responsive">
+        <div class="form-group tech">
+            {{ second_step | crispy }}
+            
+          </div>
+          
+        
+        <input type='submit' value='Take'>
+
+        <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
+    </div>
+    <div>
+    </div>
+</form> {% endcomment %}
+   
+   
+
+{% endblock content %}
+
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 
