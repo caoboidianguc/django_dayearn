@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+
+
+{% block nutChinh %}
+{% comment %} <a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
+<strong>|</strong>
+<a class="navbar-item" href="{% url 'datHen:exist_client' %}"><h1 class='title'>Been here</h1></a> {% endcomment %}
+{% endblock nutChinh %}
+
+{% block headding %}
+    <h1 class='title'>Client's Schedule Second Step</h1>
+    {% if messages %} 
+    {% for tin in messages %} 
+    <li>{{ tin }}</li>
+    {% endfor %}
+    {% endif %}
+{% endblock headding %}
+
+
+{% block content %}
+
+    <h1>Technician: {{ techDetail.name }}</h1>
+    <div id="time-available">
+        <p>Time Available:</p>
+        {% for tieng in available %}
+            
+            <li> {{tieng.hour }} : {{tieng.minute }} </li>
+        {% endfor %}
+      </div>
+
+    <form action='' method='get' id="second-form">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <div id="day-form">
+                {{ secondForm.day_comes | as_crispy_field }}
+                
+              </div>
+                 
+            <input type='submit' value='Free Time'>
+            <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
+        </div>
+        
+    </form>
+
+    <div class="khach_da_hen">
+        {% for khach in hen %}
+    <li><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: {{ khach.get_done_at }}</li>
+    {% endfor %}
+        
+      </div>
+
+      
+{% endblock content %}
+
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 
