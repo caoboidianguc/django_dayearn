@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+
+
+{% block nutChinh %}
+<a class="navbar-item" href="{% url 'datHen:first_step' %}"><h1 class='title'>First Step</h1></a>
+<strong>|</strong>
+<a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
+<strong>|</strong>
+<a class="navbar-item" href="{% url 'datHen:find_client' %}"><h1 class='title'>Been here</h1></a>
+{% endblock nutChinh %}
+
+{% block headding %}
+    <h1 class='title'>Client's Schedule</h1>
+    {% if messages %} 
+    {% for tin in messages %} 
+    <li>{{ tin }}</li>
+    {% endfor %}
+    {% endif %}
+    
+{% endblock headding %}
+
+
+{% block content %}
+
+    <div>
+        Pick {{ day }}
+    </div>
+    {% if khachHen %}
+    {% for khach in khachHen %}
+    <ul>
+    <div class='box'>
+        <div ><strong>{{ khach.full_name }}</strong> <span>At: {{ khach.time_at | naturaltime }}</span>      </div>
+         <div>
+            With: {{khach.technician }}
+         </div>
+         {% if khach.status == "Cancel" %}
+         <div class="text-danger">Canceled</div>
+         {% else %}
+        <p>Schedule: <b>{{ khach.status }} </b></p>
+        {% endif %}
+        Get: {% if khach.services %}
+        {% for dichvu in khach.services.all %}
+        <li>{{ dichvu }} </li>
+        {% endfor %}
+        {% endif %}       
+    </div>
+</ul>
+        {% endfor %}
+
+    {% endif %}
+
+{% endblock content %}
+
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 

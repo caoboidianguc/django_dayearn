@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block nutChinh %}
+<a class="navbar-item" href="{% url 'ledger:home' %}"><h1 class='title'>Done</h1></a>
+{% endblock nutChinh %}
+{% block headding %}
+<h2 class="title">
+    Add Employee
+  </h2>
+{% endblock headding %}
+    
+{% block content %}
+{% if messages %} 
+    {% for tin in messages %} 
+    <li>{{ tin }}</li>
+    {% endfor %}
+    {% endif %}
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ form | crispy }}
+    </table>
+    <input type="submit" value="Add">
+    <input type="submit" onclick="window.location='{% url 'ledger:index' %}'; return false; " value="Cancel">
+</form>    
+{% endblock content %}
