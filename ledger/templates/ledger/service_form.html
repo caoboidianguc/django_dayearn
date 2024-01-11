@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+
+
+{% block headding %}
+    <h1 class="title">Add Service</h1>
+{% endblock headding %}
+
+
+{% block content %}
+<form action="" method="post">
+    {% csrf_token %}
+    
+    {{ form | crispy }}
+    
+    <input type="submit" value="Add">
+    <input type="submit" onclick="window.location='{% url 'ledger:services' %}'; return false; " value="Cancel">
+</form>  
+{% endblock content %}
+    {% comment %} add minus to form.time_serv for every service {% endcomment %}

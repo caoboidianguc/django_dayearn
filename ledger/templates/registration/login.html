@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+
+{% block headding %}
+<h1 class="title">Please Login</h1>
+{% endblock headding %}
+    
+
+{% block content %}
+    <div>
+        <a href="{% url 'ledger:register' %}">Register Account</a>
+    </div>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form | crispy }}
+        <input type="submit" value="Login">
+    <input type="submit" onclick="window.location='{% url 'ledger:index' %}'; return false; " value="Cancel">
+    </form>
+
+    
+{% endblock content %}
+
+
+    

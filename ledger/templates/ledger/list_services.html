@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block nutChinh %}
+<a class="navbar-item" href="{% url 'ledger:add_service' %}"><h1 class='title'>Add</h1></a>
+{% endblock nutChinh %}
+
+
+{% block headding %}
+<h1 class="title">Add Services</h1>
+{% endblock headding %}
+
+
+{% block content %}
+{% if dvu %}
+{% for ser in dvu %}
+<div class='box'>
+    <div>{{ ser.dichVu }}<br>{{ser.gia}}</div>
+    <span>{{ ser.thoiGian }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div>
+    Please Add Service you serv
+</div>
+{% endif %}
+{% endblock content %}
+    
