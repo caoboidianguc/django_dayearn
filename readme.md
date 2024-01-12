@@ -20,10 +20,9 @@ django-admin startproject
 
 Add to INSTALLED_APPS:
 'crispy_forms',
-'schedule',
 "crispy_bootstrap5",
 'phonenumber_field',
-
+'taggit',
 
 
 
@@ -51,3 +50,5 @@ Add to TEMPLATE_CONTEXT_PROCESSORS:
 
 <-- Good -->
 <!-- <a href="{{product.get_absolute_url}}">Link</a> -->
+
+<!-- https://django-taggit.readthedocs.io/en/latest/ -->
