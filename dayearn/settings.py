@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'ledger.apps.LedgerConfig',
     'django.contrib.humanize',
     "phonenumber_field",
+    'taggit',
     "crispy_bootstrap5",
     'crispy_forms',
     'rest_framework',
