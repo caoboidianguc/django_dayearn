@@ -10,10 +10,11 @@ class TechForm(forms.ModelForm):
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),
                         label="")
-    start_work_at = forms.TimeField(
-        widget=ChonNgay(attrs={
-            'type': 'time'
-        }))
+    # start_work_at = forms.TimeField(
+    #     widget=ChonNgay(attrs={
+    #         'type': 'time'
+    #     }))
+    start_work_at = forms.TimeField(widget=forms.TimeInput(attrs={'type':'time'}))
     end_work = forms.TimeField(
         widget=ChonNgay(attrs={
             'type': 'time'
@@ -35,10 +36,9 @@ class ClientForm(forms.ModelForm):
 
     
 class ServiceForm(forms.ModelForm):
-    
     class Meta:
         model = Service
-        fields = ['dichVu','gia','thoiGian']
+        fields = ['service','price','time_perform']
 
 
 class TaiKhoanCreationForm(UserCreationForm):
