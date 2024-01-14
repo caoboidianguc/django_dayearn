@@ -14,7 +14,7 @@
     <h1 class='title'>Client's Schedule Second Step</h1>
     {% if messages %} 
     {% for tin in messages %} 
-    <li>{{ tin }}</li>
+    <li class="tinnhan">{{ tin }}</li>
     {% endfor %}
     {% endif %}
 {% endblock headding %}
@@ -23,15 +23,9 @@
 {% block content %}
 
     <h1>Technician: {{ techDetail.name }}</h1>
-    <div id="time-available">
-        <p>Times Suggestion:</p>
-        {% for tieng in available %}
-            
-            <li> {{tieng.hour }} : {{tieng.minute }} </li>
-        {% endfor %}
-      </div>
+    
 
-    <form action='' method='get' id="second-form">
+    <form action='' method='get' id="second-form-get">
         {% csrf_token %}
         <div class="table-responsive">
             <div id="day-form">
@@ -39,19 +33,63 @@
                 
               </div>
                  
-            <input type='submit' value='Free Time'>
+            <input type='submit' value='Time Available'>
             <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
         </div>
         
     </form>
-
-    <div class="khach_da_hen">
+    <div id="time-sugget">
+        <p>Times Suggestion:</p>
+        {% for tieng in available %}
+            
+            <li> {{tieng.hour }} : {{tieng.minute }} </li>
+        {% endfor %}
+      </div>
+    <div class="work-schedule">
+        <div>Work schedule:</div>
         {% for khach in hen %}
-    <li><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: {{ khach.get_done_at }}</li>
+        
+    <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
     {% endfor %}
         
       </div>
+      <form action='' method='post'>
+        {% csrf_token %}
+        <div class="table-responsive">
+                
+              <div class="form-group">
+                {{ secondForm.services | as_crispy_field }}
+              </div>
 
+              <div class="form-group col-md-6 mb-0">
+                {{ secondForm.time_at | as_crispy_field }}
+            </div>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ secondForm.full_name | as_crispy_field }}
+              </div>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ secondForm.phone | as_crispy_field }}
+              </div>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ secondForm.email | as_crispy_field }}
+              </div>
+
+             
+
+              
+
+              <div class="form-group col-md-6 mb-0">
+                {{ secondForm.status | as_crispy_field }}
+              </div>
+            
+            <input type='submit' value='Take'>
+            <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
+        </div>
+        
+    </form>
       
 {% endblock content %}
 
