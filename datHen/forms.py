@@ -84,13 +84,51 @@ class FirstStepForm(forms.ModelForm):
         fields = ['technician']
 
 class SecondStepForm(forms.ModelForm):
-    day_comes = forms.DateField(widget=ChonNgay(attrs={'min': date.today()}))
-    
     class Meta:
         model=Khach
         fields = [ 'day_comes', 'time_at','full_name', 'phone', 'email', 'status']
-        
+    
+    day_comes = forms.DateField(
+        widget=ChonNgay(attrs={'min': date.today()})
+        )
+  
+    time_at = forms.TimeField(
+        input_formats=["%H:%M"],
+        widget=ChonNgay(attrs={
+            "type":"time",
+            })
+        )    
+    email = forms.CharField(
+        label="",
+        required=False,
+        widget=forms.widgets.EmailInput(attrs={'placeholder':'Email Optional'}))
+    
+    phone = PhoneNumberField(widget=forms.TextInput(
+                        attrs={'placeholder': 'Phone Number'}),
+                        label="")
+    
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
+    
+    full_name = forms.CharField(
+        label="",
+        widget=forms.TextInput(
+        attrs={
+            'placeholder': 'Full Name'
+        }
+    ))
+    
     def clean_full_name(self):
         data = super().clean()
         data = self.cleaned_data['full_name']
         return str(data).upper()
+    
+    def clean_time_at(self):
+        gio_den = super().clean()
+        gio_den = self.cleaned_data['time_at']
+        day_come = super().clean()
+        day_come = self.cleaned_data['day_comes']
+        bamuoi = datetime.datetime.now() + timedelta(minutes=30)
+        if day_come == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
+            raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
+        return gio_den
+        

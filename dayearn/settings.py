@@ -27,6 +27,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+STATICFILES_FINDERS = (
+    'djangobower.finders.BowerFinder',
+)
+
+BOWER_COMPONENTS_ROOT = '/PROJECT_ROOT/components/'
 
 # Application definition
 
@@ -40,6 +45,7 @@ INSTALLED_APPS = [
     'ledger.apps.LedgerConfig',
     'django.contrib.humanize',
     "phonenumber_field",
+    'djangobower',
     'taggit',
     "crispy_bootstrap5",
     'crispy_forms',
@@ -138,6 +144,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 LOGIN_REDIRECT_URL = "ledger:index"
 
 LOGOUT_REDIRECT_URL = "ledger:index"
@@ -148,3 +155,10 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'hoadambutxinh@gmail.com'
 EMAIL_HOST_PASSWORD = 'seztdjfrcdbcykvp'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+BOWER_INSTALLED_APPS = (
+    'jquery',
+    'jquery-ui',
+    'bootstrap'
+)
