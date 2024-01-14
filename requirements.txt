@@ -4,3 +4,4 @@ crispy-bootstrap5
 djangorestframework
 "django-phonenumber-field[phonenumbers]"
 django-taggit
+django-bower

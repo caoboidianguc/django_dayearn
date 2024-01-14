@@ -61,7 +61,7 @@ class Technician(models.Model):
             if clients:
                 if not any(khach.time_at <= thoigian.time() < khach.get_done_at() for khach in xongs):
                     yield thoigian
-                thoigian += timedelta(minutes=30)
+                thoigian += timedelta(minutes=15)
                         
             else:
                 yield thoigian
@@ -104,7 +104,10 @@ class Khach(models.Model):
 
     def __str__(self) -> str:
         return self.full_name
-    
+    def huy(self):
+        if self.status == "Cancel":
+            self.time_at = self.technician.end_work
+            return self.time_at
     # def clean(self):
     #     if self.day_comes < datetime.date.today():
     #         raise ValidationError("Appointments should be in the future")
