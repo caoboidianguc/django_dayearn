@@ -133,9 +133,9 @@ class ThirdForm(forms.ModelForm):
         time_pick = super().clean()
         time_pick = self.cleaned_data['time_at']
         gio_den = datetime.time(hour=time_pick.hour, minute=time_pick.minute)
-        bamuoi = datetime.datetime.now() + timedelta(minutes=30)
+        bamuoi = datetime.datetime.now() + timedelta(hours=1)
         if gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
-            raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
+            raise ValidationError("Please make schedule 1 hour ahead! \n Or gives a call to check available.")
         return gio_den
     
     

@@ -33,6 +33,11 @@
     {% endfor %}
         
       </div>
+      {% if form.errors %}
+    <div class="alert alert-danger">
+        {{ form.errors }}
+    </div>
+    {% endif %}
       <form action='' method='post'>
         {% csrf_token %}
         <div class="table-responsive">
