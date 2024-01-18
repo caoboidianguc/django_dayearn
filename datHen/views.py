@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Khach, Technician
 from django.views.generic import View, ListView
 from django.urls import reverse_lazy
-from .forms import DatHenFrom, ExistClientForm, FirstStepForm, SecondStepForm
+from .forms import DatHenFrom, ExistClientForm, SecondStepForm, ThirdForm
 from datetime import timedelta
 from django.contrib import messages
 from django.core.mail import EmailMessage
@@ -72,7 +72,6 @@ class KhachLayHen(View):
     
     def get(self, request):
         form = DatHenFrom()
-        #needs more work for each Tech with time available
         cont = {'formDatHen': form}
         return render(request, self.template, cont)
     
@@ -95,27 +94,6 @@ class KhachLayHen(View):
                     EmailMessage(self.chuDe, thongbao, to=[empl.email]).send()
         return redirect(self.success_url)
 
-
-
-class Second(View):
-    template = 'datHen/second.html'
-    
-    
-    def get(self, request, pk):
-        techDetail = get_object_or_404(Technician, id=pk)        
-        secondForm = SecondStepForm()
-        ngay = request.GET.get('day_comes')
-        khach_da_hen = techDetail.get_clients().filter(day_comes=ngay).order_by('time_at')
-        available = []
-        available = techDetail.get_available(ngay=ngay)
-        cont = {'techDetail': techDetail,
-                'secondForm': secondForm,
-                'hen': khach_da_hen,
-                'available': available
-            }
-        
-        return render(request, self.template, cont)
-    
     
 class FirstStep(View):
     template = 'datHen/first_step.html'
@@ -123,9 +101,45 @@ class FirstStep(View):
     def get(self,request):
         cont = {'tech': self.tech}
         return render(request, self.template, cont)
+
+
+class Second(View):
+    template = 'datHen/second.html'
+    def get(self, request, pk):
+        request.session['id'] = None
+        request.session['date'] = request.GET.get('day_comes')
+        date = request.session['date']
+        tech = get_object_or_404(Technician, id=pk)        
+        secondForm = SecondStepForm()
+        cont = {'tech': tech,
+                'secondForm': secondForm,
+                'ngay': date
+            }
+        request.session['id'] = pk
+        # request.session['day_comes'] = datetime.datetime.today().strftime("%Y-%m-%d")
+        return render(request, self.template, cont)
     
+
+
+class ThirdStep(View):
+    chuDe = "Dayearns Confirm schedule"
+    template = 'datHen/third_step.html'
     
-class Third(View):
-    template = "datHen/third.html"
-    success_url = reverse_lazy('datHen:listHen')
-    
+    def get(self,request):
+        pk = request.session['id']
+        tech = get_object_or_404(Technician, id=pk)
+        request.session['date'] = request.GET.get('day_comes')
+        ngay = request.session['date']
+        available = []
+        available = tech.get_available(ngay=ngay)
+        hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
+        form = ThirdForm()
+        cont = {'form' : form, 
+                'tech': tech,
+                'available': available,
+                'hen': hen,
+                'ngay': ngay}
+        
+        return render(request, self.template, cont)
+
+

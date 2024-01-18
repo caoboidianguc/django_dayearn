@@ -20,19 +20,6 @@
 
 
 {% block content %}
-{% comment %} <form action='' method='get'>
-    {% csrf_token %}
-    <div class="table-responsive">
-        <div class="form-group tech">
-            {{ first_step | crispy }}
-            
-          </div>
-          
-        
-        <input type='submit' value='Next'>
-        <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
-    </div>
-</form> {% endcomment %}
 
 
     <h1>Favor one?</h1>
@@ -44,24 +31,6 @@
 </div>
      {% endfor %}
 
-{% comment %} <form action='' method='post'>
-    {% csrf_token %}
-    <div class="table-responsive">
-        <div class="form-group tech">
-            {{ second_step | crispy }}
-            
-          </div>
-          
-        
-        <input type='submit' value='Take'>
-
-        <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
-    </div>
-    <div>
-    </div>
-</form> {% endcomment %}
-   
-   
 
 {% endblock content %}
 
