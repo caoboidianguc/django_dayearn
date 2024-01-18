@@ -96,9 +96,9 @@ class ThirdForm(forms.ModelForm):
     
     class Meta:
         model=Khach
-        fields = ['time_at','full_name', 'phone', 'email', 'status','technician']
+        fields = ['services','time_at','full_name', 'phone', 'email', 'status','technician']
+        
     technician = forms.widgets.HiddenInput()
-  
     # time_at = forms.TimeField(
     #     input_formats=["%H:%M"],
     #     widget=ChonNgay(attrs={
@@ -130,11 +130,12 @@ class ThirdForm(forms.ModelForm):
         return str(data).upper()
     
     def clean_time_at(self):
-        gio_den = super().clean()
-        gio_den = self.cleaned_data['time_at']
-        day_comes = super().clean()
-        day_comes = self.cleaned_data['day_comes']
-        bamuoi = datetime.datetime.now() + timedelta(minutes=30)
-        if day_comes == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
-            raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
+        time_pick = super().clean()
+        time_pick = self.cleaned_data['time_at']
+        gio_den = datetime.time(hour=time_pick.hour, minute=time_pick.minute)
+        bamuoi = datetime.datetime.now() + timedelta(hours=1)
+        if gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
+            raise ValidationError("Please make schedule 1 hour ahead! \n Or gives a call to check available.")
         return gio_den
+    
+    
