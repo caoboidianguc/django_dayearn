@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+
+
+{% block nutChinh %}
+{% comment %} <a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
+<strong>|</strong>
+<a class="navbar-item" href="{% url 'datHen:exist_client' %}"><h1 class='title'>Been here</h1></a> {% endcomment %}
+{% endblock nutChinh %}
+
+{% block headding %}
+    <h1 class='title'>Client's Schedule Third Step</h1>
+    {% if messages %} 
+    {% for tin in messages %} 
+    <li class="tinnhan">{{ tin }}</li>
+    {% endfor %}
+    {% endif %}
+{% endblock headding %}
+
+
+{% block content %}
+
+    <h1>Technician: {{ tech }}</h1>
+    <h1>Ngay Den: {{ ngay }}</h1>
+  
+    <div class="work-schedule">
+        <div>Work schedule:</div>
+        {% for khach in hen %}
+        
+    <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
+    {% endfor %}
+        
+      </div>
+      <form action='' method='post'>
+        {% csrf_token %}
+        <div class="table-responsive">
+                
+              <div class="form-group">
+                {{ form.services | as_crispy_field }}
+              </div>
+              <div>
+              <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example">
+                
+                <option selected>Pick your time:</option>
+                {% for tieng in available %}
+                <option value="{{tieng.id}}">{{tieng.hour }} : {{tieng.minute }}</option>
+                {% endfor %}
+              </select>
+                <div/>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ form.full_name | as_crispy_field }}
+              </div>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ form.phone | as_crispy_field }}
+              </div>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ form.email | as_crispy_field }}
+              </div>
+
+              <div class="form-group col-md-6 mb-0">
+                {{ form.status | as_crispy_field }}
+              </div>
+            
+            <input type='submit' value='Take'>
+            <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
+        </div>
+        
+    </form>
+      
+{% endblock content %}
+
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 

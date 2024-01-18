@@ -22,71 +22,20 @@
 
 {% block content %}
 
-    <h1>Technician: {{ techDetail.name }}</h1>
-    
-
-    <form action='' method='get' id="second-form-get">
-        {% csrf_token %}
-        <div class="table-responsive">
-            <div id="day-form">
-                {{ secondForm.day_comes | as_crispy_field }}
-                
-              </div>
-                 
-            <input type='submit' value='Time Available'>
-            <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
-        </div>
-        
-    </form>
-    <div id="time-sugget">
-        <p>Times Suggestion:</p>
-        {% for tieng in available %}
-            
-            <li> {{tieng.hour }} : {{tieng.minute }} </li>
-        {% endfor %}
-      </div>
-    <div class="work-schedule">
-        <div>Work schedule:</div>
-        {% for khach in hen %}
-        
-    <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
-    {% endfor %}
-        
-      </div>
-      <form action='' method='post'>
+    <h1>Technician: {{ tech }}</h1>
+        <div>Chon ngay:  {{ ngay }}</div>
+      
+      <form action='{% url 'datHen:third_step' %}' method='get'>
         {% csrf_token %}
         <div class="table-responsive">
                 
               <div class="form-group">
-                {{ secondForm.services | as_crispy_field }}
+                {{ secondForm.day_comes | as_crispy_field }}
               </div>
-
-              <div class="form-group col-md-6 mb-0">
-                {{ secondForm.time_at | as_crispy_field }}
-            </div>
-
-              <div class="form-group col-md-6 mb-0">
-                {{ secondForm.full_name | as_crispy_field }}
-              </div>
-
-              <div class="form-group col-md-6 mb-0">
-                {{ secondForm.phone | as_crispy_field }}
-              </div>
-
-              <div class="form-group col-md-6 mb-0">
-                {{ secondForm.email | as_crispy_field }}
-              </div>
-
-             
-
               
-
-              <div class="form-group col-md-6 mb-0">
-                {{ secondForm.status | as_crispy_field }}
-              </div>
+              <input type='submit' onclick="window.location='{% url 'datHen:first_step' %}'; return false; " value='Back' >
+            <input type='submit' value='Next'  >
             
-            <input type='submit' value='Take'>
-            <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
         </div>
         
     </form>
