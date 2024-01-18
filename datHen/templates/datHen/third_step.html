@@ -23,7 +23,7 @@
 {% block content %}
 
     <h1>Technician: {{ tech }}</h1>
-    <h1>Ngay Den: {{ ngay }}</h1>
+    <h1>Ngay Den: {{ ngay | naturalday }}</h1>
   
     <div class="work-schedule">
         <div>Work schedule:</div>
@@ -37,15 +37,16 @@
         {% csrf_token %}
         <div class="table-responsive">
                 
-              <div class="form-group">
+              <div class="form-check">
                 {{ form.services | as_crispy_field }}
               </div>
+
               <div>
               <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example">
                 
                 <option selected>Pick your time:</option>
                 {% for tieng in available %}
-                <option value="{{tieng.id}}">{{tieng.hour }} : {{tieng.minute }}</option>
+                <option value="{{tieng.hour }}:{{tieng.minute }}">{{tieng.hour }} : {{tieng.minute }}</option>
                 {% endfor %}
               </select>
                 <div/>
@@ -65,7 +66,7 @@
               <div class="form-group col-md-6 mb-0">
                 {{ form.status | as_crispy_field }}
               </div>
-            
+
             <input type='submit' value='Take'>
             <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
         </div>

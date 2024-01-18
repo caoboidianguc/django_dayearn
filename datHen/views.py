@@ -124,6 +124,7 @@ class Second(View):
 class ThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/third_step.html'
+    success_url = reverse_lazy('datHen:listHen')
     
     def get(self,request):
         pk = request.session['id']
@@ -134,12 +135,45 @@ class ThirdStep(View):
         available = tech.get_available(ngay=ngay)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdForm()
+        form.instance.day_comes = ngay
         cont = {'form' : form, 
                 'tech': tech,
                 'available': available,
                 'hen': hen,
                 'ngay': ngay}
-        
+        form.instance.technician = tech
         return render(request, self.template, cont)
+    
+    def post(self,request):
+        pk = request.session['id']
+        tech = get_object_or_404(Technician, id=pk)
+        request.session['date'] = request.GET.get('day_comes')
+        ngay = request.session['date']
+        available = []
+        available = tech.get_available(ngay=ngay)
+        hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
+        form = ThirdForm(request.POST)
+        
+        if not form.is_valid():
+            cont = {'form' : form, 
+                'tech': tech,
+                'available': available,
+                'hen': hen,
+                'ngay': ngay}
+            return render(request, self.template, cont)
+        
+        khac = form.save(commit=False)
+        khac.day_comes = ngay
+        khac.technician = tech
+        khac.save()
+        form.save_m2m()
+        tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
+        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+        EmailMessage(self.chuDe, tinNhan, to=[form.instance.email]).send()
+        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
+        if tech.email != None:
+            EmailMessage(self.chuDe, thongbao, to=[tech.email]).send()
+                    
+        return redirect(self.success_url)
 
 
