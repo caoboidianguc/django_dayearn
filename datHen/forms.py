@@ -57,10 +57,10 @@ class DatHenFrom(forms.ModelForm):
     def clean_time_at(self):
         gio_den = super().clean()
         gio_den = self.cleaned_data['time_at']
-        day_come = super().clean()
-        day_come = self.cleaned_data['day_comes']
+        day_comes = super().clean()
+        day_comes = self.cleaned_data['day_comes']
         bamuoi = datetime.datetime.now() + timedelta(minutes=30)
-        if day_come == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
+        if day_comes == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
             raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
         return gio_den
         
@@ -78,26 +78,33 @@ class ExistClientForm(forms.ModelForm):
         model = Khach
         fields = ['full_name','phone']
         
-class FirstStepForm(forms.ModelForm):
-    class Meta:
-        model=Khach
-        fields = ['technician']
+
 
 class SecondStepForm(forms.ModelForm):
+    
     class Meta:
         model=Khach
-        fields = [ 'day_comes', 'time_at','full_name', 'phone', 'email', 'status']
-    
+        fields = ['day_comes','technician']
+    technician = forms.widgets.HiddenInput()
     day_comes = forms.DateField(
         widget=ChonNgay(attrs={'min': date.today()})
         )
+     
   
-    time_at = forms.TimeField(
-        input_formats=["%H:%M"],
-        widget=ChonNgay(attrs={
-            "type":"time",
-            })
-        )    
+
+class ThirdForm(forms.ModelForm):
+    
+    class Meta:
+        model=Khach
+        fields = ['time_at','full_name', 'phone', 'email', 'status','technician']
+    technician = forms.widgets.HiddenInput()
+  
+    # time_at = forms.TimeField(
+    #     input_formats=["%H:%M"],
+    #     widget=ChonNgay(attrs={
+    #         "type":"time",
+    #         })
+    #     )    
     email = forms.CharField(
         label="",
         required=False,
@@ -125,10 +132,9 @@ class SecondStepForm(forms.ModelForm):
     def clean_time_at(self):
         gio_den = super().clean()
         gio_den = self.cleaned_data['time_at']
-        day_come = super().clean()
-        day_come = self.cleaned_data['day_comes']
+        day_comes = super().clean()
+        day_comes = self.cleaned_data['day_comes']
         bamuoi = datetime.datetime.now() + timedelta(minutes=30)
-        if day_come == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
+        if day_comes == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
             raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
         return gio_den
-        
