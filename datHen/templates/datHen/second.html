@@ -23,7 +23,6 @@
 {% block content %}
 
     <h1>Technician: {{ tech }}</h1>
-        <div>Chon ngay:  {{ ngay }}</div>
       
       <form action='{% url 'datHen:third_step' %}' method='get'>
         {% csrf_token %}
