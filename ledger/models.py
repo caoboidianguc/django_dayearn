@@ -1,3 +1,5 @@
+from collections.abc import MutableMapping
+from typing import Any
 from django.db import models
 from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
@@ -44,7 +46,10 @@ class Technician(models.Model):
     
     def get_clients(self):
         allClients = self.khachs.all()
-        return allClients    
+        return allClients
+    
+    def get_today_clients(self):
+        return self.get_clients().filter(day_comes=datetime.date.today())
     
     def get_day_off(self):
         return DayOff.objects.filter(tech=self)
@@ -69,20 +74,31 @@ class Technician(models.Model):
         
             
     # thoigian = [(gio.hour, gio.minutes) for gio in timeSpan()]
+    @property
     def timeSpan(self):
         batdau = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
         ketthuc = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
         while batdau < ketthuc:
             yield batdau
             batdau += timedelta(minutes=15)
-
+    
+    def get_services(self, ngay):
+        clients = self.get_clients().filter(day_comes=ngay)
+        all_ser = []
+        for client in clients:
+            all_ser += [ser for ser in client]
+        return all_ser
+    
+   
         
     
     
 class Khach(models.Model):
     class Status(models.TextChoices):
         online = "WebSite"
+        anyone = "Anyone"
         cancel = "Cancel"
+        
         
     full_name = models.CharField(max_length=25)
     phone = PhoneNumberField()
@@ -92,18 +108,20 @@ class Khach(models.Model):
     first_comes = models.DateTimeField(editable=False,auto_now_add=True)
     desc = models.TextField(max_length=250,blank=True, null=True)
     services = models.ManyToManyField("Service", blank=True, related_name="khachs")
-    status = models.CharField(choices=Status.choices, max_length=12, default=Status.online)
+    status = models.CharField(choices=Status.choices, max_length=20, default=Status.online)
     day_comes = models.DateField()
     time_at = models.TimeField()
     payment = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     tags = TaggableManager()
-    
+    birthday = models.DateField(null=True, blank=True)
+    # khach = models.Manager()
     class Meta:
         unique_together = ('full_name','phone',)
         ordering = ['full_name','-day_comes']
 
     def __str__(self) -> str:
         return self.full_name
+    # this should be on clean method
     def huy(self):
         if self.status == "Cancel":
             self.time_at = self.technician.end_work
@@ -155,20 +173,9 @@ class Service(models.Model):
         if self.time_perform <= timedelta(0):
             raise ValidationError("Time must be greater than  0 !")
         return super().save(*kwag, **kwargs)
-    
-# Service.khachs.all() <- ffrom Khach.services.models.manytomany
-# class Appointment(models.Model):
-    
-#     tech = models.ManyToManyField(Technician, on_delete=models.DO_NOTHING, related_name='appointments')
-#     service = models.ManyToManyField(Service, on_delete=models.DO_NOTHING)
-#     khach = models.ForeignKey(Khach, on_delete=models.DO_NOTHING)
-#     day_comes = models.DateField()
-#     time_at = models.TimeField()
-    
-    # def clean(self):
-    #     if self.start >= self.end:
-    #         raise ValidationError("Start time must be before end time")
-      
+    class Meta:
+        unique_together = ('service','price')
+        ordering = ['price']
 
 
 
@@ -187,3 +194,11 @@ class DayOff(models.Model):
                 raise ValidationError("Start date must be before end date")
 
 
+class Chat(models.Model):
+    text = models.TextField(validators=[MinLengthValidator(1, "Text must be greater than 1 characters")])
+    created_at = models.DateTimeField(auto_now_add=True)
+    tech = models.ForeignKey(Technician, on_delete=models.CASCADE,related_name="tech_chats")
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats")
+    def __str__(self):
+        if len(self.text) < 15 : return self.text
+        return self.text[:11] + ' ...'

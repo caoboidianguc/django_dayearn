@@ -4,16 +4,18 @@
 
 {% block headding %}
 <h1 class="title">Please Login</h1>
+<span>Or</span>
+<a class="btn btn-outline-primary" href="{% url 'ledger:register' %}" role="button">Register</a>
 {% endblock headding %}
     
 
 {% block content %}
-    <div>
-        <a href="{% url 'ledger:register' %}">Register Account</a>
-    </div>
+    
     <form action="" method="post">
         {% csrf_token %}
+        <div class="col-md-4 mb-3">
         {{ form | crispy }}
+        </div>
         <input type="submit" value="Login">
     <input type="submit" onclick="window.location='{% url 'ledger:index' %}'; return false; " value="Cancel">
     </form>

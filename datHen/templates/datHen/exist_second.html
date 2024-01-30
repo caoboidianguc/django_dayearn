@@ -11,7 +11,7 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='title'>Client's Schedule Second Step</h1>
+    <h1 class='title'>Exist Client's Schedule Second Step</h1>
     {% if messages %} 
     {% for tin in messages %} 
     <li class="tinnhan">{{ tin }}</li>
@@ -24,7 +24,7 @@
 
     <h1>Technician: {{ tech }}</h1>
       
-      <form action='{% url 'datHen:third_step' %}' method='get'>
+      <form action='{% url 'datHen:third_step_exist' %}' method='get'>
         {% csrf_token %}
         <div class="table-responsive">
                 
