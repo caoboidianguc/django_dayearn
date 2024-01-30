@@ -1,39 +1,63 @@
 {% extends 'base.html' %}
+{% comment %} {% static "index.js" %} {% endcomment %}
 
+{% block nutChinh %}
+        <a class="nav-link" href="{% url 'ledger:add_employee' %}">Add Tech</a>
+{% endblock nutChinh %}
 
-{% block headding %}
-<h1 class="title">Employees</h1>
-{% endblock headding %}
-    
 {% block content %}
 {% if not user.is_authenticated %}
 <div>
     <a href="{% url 'ledger:register' %}">Register Account</a>
 </div>
 {% endif %}
-    {% if employees %}
-    {% for employee in employees %}
-    <div class='box'>{{ employee.name }} || {{ employee.phone }}
-      <p>From: {{ employee.start_work_at }} </p> 
-      <p>To: {{ employee.end_work }} </p> 
-      {% comment %} <p>Clients: {{ employee.khachs.all }} </p>  {% endcomment %}
-    </div>
-    {% endfor %}
-    {% endif %}
-<section class="hero is-small">
-  <div class="hero-body">
-    <div class="container">
+
+
+
+{% if employee.status == "Working" %}
+    <h1>Working..</h1>
+    <div class="container text-center">
+      <div class="row row-cols-auto">
+        {% for employee in employees %}
+        <div class="col">
+          <button class="card btn btn-success" style="width: 16rem;" id="em_{{employee.name}}">
+            <div class="card-body">
+                 <span class="card-title"> {{ employee.name }}--{{ employee.status }}</span>
+            </div>
+          </button>
+        </div>
+        {% endfor %} 
+      </div>
+    </div>   
+        <hr>
+  {% else %}
+            
+        <h1>No body work</h1>
+        
+        <div class="container text-center">
+          <div class="row row-cols-auto">
+            {% for employee in employees %}
+            <div class="col">
+              <button class="card" style="width: 14rem;" id="off_{{employee.name}}">
+                <div class="card-body">
+                     <span class="card-title text-success-emphasis"> {{ employee.name }}--{{ employee.status }}</span>
+                </div>
+              </button>
+            </div>
+            {% endfor %} 
+          </div>
+        </div>
       
-      <h3>get in -></h3>
-      {% if henTech %}
-      <p>{{ henTech.name }}</p>
-      {% endif %}
-    </div>
-  </div>
-</section>
+      
+      
+{% endif %}
+
+
+
+
+
 {% endblock content %}
     
 {% block footer %}
-    <strong>Quang</strong> here to <a href="{% url 'password_change' %}">Change Password</a>.
+    <a class="btn btn-primary" href="{% url 'password_change' %}">Change Password</a>
 {% endblock footer %}
-        

@@ -4,7 +4,12 @@
 
 
 {% block headding %}
-<h1 class="title">Linh's Tailoring</h1>
+<h1>DayEarn Home</h1>
+{% if messages %} 
+    {% for tin in messages %} 
+    <li class="text-success fs-4">{{ tin }}</li>
+    {% endfor %}
+    {% endif %}
 {% endblock headding %}
 
 

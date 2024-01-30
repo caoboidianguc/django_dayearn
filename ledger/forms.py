@@ -10,6 +10,9 @@ class TechForm(forms.ModelForm):
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),
                         label="")
+    name = forms.CharField(widget=forms.TextInput(
+                        attrs={'placeholder': 'Tech Name'}),
+                        label="")
     # start_work_at = forms.TimeField(
     #     widget=ChonNgay(attrs={
     #         'type': 'time'
@@ -19,6 +22,10 @@ class TechForm(forms.ModelForm):
         widget=ChonNgay(attrs={
             'type': 'time'
             }))
+    email = forms.CharField(widget=forms.TextInput(
+                        attrs={'placeholder': 'Email'}),
+                        label="",
+                        required=False)
     class Meta:
         model = Technician
         fields = ["name","phone", "email","start_work_at","end_work"]
