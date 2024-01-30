@@ -5,53 +5,124 @@
 
 
 {% block nutChinh %}
-<a class="navbar-item" href="{% url 'datHen:first_step' %}"><h1 class='title'>First Step</h1></a>
-<strong>|</strong>
-<a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
-<strong>|</strong>
-<a class="navbar-item" href="{% url 'datHen:find_client' %}"><h1 class='title'>Been here</h1></a>
+<a class="nav-link" href="{% url 'datHen:first_step' %}">New Client</a>
+
+        {% comment %} <a class="nav-link" href="{% url 'datHen:schedule' %}">New Client</a> {% endcomment %}
+
+        <a class="nav-link" href="{% url 'datHen:find_client' %}">Been here</a>
+        
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='title'>Client's Schedule</h1>
     {% if messages %} 
     {% for tin in messages %} 
     <li>{{ tin }}</li>
     {% endfor %}
     {% endif %}
-    
 {% endblock headding %}
 
 
 {% block content %}
 
-    <div>
-        Pick {{ day }}
+<div class="container_tech">
+    {%for tech in allTech %}
+    <div class="col-md-2 align-text-top" id="tech">
+        <span class="fs-3" >
+            {{tech.name}}
+        </span>
+            {%for khach in tech.get_today_clients %}
+                <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">{{ khach.full_name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at | naturaltime }}</span></h6>
+                        <p class="card-text">
+                                <span class="badge {% if khach.status == "Anyone" %} bg-warning 
+                                {%elif khach.status == 'Cancel' %} bg-danger
+                                {% else %} bg-success
+                                {% endif %} text-wrap fs-6" style="width: 10rem;">
+                                        With: {{khach.technician}}
+                                        {%if khach.status == "Anyone" %}
+                                    </br>Alternate: {{khach.status }}
+                                            {% elif khach.status == 'Cancel' %}
+                                    </br>Had been {{khach.status}}
+                                            {%endif%}
+                                </span>
+                        </p>
+                        Get: {% if khach.services %}
+                        {% for dichvu in khach.services.all %}
+                        <li>{{ dichvu }} </li>
+                        {% endfor %}
+                        {% endif %} 
+                    </div>
+                </div>
+        {%endfor%}
     </div>
-    {% if khachHen %}
-    {% for khach in khachHen %}
-    <ul>
-    <div class='box'>
-        <div ><strong>{{ khach.full_name }}</strong> <span>At: {{ khach.time_at | naturaltime }}</span>      </div>
-         <div>
-            With: {{khach.technician }}
-         </div>
-         {% if khach.status == "Cancel" %}
-         <div class="text-danger">Canceled</div>
-         {% else %}
-        <p>Schedule: <b>{{ khach.status }} </b></p>
-        {% endif %}
-        Get: {% if khach.services %}
-        {% for dichvu in khach.services.all %}
-        <li>{{ dichvu }} </li>
-        {% endfor %}
-        {% endif %}       
-    </div>
-</ul>
-        {% endfor %}
+    {%endfor%}
+    
+</div>
 
-    {% endif %}
 
+{% comment %} {% if khachHen %}
+{% for khach in khachHen %}
+   
+        <div class="card" style="width: 18rem;" id="client_{{khach.full_name}}">
+            <div class="card-body">
+            <h5 class="card-title">{{ khach.full_name }}</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">At: {{ khach.time_at | naturaltime }}</h6>
+            <p class="card-text">
+                <span class="badge {% if khach.status == "Anyone" %} bg-warning 
+                {%elif khach.status == 'Cancel' %} bg-danger
+                {% else %} bg-success
+                {% endif %} text-wrap fs-6" style="width: 12rem;">
+                    With: {{khach.technician }}
+                    {%if khach.status == "Anyone" %}
+            </br>Alternate: {{khach.status }}
+                    {% elif khach.status == 'Cancel' %}
+            </br>Had been {{khach.status}}
+                    {%endif%}
+            </span>
+            </p>
+            
+            Get: {% if khach.services %}
+            {% for dichvu in khach.services.all %}
+            <li>{{ dichvu }} </li>
+            {% endfor %}
+            {% endif %} 
+            </div>
+        </div>
+
+        {% endfor %}
+        <hr/>
+        <div id="done">
+        </div>
+        
+    {% endif %} {% endcomment %}
+    
+
+    <script>
+        $(document).ready(function(){
+          $("button").click(function(){
+            $("#").hide();
+          });
+        });
+        </script>
+        <style type="text/css">
+            div.container_tech {
+                height: auto;
+                text-align: top;
+                overflow: auto;
+                white-space: nowrap;
+              }
+              
+              div.container_tech #tech {
+                display: inline-block;
+                text-align: top;
+                padding: 1px;
+                text-decoration: none;
+              }
+              
+
+        </style>
 {% endblock content %}
 
 
@@ -60,3 +131,9 @@
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
  
+{% comment %} <script type="module">
+    import * as bootstrap from 'bootstrap'
+    <button id="popoverButton" type="button" class="btn btn-primary btn-lg" data-bs-toggle="popover" title="ESM in Browser" data-bs-content="Bang!">Custom popover</button>
+
+    new bootstrap.Popover(document.getElementById('popoverButton'))
+  </script> {% endcomment %}

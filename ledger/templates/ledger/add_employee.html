@@ -3,27 +3,36 @@
 
 
 {% block nutChinh %}
-<a class="navbar-item" href="{% url 'ledger:home' %}"><h1 class='title'>Done</h1></a>
+    <a class="nav-link" href="{% url 'ledger:home' %}"><h1 class='title'>Done</h1></a>
 {% endblock nutChinh %}
+
 {% block headding %}
-<h2 class="title">
-    Add Employee
-  </h2>
+        <h2 class="title">
+            Add Employee
+        </h2>
+        {% if messages %} 
+            {% for tin in messages %} 
+            <div class="fs-3 text-success">
+                {{ tin }}</div>
+            {% endfor %}
+            {% endif %}
+
 {% endblock headding %}
     
 {% block content %}
-{% if messages %} 
-    {% for tin in messages %} 
-    <li>{{ tin }}</li>
-    {% endfor %}
-    {% endif %}
 
-<form action="" method="post">
-    {% csrf_token %}
-    <table>
-        {{ form | crispy }}
-    </table>
-    <input type="submit" value="Add">
-    <input type="submit" onclick="window.location='{% url 'ledger:index' %}'; return false; " value="Cancel">
-</form>    
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="form-floating col-md-3 align-items-center">
+            <div class="col-auto ">
+            <table>
+                
+                {{ form | crispy }}
+                
+            </table>
+        </div>
+            <button type="submit" class="btn btn-primary w-25">Add</button>
+            <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
+        </div>
+        </form>    
 {% endblock content %}

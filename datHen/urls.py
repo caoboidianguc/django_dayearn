@@ -11,3 +11,8 @@ urlpatterns = [
     path('third_step/', views.ThirdStep.as_view(), name='third_step' ),
     path('tech/<int:pk>/', views.Second.as_view(), name='technician_detail' ),
 ]
+
+urlpatterns += [
+    path('tech_exist/<int:pk>/', views.ExistSecond.as_view(), name='technician_detail_exist' ),
+    path('third_step_exist/', views.ExistThirdStep.as_view(), name='third_step_exist' ),
+]

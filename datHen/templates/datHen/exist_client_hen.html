@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 
 {% block nutChinh %}
-<a class="navbar-item" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
+<a class="nav-link" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
 {% endblock nutChinh %}
 
 {% block headding %}
@@ -16,8 +16,9 @@
         {% csrf_token %}
         <div class="table-responsive">
             <table class="table table-primary">
+                <div class="form-group col-md-4">
                 {{ formDatHen | crispy }}
-
+                </div>
             </table>
             <input type='submit' value='Find'>
             <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' >
