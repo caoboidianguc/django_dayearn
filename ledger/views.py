@@ -4,20 +4,33 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
 from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
 from django.contrib import messages
+from django.http import HttpResponse
 
 
 class AllEmployee(ListView):
     template = 'ledger/index.html'
     def get(self,request):
-        employee = Technician.objects.all()
-        # employee = Technician.objects.filter(owner=request.user)
+        # employee = Technician.objects.all()
+        employee = Technician.objects.filter(owner=request.user)
         cont = {'employees': employee }
         return render(request, self.template, cont)
     
+class EmployeeTurn(View):
+    def post(self, pk):
+        tech = get_object_or_404(Technician, id=pk)
+        try:
+            tech.save()
+        except Technician.DoesNotExist as e:
+            pass
+        return HttpResponse()
+          
+          
+          
+          
 class AllServices(LoginRequiredMixin, ListView):
     
     template = 'ledger/list_services.html'

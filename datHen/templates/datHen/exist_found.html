@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block nutChinh %}
+<a class="nav-link" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
+{% endblock nutChinh %}
+{% block headding %}
+    <h1 class='title'>Reservation</h1>
+    
+{% endblock headding %}
+
+
+{% block content %}
+<h1>Please pick one mark technician_detail_exist</h1>
+    
+     
+    {% for tech in allTech %}
+    <div>
+        <a href="{% url 'datHen:technician_detail_exist' tech.id %}"> {{ tech.name }} </a>
+</div>
+     {% endfor %}
+
+{% endblock content %}
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 
