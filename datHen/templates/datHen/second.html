@@ -1,13 +1,11 @@
-{% extends 'base.html' %}
+{% comment %} {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load humanize %}
 
 
 
 {% block nutChinh %}
-{% comment %} <a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
-<strong>|</strong>
-<a class="navbar-item" href="{% url 'datHen:exist_client' %}"><h1 class='title'>Been here</h1></a> {% endcomment %}
+
 {% endblock nutChinh %}
 
 {% block headding %}
@@ -46,4 +44,51 @@
 {% block footer %}
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
- 
+  {% endcomment %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css" rel="stylesheet"/>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"></head>
+<body>
+
+<main class="container">
+    <div class="row" style="padding-top: 100px">
+        <div class="col">
+            <input data-date-format="dd/mm/yyyy" id="datepicker">
+        </div>
+    </div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<style type="text/css">
+        // solution 1:
+        .datepicker {
+            font-size: 0.875em;
+        }
+        /* solution 2: the original datepicker use 20px so replace with the following:*/
+        
+        .datepicker td, .datepicker th {
+            width: 1.5em;
+            height: 1.5em;
+        }
+        
+    </style>
+<script type="text/javascript">
+    $('#datepicker').datepicker({
+        weekStart: 1,
+        daysOfWeekHighlighted: "6,0",
+        daysOfWeekDisabled: "0,1",
+        autoclose: true,
+        todayHighlight: true,
+    });
+    $('#datepicker').datepicker("setDate", new Date());
+</script>
+</body>
+
+{% comment %} https://bootstrap-datepicker.readthedocs.io/en/latest/ {% endcomment %}
