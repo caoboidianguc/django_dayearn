@@ -3,7 +3,7 @@ from .models import Technician, Khach, Service
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
-from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm
+from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, TurnForm
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
@@ -18,17 +18,7 @@ class AllEmployee(ListView):
         employee = Technician.objects.filter(owner=request.user)
         cont = {'employees': employee }
         return render(request, self.template, cont)
-    
-class EmployeeTurn(View):
-    def post(self, pk):
-        tech = get_object_or_404(Technician, id=pk)
-        try:
-            tech.save()
-        except Technician.DoesNotExist as e:
-            pass
-        return HttpResponse()
-          
-          
+              
           
           
 class AllServices(LoginRequiredMixin, ListView):
@@ -92,6 +82,25 @@ class AddService(LoginRequiredMixin, View):
         ser.save()
         form.save_m2m
         return redirect(self.success_url)
+   
+class EmployeeTurn(View):
+    temp = "ledger/index.html"
+    success_url = reverse_lazy("ledger:tech_turn")
+    def get(self, request):
+        form = TurnForm()
+        cont = {'form': form}
+        return render(request, self.temp, cont)
+    
+    def post(self,request):
+        form = TurnForm(request.POST)
+        if not form.is_valid():
+            cont = {'form': form}
+            return render(request, self.temp, cont)
+        turn = form.save(commit=False)
+        turn.save()
+        form.save_m2m
+        return redirect(self.success_url)
+        
     
 class CustomerVisit(View):
     template = "home.html"
@@ -99,3 +108,4 @@ class CustomerVisit(View):
         return render(request, self.template)
     def post(self, request):
         pass
+
