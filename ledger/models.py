@@ -99,7 +99,7 @@ class Khach(models.Model):
         anyone = "Anyone"
         cancel = "Cancel"
         
-        
+    
     full_name = models.CharField(max_length=25)
     phone = PhoneNumberField()
     email = models.EmailField(max_length=40, null=True, blank=True)
@@ -108,13 +108,13 @@ class Khach(models.Model):
     first_comes = models.DateTimeField(editable=False,auto_now_add=True)
     desc = models.TextField(max_length=250,blank=True, null=True)
     services = models.ManyToManyField("Service", blank=True, related_name="khachs")
-    status = models.CharField(choices=Status.choices, max_length=20, default=Status.online)
+    status = models.CharField(choices=Status.choices, max_length=20, default=Status.online, help_text="choice Anyone for alternate! or cancel your appointment.")
     day_comes = models.DateField()
     time_at = models.TimeField()
     payment = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     tags = TaggableManager()
     birthday = models.DateField(null=True, blank=True)
-    # khach = models.Manager()
+    
     class Meta:
         unique_together = ('full_name','phone',)
         ordering = ['full_name','-day_comes']
@@ -159,13 +159,14 @@ class Khach(models.Model):
     def get_absolute_url(self):
         return reverse("datHen:exist_found", kwargs={"pk": self.pk})
     
-    
+
     
     
 class Service(models.Model):
     service = models.CharField(max_length=30)
     price = models.FloatField()
     time_perform = models.DurationField()
+    description = models.CharField(max_length=300, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     def __str__(self) -> str:
         return self.service
@@ -178,11 +179,18 @@ class Service(models.Model):
         ordering = ['price']
 
 
-
+class TakeTurn(models.Model):
+    time_at = models.TimeField(auto_now_add=True)
+    tech = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name='tech_turn')
+    services = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='ser_turn')
+    def __str__(self) -> str:
+        return f"{self.services} at : {self.time_at}"
+    
+    
 class DayOff(models.Model):
     tech = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="dayoff")
     start_date = models.DateField()
-    end_date = models.DateField()
+    end_date = models.DateField(blank=True)
     note = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
@@ -195,10 +203,10 @@ class DayOff(models.Model):
 
 
 class Chat(models.Model):
-    text = models.TextField(validators=[MinLengthValidator(1, "Text must be greater than 1 characters")])
+    text = models.TextField(validators=[MinLengthValidator(1, "Say something!!")])
     created_at = models.DateTimeField(auto_now_add=True)
-    tech = models.ForeignKey(Technician, on_delete=models.CASCADE,related_name="tech_chats")
-    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats")
+    tech = models.ForeignKey(Technician, on_delete=models.CASCADE,related_name="tech_chats", null=True, blank=True)
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats", null=True, blank=True)
     def __str__(self):
         if len(self.text) < 15 : return self.text
         return self.text[:11] + ' ...'

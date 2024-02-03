@@ -5,23 +5,23 @@ from ledger.models import Technician, Khach, Service
 class TechnicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Technician
-        fields = ('name', 'phone', 'owner')
+        fields = '__all__'
         
         
 # class ServiceSerializer(serializers.ModelSerializer):
-#     dichVu = serializers.CharField(max_length=30)
+#     service = serializers.CharField(max_length=30)
 #     price = serializers.FloatField(source='gia')
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ('dichVu', 'gia')
+        fields = ('service', 'price', 'time_perform','description')
 
 
 class KhachSerializer(serializers.ModelSerializer):
-    services = ServiceSerializer()
+    services = ServiceSerializer(read_only=True, many=True)
     technician = TechnicSerializer()
     class Meta:
         model = Khach
-        fields = ('full_name', 'phone', 'email', 'diem', 'desc', 'services', 'technician')
+        fields = ('id','full_name', 'phone', 'email','time_at','day_comes', 'points', 'desc', 'services', 'technician')
         
         

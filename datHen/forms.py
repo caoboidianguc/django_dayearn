@@ -7,7 +7,6 @@ from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column
 from django.core.exceptions import ValidationError
-
  
 
     
@@ -127,11 +126,8 @@ class ThirdForm(forms.ModelForm):
         data = super().clean()
         data = self.cleaned_data['full_name']
         return str(data).upper()
-    # def clean_day_comes(self):
-    #     data = self.cleaned_data["day_comes"]
-    #     if data < date.today():
-    #         raise ValidationError("Your schedule was in the past!")
-    #     return data
+    
+    
     
 
 
@@ -154,3 +150,11 @@ class ThirdFormExist(forms.ModelForm):
         data = super().clean()
         data = self.cleaned_data['full_name']
         return str(data).upper()
+    
+    # def clean_time_at(self):
+    #     gio_den = super().clean()
+    #     gio_den = self.cleaned_data['time_at']
+    #     if gio_den < datetime.datetime.now().time():
+    #         raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
+    #     return gio_den
+   
