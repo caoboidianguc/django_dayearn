@@ -1,5 +1,5 @@
 from django import forms
-from .models import Technician, Khach, Service, DayOff
+from .models import Technician, Khach, Service, DayOff, TakeTurn
 from django.contrib.auth.forms import UserCreationForm
 from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
@@ -31,7 +31,10 @@ class TechForm(forms.ModelForm):
         fields = ["name","phone", "email","start_work_at","end_work"]
         
         
-
+class TurnForm(forms.ModelForm):
+    class Meta:
+        model = TakeTurn
+        fields = ['tech', 'services']
 
 class ClientForm(forms.ModelForm):
     email = forms.CharField(required=False)
