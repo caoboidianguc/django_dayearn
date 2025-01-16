@@ -22,15 +22,16 @@
 
     <h1>Technician: {{ tech }}</h1>
     <h1>Day comes: {{ ngay | naturalday }}</h1>
-  
-    {% comment %} <div class="work-schedule">
+    <h1>hom nay: {{ hnay }}</h1>
+    
+    <div class="work-schedule">
         <div>Work schedule:</div>
         {% for khach in hen %}
         
     <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
     {% endfor %}
         
-      </div> {% endcomment %}
+      </div>
       {% if form.errors %}
     <div class="alert alert-danger">
         {{ form.errors }}
@@ -78,6 +79,12 @@
         
     </form>
       
+
+    <script>
+      var ngay = new Date()
+      var gio = ngay.getHours()
+
+    </script>
 {% endblock content %}
 
 

@@ -1,4 +1,4 @@
-{% comment %} {% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load humanize %}
 
@@ -29,23 +29,23 @@
           <div class="form-group col-md-4">
                 {{ secondForm.day_comes | as_crispy_field }}
               </div>
-              
+
               <input type='submit' onclick="window.location='{% url 'datHen:first_step' %}'; return false; " value='Back' >
             <input type='submit' value='Next'  >
             
         </div>
         
     </form>
-      
+    
 {% endblock content %}
-
 
 
 {% block footer %}
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
-  {% endcomment %}
-<!doctype html>
+  
+
+{% comment %} <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -53,12 +53,13 @@
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css" rel="stylesheet"/>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"></head>
-<body>
+
+    <body>
 
 <main class="container">
     <div class="row" style="padding-top: 100px">
         <div class="col">
-            <input data-date-format="dd/mm/yyyy" id="datepicker">
+            <input data-date-format="YYYY-MM-DD" id="datepicker">
         </div>
     </div>
 </main>
@@ -89,6 +90,6 @@
     });
     $('#datepicker').datepicker("setDate", new Date());
 </script>
-</body>
+</body> {% endcomment %}
 
 {% comment %} https://bootstrap-datepicker.readthedocs.io/en/latest/ {% endcomment %}
