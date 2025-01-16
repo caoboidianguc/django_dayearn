@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Khach, Technician
 from django.views.generic import View, ListView
 from django.urls import reverse_lazy
-from .forms import DatHenFrom, ExistClientForm, SecondStepForm, ThirdForm, ThirdFormExist
-from datetime import timedelta
+from .forms import DatHenFrom, ExistClientForm, SecondStepForm, ThirdForm, ThirdFormExist, ServicesChoice
+from datetime import timedelta, date
 from django.contrib import messages
 from django.core.mail import EmailMessage
 import datetime
@@ -16,11 +16,11 @@ class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
     def get(self, request):
         allTech = Technician.objects.filter(owner=request.user)
-        # hnay = Khach.objects.filter(day_comes=datetime.datetime.today()).order_by("time_at")
+        # hnay = Khach.objects.filter(day_comes=datetime.datetime.today()).order_by("time_at", owner=request.user)
         
         allKhachHen = {
             # 'khachHen': hnay,
-                       'allTech': allTech,
+            'allTech': allTech,
                        }
         return render(request, self.template_name, allKhachHen)
 
@@ -71,7 +71,8 @@ class ExistThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/exist_third_step.html'
     success_url = reverse_lazy('ledger:index')
-    
+    gioHienTai = datetime.datetime.now().hour
+    hnay = date.today().strftime("%Y-%m-%d")
     def get(self,request):
         client_id = request.session['client_id']
         pk = request.session['tech_id']
@@ -80,7 +81,11 @@ class ExistThirdStep(View):
         request.session['date'] = request.GET.get('day_comes')
         ngay = request.session['date']
         available = []
-        available = tech.get_available(ngay=ngay)
+        if ngay == self.hnay:
+            available = tech.get_available(ngay=ngay)
+            available = [gio for gio in available if gio.hour > self.gioHienTai]
+        else:
+            available = tech.get_available(ngay=ngay)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdFormExist(instance=client)
         form.instance.day_comes = ngay
@@ -126,73 +131,8 @@ class ExistThirdStep(View):
                     
         return redirect(self.success_url)
 
-
-# class ExistFound(View):
-#     template = 'datHen/layhen.html'
-#     success_url = reverse_lazy('datHen:listHen')
-#     chuDe = "Dayearns Confirm schedule"
-#     def get(self, request, pk):
-#         khach = get_object_or_404(Khach, id=pk)
-#         request.session['client_id'] = pk
-#         form = DatHenFrom(instance=khach)
-#         cont = {'formDatHen': form}
-#         return render(request, self.template, cont)
-    
-#     def post(self, request, pk):
-#         tech = Technician.objects.all()
-#         khach = get_object_or_404(Khach, id=pk)
-#         form = DatHenFrom(request.POST, instance=khach)
-#         if not form.is_valid():
-#             cont = {'formDatHen': form}
-#             return render(request, self.template, cont)
-#         khac = form.save(commit=False)
-#         khac.save()
-#         form.save_m2m()
-#         if form.instance.status == "Cancel":
-#             tinNhan = "You had canceled. Thanks!"
-#         else:
-#             tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
-#         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-#         EmailMessage(self.chuDe, tinNhan, to=[form.instance.email]).send()
-#         thongbao = f"{form.instance.full_name} book appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
-#         if form.instance.technician != None:
-#             for empl in tech:
-#                 if form.instance.technician == empl:
-#                     EmailMessage(self.chuDe, thongbao, to=[empl.email]).send()
-#         return redirect(self.success_url)
     
 
-    # this view for user
-class KhachLayHen(LoginRequiredMixin,View):
-    template = 'datHen/layhen.html'
-    success_url = reverse_lazy('datHen:listHen')
-    chuDe = "Dayearns Confirm schedule"
-    
-    def get(self, request):
-        form = DatHenFrom()
-        cont = {'formDatHen': form}
-        return render(request, self.template, cont)
-    
-    def post(self, request):
-        tech = Technician.objects.all()
-        form = DatHenFrom(request.POST)
-        if not form.is_valid():
-            cont = {'formDatHen': form}
-            return render(request, self.template, cont)
-        khac = form.save(commit=False)
-        khac.save()
-        form.save_m2m()
-        tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
-        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        EmailMessage(self.chuDe, tinNhan, to=[form.instance.email]).send()
-        thongbao = f"{form.instance.full_name} book appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
-        if form.instance.technician != None:
-            for empl in tech:
-                if form.instance.technician == empl:
-                    EmailMessage(self.chuDe, thongbao, to=[empl.email]).send()
-        return redirect(self.success_url)
-
-    
 class FirstStep(View):
     template = 'datHen/first_step.html'
     tech = Technician.objects.all()
@@ -206,31 +146,37 @@ class Second(View):
     def get(self, request, pk):
         request.session['id'] = None
         request.session['date'] = request.GET.get('day_comes')
-        date = request.session['date']
+        # date = request.session['date']
         tech = get_object_or_404(Technician, id=pk)        
         secondForm = SecondStepForm()
         cont = {'tech': tech,
                 'secondForm': secondForm,
-                'ngay': date
+                # 'ngay': date
             }
         request.session['id'] = pk
-        # request.session['day_comes'] = datetime.datetime.today().strftime("%Y-%m-%d")
         return render(request, self.template, cont)
     
-
 # client view
 class ThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/third_step.html'
     success_url = reverse_lazy('ledger:index')
-    
+    gioHienTai = datetime.datetime.now()
+    hnay = date.today().strftime("%Y-%m-%d")
     def get(self,request):
         pk = request.session['id']
         tech = get_object_or_404(Technician, id=pk)
         request.session['date'] = request.GET.get('day_comes')
         ngay = request.session['date']
         available = []
-        available = tech.get_available(ngay=ngay)
+        ngayDate = datetime.datetime.strptime(ngay, "%Y-%m-%d").date()
+        if ngay == self.hnay:
+            available = tech.get_available(ngay=ngay)
+            available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
+        elif ngayDate.weekday() == 6:
+            available = []
+        else:
+            available = tech.get_available(ngay=ngay)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdForm()
         
@@ -239,7 +185,8 @@ class ThirdStep(View):
                 'tech': tech,
                 'available': available,
                 'hen': hen,
-                'ngay': ngay}
+                'ngay': ngay,
+                }
         form.instance.technician = tech
         return render(request, self.template, cont)
     

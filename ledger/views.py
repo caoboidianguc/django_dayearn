@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 
 
-class AllEmployee(ListView):
+class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/index.html'
     def get(self,request):
         # employee = Technician.objects.all()
@@ -101,7 +101,7 @@ class EmployeeTurn(View):
         form.save_m2m
         return redirect(self.success_url)
         
-    
+
 class CustomerVisit(View):
     template = "home.html"
     def get(self, request):

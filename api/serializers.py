@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from ledger.models import Technician, Khach, Service
+import bleach
+from datetime import timedelta, date
+import datetime
 
 
 class TechnicSerializer(serializers.ModelSerializer):
@@ -15,13 +18,23 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ('service', 'price', 'time_perform','description')
+        extra_kwargs = {
+            'price': {'min_value': 1}
+        }
 
 
 class KhachSerializer(serializers.ModelSerializer):
-    services = ServiceSerializer(read_only=True, many=True)
+    services = ServiceSerializer(many=True)
     technician = TechnicSerializer()
     class Meta:
         model = Khach
         fields = ('id','full_name', 'phone', 'email','time_at','day_comes', 'points', 'desc', 'services', 'technician')
-        
-        
+    
+    def validate(self, attrs):
+        attrs['full_name'] = bleach.clean(attrs['full_name'])
+        attrs['desc'] = bleach.clean(attrs['desc'])
+        muoi = datetime.now() + timedelta(minutes=13)
+        if (attrs['day_comes'] == date.today() and attrs['time_at'] < datetime.time(hour=muoi.hour, minute=muoi.minute)):
+            raise serializers.ValidationError("Can't make 10 minute ahead!")
+        return super().validate(attrs)
+  
