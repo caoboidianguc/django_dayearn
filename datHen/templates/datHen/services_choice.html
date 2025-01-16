@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+
+{% block nutChinh %}
+{% endblock nutChinh %}
+
+{% block headding %}
+    <h1 class='title'>Please Choice your Services:</h1>
+    
+{% endblock headding %}
+
+
+{% block content %}
+
+
+    <h1>All Services</h1>
+    <div>
+        Services Pick:
+        <div>
+        {% for serv in dv %} 
+            <p> {{ serv }} </p>
+         {% endfor %}
+        </div>
+    </div>
+    {% comment %} {% url 'datHen:first_step' %} {% endcomment %}
+    <form action="" method='get'>
+        {% csrf_token %}
+        <div class="table-responsive">
+                
+            <div class="form-group col-md-4">
+                {{ form }}
+            </div>
+
+              <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Back' >
+            <input type='submit' value='Next'  >
+            
+        </div>
+        
+    </form>
+
+
+{% endblock content %}
+
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 

@@ -20,20 +20,26 @@ class SingleTech(generics.RetrieveUpdateAPIView):
 # @api_view()
 # def khach(request):
 #     items = Khach.objects.all()
+#     tim = request.query_params.get('full_name')
+#     if tim:
+#         items = items.filter(full_name__contains=tim)
+        
 #     serialized_item = KhachSerializer(items, many=True)
 #     return Response(serialized_item.data)
+
 class SingleKhach(generics.RetrieveUpdateAPIView):
     queryset = Khach.objects.all()
     serializer_class = KhachSerializer
     
 class AllKhachView(generics.ListCreateAPIView):
     queryset = Khach.objects.all()
-    serializer_class = KhachSerializer    
+    serializer_class = KhachSerializer
+    # search_fields=['full_name']   work with viewsets.ModelViewSet
+    
 
 # generics.ListCreateAPIView => get, post
 class ServiceView(generics.ListAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
-    
     
     

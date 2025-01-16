@@ -12,6 +12,7 @@ pip install "django-phonenumber-field[phonenumbers]"
 
 Mac source ./venv/bin/activate
 Win venv\Scripts\activate
+win dayearn\Scripts\activate
 
 pip install -r requirements.txt
 django-admin startproject
@@ -52,3 +53,5 @@ Add to TEMPLATE_CONTEXT_PROCESSORS:
 <!-- <a href="{{product.get_absolute_url}}">Link</a> -->
 
 <!-- https://django-taggit.readthedocs.io/en/latest/ -->
+
+pip install bleach
