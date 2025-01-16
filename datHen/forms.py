@@ -2,7 +2,7 @@ from typing import Any
 from django import forms
 from datetime import timedelta, date
 import datetime
-from ledger.models import Khach, Service
+from ledger.models import Khach, Service, Technician
 from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column
@@ -80,14 +80,22 @@ class ExistClientForm(forms.ModelForm):
 
 
 class SecondStepForm(forms.ModelForm):
-    
+    def clean_day_comes(self):
+        date = super().clean()
+        date = self.cleaned_data["day_comes"]
+        if date.weekday() == 6:
+            raise ValidationError("Sunday is walkin")
+        return date
     class Meta:
         model=Khach
         fields = ['day_comes','technician']
     technician = forms.widgets.HiddenInput()
+
     day_comes = forms.DateField(
-        widget=ChonNgay(attrs={'min': date.today()})
+        widget=ChonNgay(attrs={'min': date.today()}),
+        label="Please Pick a day"
         )
+    
      
   
 
@@ -116,6 +124,7 @@ class ThirdForm(forms.ModelForm):
     
     full_name = forms.CharField(
         label="",
+        min_length = 2,
         widget=forms.TextInput(
         attrs={
             'placeholder': 'Full Name'
@@ -157,4 +166,11 @@ class ThirdFormExist(forms.ModelForm):
     #     if gio_den < datetime.datetime.now().time():
     #         raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
     #     return gio_den
-   
+
+class ServicesChoice(forms.Form):
+    class Meta:
+        model = Technician
+        
+    name = forms.ModelMultipleChoiceField(queryset=Technician.objects.all(), widget=forms.CheckboxSelectMultiple())
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all(), widget=forms.CheckboxSelectMultiple())
+    fields = ['name','services']

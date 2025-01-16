@@ -28,9 +28,16 @@
     {% for employee in tech %}
     <div>
         <a href="{{ employee.get_absolute_url }}"> {{ employee.name }} </a>
-</div>
+    </div>
      {% endfor %}
-
+    {% comment %} <div>
+        Services Pick:
+        <div>
+        {% for serv in services %} 
+            <p> {{ serv }} </p>
+         {% endfor %}
+        </div>
+    </div> {% endcomment %}
 
 {% endblock content %}
 

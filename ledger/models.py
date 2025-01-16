@@ -17,9 +17,7 @@ class Technician(models.Model):
     class Status(models.TextChoices):
         on = "Working"
         off = "Off Work"
-        busy = "Busy"
         available = "Available"
-        meTime = "Relax"
         
     name = models.CharField(max_length=25)
     phone = PhoneNumberField()
@@ -31,6 +29,8 @@ class Technician(models.Model):
     status = models.CharField(choices=Status.choices, max_length=12, default=Status.off)
     picture = models.BinaryField(null=True, editable=True)
     content_type = models.CharField(max_length=256, null=True, help_text='The MIMEType of the file')
+    services = models.ManyToManyField("Service", blank=True, related_name="tech")
+    # work_days = models.DateField(null=True, blank=True)
     
     class Meta:
         unique_together = ('name','phone',)
@@ -43,35 +43,32 @@ class Technician(models.Model):
     
     def __str__(self) -> str:
         return self.name
-    
+        
+        
     def get_clients(self):
         allClients = self.khachs.all()
         return allClients
     
     def get_today_clients(self):
-        return self.get_clients().filter(day_comes=datetime.date.today())
+        return self.get_clients().filter(day_comes=datetime.date.today()).order_by('time_at')
     
     def get_day_off(self):
         return DayOff.objects.filter(tech=self)
     
-            
     def get_available(self, ngay):
         start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
         end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
         clients = self.get_clients().filter(day_comes=ngay)
         xongs = [client for client in clients]
-        
         thoigian = start
         while thoigian < end:
             if clients:
-                if not any(khach.time_at <= thoigian.time() < khach.get_done_at() for khach in xongs):
+                if not any(khach.start_at() <= thoigian.time() < khach.get_done_at() for khach in xongs):
                     yield thoigian
                 thoigian += timedelta(minutes=15)
-                        
             else:
                 yield thoigian
                 thoigian += timedelta(minutes=15)
-        
             
     # thoigian = [(gio.hour, gio.minutes) for gio in timeSpan()]
     @property
@@ -82,11 +79,11 @@ class Technician(models.Model):
             yield batdau
             batdau += timedelta(minutes=15)
     
-    def get_services(self, ngay):
-        clients = self.get_clients().filter(day_comes=ngay)
+    def get_services_of_tech(self):
+        clients = self.get_today_clients()
         all_ser = []
         for client in clients:
-            all_ser += [ser for ser in client]
+            all_ser += client.get_services()
         return all_ser
     
    
@@ -114,6 +111,8 @@ class Khach(models.Model):
     payment = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     tags = TaggableManager()
     birthday = models.DateField(null=True, blank=True)
+    # appointments = models.ManyToManyField("Appointment", blank=True, related_name="khachs", null=True)
+    
     
     class Meta:
         unique_together = ('full_name','phone',)
@@ -133,10 +132,10 @@ class Khach(models.Model):
         #     raise ValidationError("Your time for appointment was pass!")
      
     def get_services(self):
-        ten = []
+        services = []
         for dv in self.services.all():
-            ten.append(dv)
-        return ten
+            services.append(dv)
+        return services
     
     def get_time_done(sefl):
         tong = 0
@@ -150,6 +149,9 @@ class Khach(models.Model):
     def get_done_at(self):
         gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
         return datetime.time(hour=gio.hour, minute=gio.minute)
+    def start_at(self):
+        them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute) - timedelta(minutes=50)
+        return datetime.time(hour=them.hour, minute=them.minute)
     
     # def save(self, *args, **kwargs):
     #     self.full_name = self.full_name.upper()
@@ -177,6 +179,10 @@ class Service(models.Model):
     class Meta:
         unique_together = ('service','price')
         ordering = ['price']
+        
+    def time_in_minute(self):
+        return self.time_perform.total_seconds()/60
+        
 
 
 class TakeTurn(models.Model):
@@ -210,3 +216,10 @@ class Chat(models.Model):
     def __str__(self):
         if len(self.text) < 15 : return self.text
         return self.text[:11] + ' ...'
+    
+    
+# class Appointment(models.Model):
+#     services = models.ManyToManyField("Service", blank=True, related_name="appointment")
+#     day_comes = models.DateField()
+#     time_at = models.TimeField()
+#     technician = models.ForeignKey(Technician, on_delete=models.DO_NOTHING, null=True, blank=True, related_name='appointment')

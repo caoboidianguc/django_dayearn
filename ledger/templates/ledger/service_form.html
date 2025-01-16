@@ -11,9 +11,9 @@
 {% block content %}
 <form action="" method="post">
     {% csrf_token %}
-    
+    <div class="form-group col-md-4">
     {{ form | crispy }}
-    
+    </div>
     <input type="submit" value="Add">
     <input type="submit" onclick="window.location='{% url 'ledger:services' %}'; return false; " value="Cancel">
 </form>  
