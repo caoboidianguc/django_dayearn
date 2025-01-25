@@ -8,19 +8,50 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
+from django.db.models import Count, Q, Sum
 
 
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/index.html'
     def get(self,request):
-        # employee = Technician.objects.all()
-        employee = Technician.objects.filter(owner=request.user)
+        today = timezone.now().date()
+        employee = Technician.objects.filter(owner=request.user).annotate(
+            khach_count = Count('khachs', filter=Q(khachs__day_comes=today)),
+            total_services_done = Sum('khachs__services__id',
+                                      distinct=True,
+                                      filter=Q(khachs__status=Khach.Status.cancel))
+        ).order_by("time_come_in")
+        
         cont = {'employees': employee }
         return render(request, self.template, cont)
               
-          
-          
+class UpdateTech(LoginRequiredMixin, View):
+    def post(self, request):
+        try:
+            tech_id = request.POST.get('tech_id') #tech_id have to match with ajax data.tech_id from template
+            tech = Technician.objects.get(id=tech_id)
+            tech.isWork = not tech.isWork  #toggle
+            if tech.isWork:
+                tech.time_come_in = timezone.now().strftime('%H:%M')
+            else:
+                tech.time_come_in = None
+            tech.save()
+            return JsonResponse({
+                'success' : True,
+                'isWork': tech.isWork,
+                'time_come_in': tech.time_come_in if tech.isWork else '',
+                'color': 'green' if tech.isWork else 'gray'
+            })
+        except Technician.DoesNotExist:
+            return JsonResponse({
+                'success' : False,
+                'error': 'Technician not found'
+            }, status=404)
+       
+
+
 class AllServices(LoginRequiredMixin, ListView):
     
     template = 'ledger/list_services.html'

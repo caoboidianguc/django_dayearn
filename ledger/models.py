@@ -12,7 +12,6 @@ from taggit.managers import TaggableManager
 
 
 
-
 class Technician(models.Model):
     class Status(models.TextChoices):
         on = "Working"
@@ -30,6 +29,7 @@ class Technician(models.Model):
     picture = models.BinaryField(null=True, editable=True)
     content_type = models.CharField(max_length=256, null=True, help_text='The MIMEType of the file')
     services = models.ManyToManyField("Service", blank=True, related_name="tech")
+    time_come_in = models.TimeField(null=True)
     # work_days = models.DateField(null=True, blank=True)
     
     class Meta:
@@ -125,11 +125,6 @@ class Khach(models.Model):
         if self.status == "Cancel":
             self.time_at = self.technician.end_work
             return self.time_at
-    # def clean(self):
-    #     if self.day_comes < datetime.date.today():
-    #         raise ValidationError("Appointments should be in the future")
-        # if self.day_comes == datetime.date.today() and self.time_at < datetime.datetime.now().time():
-        #     raise ValidationError("Your time for appointment was pass!")
      
     def get_services(self):
         services = []
@@ -153,13 +148,14 @@ class Khach(models.Model):
         them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute) - timedelta(minutes=50)
         return datetime.time(hour=them.hour, minute=them.minute)
     
-    # def save(self, *args, **kwargs):
-    #     self.full_name = self.full_name.upper()
-    #     self.diem += 1
-    #     return super(Khach, self).save(*args,**kwargs)
-        
+            
     def get_absolute_url(self):
         return reverse("datHen:exist_found", kwargs={"pk": self.pk})
+    def unique_error_message(self, model_class, unique_check):
+        #override message __all__
+        if unique_check == ("full_name", "phone"):
+            return "A client with this Full name and Phone already exists."
+        return super().unique_error_message(model_class, unique_check)
     
 
     
@@ -223,3 +219,4 @@ class Chat(models.Model):
 #     day_comes = models.DateField()
 #     time_at = models.TimeField()
 #     technician = models.ForeignKey(Technician, on_delete=models.DO_NOTHING, null=True, blank=True, related_name='appointment')
+

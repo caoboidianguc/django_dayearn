@@ -15,11 +15,13 @@
 <div class="container text-center">
   <div class="row row-cols-auto">
     {% for employee in employees %}
-    <div class="col">
-      <button class="btn btn-success" style="width: 16rem;" id="em_{{employee.name}}">
+    <div class="row-cols-auto">
+      <button class="tech-button" style="background-color: {% if employee.isWork %}green{% else %}gray{% endif %}" id="em_{{employee.id}}">
         <div class="card-body">
-             <span class="card-title"> {{ employee.name }}</span>
-        </div>
+             <h5 class="card-title align-text-top"> {{ employee.name }}</h5>
+          <span class="card-subtitle align-content-center">{{ employee.time_come_in }}</span></br>
+          <span class="align-bottomr"> {{ employee.total_services_done | default:0 }} turn</span>
+      </div>
       </button>
     </div>
     {% endfor %} 
@@ -27,9 +29,31 @@
 </div>   
     <hr>
 
-
-
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        $('.tech-button').click(function() {
+          var techId = $(this).attr('id').split('_')[1];
+          var button = $(this);
+          $.ajax({
+            url: '{% url "ledger:update_tech_status" %}',
+            type: 'POST',
+            data: {
+              'tech_id': techId,
+              'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+              if (response.success) {
+                button.css('background-color', response.color);
+                button.find('.card-subtitle').text(response.isWork ? 'Came at: ' + response.time_come_in : "Off");
+              } else {
+                alert(response.error);
+              }
+            }
+          });
+        });
+      });
+    </script>
 
 {% endblock content %}
     

@@ -12,4 +12,5 @@ urlpatterns = [
     path('ledger/services/', views.AllServices.as_view(), name="services"),
     path('ledger/services/add_services/', views.AddService.as_view(), name="add_service"),
     path('ledger/employee_turn/', views.EmployeeTurn.as_view(), name="tech_turn"),
+    path('ledger/update_employee_status/', views.UpdateTech.as_view(), name="update_tech_status"),
 ]
