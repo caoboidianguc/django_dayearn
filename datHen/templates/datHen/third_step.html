@@ -10,11 +10,7 @@
 {% block headding %}
     <h1 class='title'>Client's Schedule Third Step</h1>
     
-    {% if messages %} 
-    {% for tin in messages %} 
-    <li class="tinnhan">{{ tin }}</li>
-    {% endfor %}
-    {% endif %}
+    
 {% endblock headding %}
 
 
@@ -35,6 +31,13 @@
       {% if form.errors %}
     <div class="alert alert-danger">
         {{ form.errors }}
+      {% if 'A client with this Full name and Phone already exists.' in form.non_field_errors %} 
+        <a href="{% url 'datHen:find_client' %}">Go There</a>
+        {% else %}
+          {% for error in form.non_field_errors %}
+          <p class="errorlist"> {{ error}}</p>
+          {% endfor %}
+      {% endif %}
     </div>
     {% endif %}
       <form action='' method='post'>
@@ -86,7 +89,6 @@
 
     </script>
 {% endblock content %}
-
 
 
 {% block footer %}
