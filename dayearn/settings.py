@@ -137,9 +137,9 @@ USE_TZ = False
 PHONENUMBER_DB_FORMAT = 'NATIONAL'
 PHONENUMBER_DEFAULT_REGION = 'US'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # or wherever your project-level static files are
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),  # or wherever your project-level static files are
+# ]
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'dayearn/static')
 

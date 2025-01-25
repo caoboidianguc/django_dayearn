@@ -7,6 +7,7 @@ from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column
 from django.core.exceptions import ValidationError
+
  
 
     
@@ -46,22 +47,12 @@ class DatHenFrom(forms.ModelForm):
             'placeholder': 'Full Name'
         }
     ))
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
+
     def clean_full_name(self):
         data = super().clean()
         data = self.cleaned_data['full_name']
         return str(data).upper()
     
-    # def clean_time_at(self):
-    #     gio_den = super().clean()
-    #     gio_den = self.cleaned_data['time_at']
-    #     day_comes = super().clean()
-    #     day_comes = self.cleaned_data['day_comes']
-    #     bamuoi = datetime.datetime.now() + timedelta(minutes=10)
-    #     if day_comes == date.today() and gio_den < datetime.time(hour=bamuoi.hour, minute=bamuoi.minute):
-    #         raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
-    #     return gio_den
     class Meta:
         
         model = Khach
@@ -75,7 +66,7 @@ class ExistClientForm(forms.ModelForm):
     
     class Meta:
         model = Khach
-        fields = ['full_name','phone']
+        fields = ['phone']
         
 
 
@@ -105,12 +96,7 @@ class ThirdForm(forms.ModelForm):
         model=Khach
         fields = ['services','time_at','full_name', 'phone', 'email', 'status','technician']
     technician = forms.widgets.HiddenInput()
-    # time_at = forms.TimeField(
-    #     input_formats=["%H:%M"],
-    #     widget=ChonNgay(attrs={
-    #         "type":"time",
-    #         })
-    #     )    
+    
     email = forms.CharField(
         label="",
         required=False,
@@ -135,9 +121,7 @@ class ThirdForm(forms.ModelForm):
         data = super().clean()
         data = self.cleaned_data['full_name']
         return str(data).upper()
-    
-    
-    
+
 
 
 class ThirdFormExist(forms.ModelForm):
@@ -160,12 +144,6 @@ class ThirdFormExist(forms.ModelForm):
         data = self.cleaned_data['full_name']
         return str(data).upper()
     
-    # def clean_time_at(self):
-    #     gio_den = super().clean()
-    #     gio_den = self.cleaned_data['time_at']
-    #     if gio_den < datetime.datetime.now().time():
-    #         raise ValidationError("Please make schedule 30 minutes ahead! \n Or gives a call to check available.")
-    #     return gio_den
 
 class ServicesChoice(forms.Form):
     class Meta:

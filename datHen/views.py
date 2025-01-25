@@ -9,6 +9,8 @@ from django.contrib import messages
 from django.core.mail import EmailMessage
 import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
+from django.db import IntegrityError
 
 
 
@@ -30,13 +32,10 @@ class DatHenView(LoginRequiredMixin,View):
 class FindClient(View):
     template = 'datHen/exist_client_hen.html'
     def get(self, request):
-        name = str(request.GET.get('full_name')).upper()
-        khach = Khach.objects.filter(full_name=name,phone=request.GET.get('phone'))
+        khach = Khach.objects.filter(phone=request.GET.get('phone'))
         request.session['phone'] = ""
-        request.session['full_name'] = ""
         form = ExistClientForm()
         request.session['phone'] = request.GET.get('phone')
-        request.session['full_name'] = request.GET.get('full_name')
         cont = {'formDatHen': form, 'khach': khach}
         
         return render(request, self.template, cont)
@@ -64,7 +63,6 @@ class ExistSecond(View):
                 'ngay': date
             }
         request.session['tech_id'] = pk
-        # request.session['day_comes'] = datetime.datetime.today().strftime("%Y-%m-%d")
         return render(request, self.template, cont)
     
 class ExistThirdStep(View):
@@ -221,4 +219,4 @@ class ThirdStep(View):
             EmailMessage(self.chuDe, thongbao, to=[tech.email]).send()
                     
         return redirect(self.success_url)
-
+    
