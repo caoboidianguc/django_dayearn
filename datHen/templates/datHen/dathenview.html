@@ -61,44 +61,6 @@
     
 </div>
 
-
-{% comment %} {% if khachHen %}
-{% for khach in khachHen %}
-   
-        <div class="card" style="width: 18rem;" id="client_{{khach.full_name}}">
-            <div class="card-body">
-            <h5 class="card-title">{{ khach.full_name }}</h5>
-            <h6 class="card-subtitle mb-2 text-body-secondary">At: {{ khach.time_at | naturaltime }}</h6>
-            <p class="card-text">
-                <span class="badge {% if khach.status == "Anyone" %} bg-warning 
-                {%elif khach.status == 'Cancel' %} bg-danger
-                {% else %} bg-success
-                {% endif %} text-wrap fs-6" style="width: 12rem;">
-                    With: {{khach.technician }}
-                    {%if khach.status == "Anyone" %}
-            </br>Alternate: {{khach.status }}
-                    {% elif khach.status == 'Cancel' %}
-            </br>Had been {{khach.status}}
-                    {%endif%}
-            </span>
-            </p>
-            
-            Get: {% if khach.services %}
-            {% for dichvu in khach.services.all %}
-            <li>{{ dichvu }} </li>
-            {% endfor %}
-            {% endif %} 
-            </div>
-        </div>
-
-        {% endfor %}
-        <hr/>
-        <div id="done">
-        </div>
-        
-    {% endif %} {% endcomment %}
-    
-
     <script>
         $(document).ready(function(){
           $("button").click(function(){
@@ -133,9 +95,3 @@
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
  
-{% comment %} <script type="module">
-    import * as bootstrap from 'bootstrap'
-    <button id="popoverButton" type="button" class="btn btn-primary btn-lg" data-bs-toggle="popover" title="ESM in Browser" data-bs-content="Bang!">Custom popover</button>
-
-    new bootstrap.Popover(document.getElementById('popoverButton'))
-  </script> {% endcomment %}

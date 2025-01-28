@@ -19,7 +19,16 @@
     <h1>Technician: {{ tech }}</h1>
     <h1>Day comes: {{ ngay | naturalday }}</h1>
     <h1>hom nay: {{ hnay }}</h1>
-    
+    <div class="work-schedule">
+      <h1>hom nay: {{ tongThoigian }}</h1>
+      <div>Services Picked:</div>
+      {% for service in allServices %}
+      
+  <li><strong>{{ service.service }}</strong> </strong></li>
+  {% endfor %}
+      
+    </div>
+
     <div class="work-schedule">
         <div>Work schedule:</div>
         {% for khach in hen %}
@@ -44,9 +53,9 @@
         {% csrf_token %}
         <div class="table-responsive">
                 
-              <div class="form-check">
+              {% comment %} <div class="form-check">
                 {{ form.services | as_crispy_field }}
-              </div>
+              </div> {% endcomment %}
 
               <div class="col-md-4 mb-3">
                 <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example">
@@ -95,3 +104,4 @@
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
  
+

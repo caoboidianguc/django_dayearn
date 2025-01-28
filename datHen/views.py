@@ -1,18 +1,19 @@
 from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
-from ledger.models import Khach, Technician
+from ledger.models import Khach, Technician, Service
 from django.views.generic import View, ListView
 from django.urls import reverse_lazy
-from .forms import DatHenFrom, ExistClientForm, SecondStepForm, ThirdForm, ThirdFormExist, ServicesChoice
-from datetime import timedelta, date
+from .forms import DatHenFrom, ExistClientForm, DateForm, ThirdForm, ThirdFormExist, ServicesChoiceForm
+from datetime import timedelta, date, datetime
 from django.contrib import messages
 from django.core.mail import EmailMessage
-import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.db import IntegrityError
-
-
+# from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.http import require_POST
+# from django.http import JsonResponse
+import ssl
 
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
@@ -26,7 +27,6 @@ class DatHenView(LoginRequiredMixin,View):
                        }
         return render(request, self.template_name, allKhachHen)
 
-# https://docs.djangoproject.com/en/5.0/ref/models/querysets/#field-lookups
 
     
 class FindClient(View):
@@ -53,37 +53,55 @@ class ExistFound(View):
 class ExistSecond(View):
     template = 'datHen/exist_second.html'
     def get(self, request, pk):
-        request.session['tech_id'] = ""
+        # request.session['tech_id'] = ""
         request.session['date'] = request.GET.get('day_comes')
-        date = request.session['date']
+        # date = request.session['date']
         tech = get_object_or_404(Technician, id=pk)        
-        secondForm = SecondStepForm()
-        cont = {'tech': tech,
+        secondForm = DateForm()
+        cont = {
+            'tech': tech,
                 'secondForm': secondForm,
-                'ngay': date
             }
         request.session['tech_id'] = pk
+        return render(request, self.template, cont)
+
+class ChoiceServicesExistView(View):
+    template = 'datHen/services_choice_exist.html'
+
+    def get(self, request):
+        serviceForm = ServicesChoiceForm(request.GET)
+        request.session['date'] = request.GET.get('day_comes')
+        cont = {
+            'form': serviceForm
+        }
         return render(request, self.template, cont)
     
 class ExistThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/exist_third_step.html'
     success_url = reverse_lazy('ledger:index')
-    gioHienTai = datetime.datetime.now().hour
+    gioHienTai = datetime.now().hour
     hnay = date.today().strftime("%Y-%m-%d")
     def get(self,request):
         client_id = request.session['client_id']
         pk = request.session['tech_id']
         tech = get_object_or_404(Technician, id=pk)
         client = get_object_or_404(Khach, id=client_id)
-        request.session['date'] = request.GET.get('day_comes')
         ngay = request.session['date']
+        
+        serChon = request.GET.getlist('dichvu')
+        request.session['dichvu'] = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=[int(service) for service in serChon])
+        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
+        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == self.hnay:
-            available = tech.get_available(ngay=ngay)
-            available = [gio for gio in available if gio.hour > self.gioHienTai]
+            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+            available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
+        elif ngayDate.weekday() == 6:
+            available = []
         else:
-            available = tech.get_available(ngay=ngay)
+            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdFormExist(instance=client)
         form.instance.day_comes = ngay
@@ -101,10 +119,13 @@ class ExistThirdStep(View):
         pk = request.session['tech_id']
         tech = get_object_or_404(Technician, id=pk)
         client = get_object_or_404(Khach, id=client_id)
-        request.session['date'] = request.GET.get('day_comes')
         ngay = request.session['date']
+        serChon = request.GET.getlist('dichvu')
+        request.session['dichvu'] = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=[int(service) for service in serChon])
         available = []
-        available = tech.get_available(ngay=ngay)
+        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
+        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdFormExist(request.POST, instance=client)
         if not form.is_valid():
@@ -119,6 +140,7 @@ class ExistThirdStep(View):
         khac.day_comes = ngay
         khac.technician = tech
         khac.save()
+        khac.services.set(services)
         form.save_m2m()
         tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
@@ -128,8 +150,6 @@ class ExistThirdStep(View):
             EmailMessage(self.chuDe, thongbao, to=[tech.email]).send()
                     
         return redirect(self.success_url)
-
-    
 
 class FirstStep(View):
     template = 'datHen/first_step.html'
@@ -143,38 +163,54 @@ class Second(View):
     template = 'datHen/second.html'
     def get(self, request, pk):
         request.session['id'] = None
-        request.session['date'] = request.GET.get('day_comes')
-        # date = request.session['date']
-        tech = get_object_or_404(Technician, id=pk)        
-        secondForm = SecondStepForm()
-        cont = {'tech': tech,
+        request.session['date'] = request.GET.get('day_comes')      
+        secondForm = DateForm()
+        cont = {
                 'secondForm': secondForm,
-                # 'ngay': date
             }
         request.session['id'] = pk
         return render(request, self.template, cont)
+
+
+class ChoiceServicesView(View):
+    template = 'datHen/services_choice.html'
+
+    def get(self, request):
+        serviceForm = ServicesChoiceForm(request.GET)
+        request.session['date'] = request.GET.get('day_comes')
+        cont = {
+            'form': serviceForm
+        }
+        return render(request, self.template, cont)
     
+
 # client view
 class ThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/third_step.html'
     success_url = reverse_lazy('ledger:index')
-    gioHienTai = datetime.datetime.now()
+    gioHienTai = datetime.now()
     hnay = date.today().strftime("%Y-%m-%d")
+    
     def get(self,request):
         pk = request.session['id']
         tech = get_object_or_404(Technician, id=pk)
-        request.session['date'] = request.GET.get('day_comes')
         ngay = request.session['date']
+        
+        serChon = request.GET.getlist('dichvu')
+        request.session['dichvu'] = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=[int(service) for service in serChon])
+        
+        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
-        ngayDate = datetime.datetime.strptime(ngay, "%Y-%m-%d").date()
+        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == self.hnay:
-            available = tech.get_available(ngay=ngay)
+            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
         elif ngayDate.weekday() == 6:
             available = []
         else:
-            available = tech.get_available(ngay=ngay)
+            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdForm()
         
@@ -184,6 +220,8 @@ class ThirdStep(View):
                 'available': available,
                 'hen': hen,
                 'ngay': ngay,
+                'tongThoigian': time_perform,
+                'allServices': services
                 }
         form.instance.technician = tech
         return render(request, self.template, cont)
@@ -191,10 +229,13 @@ class ThirdStep(View):
     def post(self,request):
         pk = request.session['id']
         tech = get_object_or_404(Technician, id=pk)
-        request.session['date'] = request.GET.get('day_comes')
         ngay = request.session['date']
+        serChon = request.GET.getlist('dichvu')
+        request.session['dichvu'] = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=[int(service) for service in serChon])
         available = []
-        available = tech.get_available(ngay=ngay)
+        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
+        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdForm(request.POST)
         
@@ -203,13 +244,16 @@ class ThirdStep(View):
                 'tech': tech,
                 'available': available,
                 'hen': hen,
-                'ngay': ngay}
+                'ngay': ngay,
+                'tongThoigian': time_perform,
+                'allServices': services}
             return render(request, self.template, cont)
         
         khac = form.save(commit=False)
         khac.day_comes = ngay
         khac.technician = tech
         khac.save()
+        khac.services.set(services)
         form.save_m2m()
         tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
@@ -220,3 +264,4 @@ class ThirdStep(View):
                     
         return redirect(self.success_url)
     
+

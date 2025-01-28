@@ -15,5 +15,6 @@ urlpatterns = [
 urlpatterns += [
     path('tech_exist/<int:pk>/', views.ExistSecond.as_view(), name='technician_detail_exist' ),
     path('third_step_exist/', views.ExistThirdStep.as_view(), name='third_step_exist' ),
-    # path('services_choice/', views.services_choice, name='service_choice' ),
+    path('services_choice/', views.ChoiceServicesView.as_view(), name='service_choice' ),
+    path('services_choice_exist/', views.ChoiceServicesExistView.as_view(), name='service_choice_exist' ),
 ]
