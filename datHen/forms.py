@@ -70,7 +70,7 @@ class ExistClientForm(forms.ModelForm):
         
 
 
-class SecondStepForm(forms.ModelForm):
+class DateForm(forms.ModelForm):
     def clean_day_comes(self):
         date = super().clean()
         date = self.cleaned_data["day_comes"]
@@ -79,8 +79,7 @@ class SecondStepForm(forms.ModelForm):
         return date
     class Meta:
         model=Khach
-        fields = ['day_comes','technician']
-    technician = forms.widgets.HiddenInput()
+        fields = ['day_comes']
 
     day_comes = forms.DateField(
         widget=ChonNgay(attrs={'min': date.today()}),
@@ -94,7 +93,7 @@ class ThirdForm(forms.ModelForm):
     
     class Meta:
         model=Khach
-        fields = ['services','time_at','full_name', 'phone', 'email', 'status','technician']
+        fields = ['time_at','full_name', 'phone', 'email', 'status','technician']
     technician = forms.widgets.HiddenInput()
     
     email = forms.CharField(
@@ -106,7 +105,6 @@ class ThirdForm(forms.ModelForm):
                         attrs={'placeholder': 'Phone Number'}),
                         label="")
     
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
     
     full_name = forms.CharField(
         label="",
@@ -127,7 +125,7 @@ class ThirdForm(forms.ModelForm):
 class ThirdFormExist(forms.ModelForm):
     class Meta:
         model=Khach
-        fields = ['services','time_at', 'email', 'status','technician']
+        fields = ['time_at', 'email', 'status','technician']
        
     technician = forms.widgets.HiddenInput()
      
@@ -136,19 +134,15 @@ class ThirdFormExist(forms.ModelForm):
         required=False,
         widget=forms.widgets.EmailInput(attrs={'placeholder':'Email Optional'}))
     
-    
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
-        
     def clean_full_name(self):
         data = super().clean()
         data = self.cleaned_data['full_name']
         return str(data).upper()
     
 
-class ServicesChoice(forms.Form):
-    class Meta:
-        model = Technician
-        
-    name = forms.ModelMultipleChoiceField(queryset=Technician.objects.all(), widget=forms.CheckboxSelectMultiple())
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all(), widget=forms.CheckboxSelectMultiple())
-    fields = ['name','services']
+class ServicesChoiceForm(forms.Form):
+    dichvu = forms.ModelMultipleChoiceField(queryset=Service.objects.all(), 
+                                              widget=forms.CheckboxSelectMultiple,
+                                              label = "Choose Services:")
+    
+    
