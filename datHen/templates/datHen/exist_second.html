@@ -24,7 +24,7 @@
 
     <h1>Technician: {{ tech }}</h1>
       
-      <form action='{% url 'datHen:third_step_exist' %}' method='get'>
+      <form action='{% url "datHen:service_choice_exist" %}' method='get'>
         {% csrf_token %}
         <div class="table-responsive">
                 

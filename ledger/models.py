@@ -69,7 +69,31 @@ class Technician(models.Model):
             else:
                 yield thoigian
                 thoigian += timedelta(minutes=15)
-            
+                
+    def get_available_with(self, ngay, thoigian):
+        start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
+        end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
+        clients = self.get_clients().filter(day_comes=ngay)
+        xongs = [client for client in clients]
+        timeCal = start
+        
+        while timeCal < end:
+            if not clients:
+                yield timeCal
+                timeCal += timedelta(minutes=15)
+            else:
+                timeCompare = timeCal + timedelta(minutes=thoigian)
+                over_lap = False
+                for khach in xongs:
+                    if khach.start_at() <= timeCal.time() < khach.get_done_at() or timeCal.time() < khach.start_at() <= timeCompare.time():
+                        over_lap = True
+                        break
+                if not over_lap:
+                    yield timeCal
+                timeCal += timedelta(minutes=15)
+
+                
+
     # thoigian = [(gio.hour, gio.minutes) for gio in timeSpan()]
     @property
     def timeSpan(self):
@@ -145,7 +169,7 @@ class Khach(models.Model):
         gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
         return datetime.time(hour=gio.hour, minute=gio.minute)
     def start_at(self):
-        them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute) - timedelta(minutes=50)
+        them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
         return datetime.time(hour=them.hour, minute=them.minute)
     
             
