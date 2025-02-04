@@ -8,19 +8,13 @@ from datetime import timedelta, date, datetime
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils import timezone
-from django.db import IntegrityError
-# from django.views.decorators.csrf import csrf_exempt
-# from django.views.decorators.http import require_POST
-# from django.http import JsonResponse
-import ssl
+
 
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
     def get(self, request):
         allTech = Technician.objects.filter(owner=request.user)
         # hnay = Khach.objects.filter(day_comes=datetime.datetime.today()).order_by("time_at", owner=request.user)
-        
         allKhachHen = {
             # 'khachHen': hnay,
             'allTech': allTech,
@@ -30,18 +24,17 @@ class DatHenView(LoginRequiredMixin,View):
 
     
 class FindClient(View):
-    template = 'datHen/exist_client_hen.html'
+    template = 'datHen/exist_client_hen_cancel.html'
     def get(self, request):
-        khach = Khach.objects.filter(phone=request.GET.get('phone'))
-        request.session['phone'] = ""
+        name = str(request.GET.get("full_name")).upper()
+        khach = Khach.objects.filter(full_name=name, phone=request.GET.get('phone'))
         form = ExistClientForm()
-        request.session['phone'] = request.GET.get('phone')
         cont = {'formDatHen': form, 'khach': khach}
         
         return render(request, self.template, cont)
     
 class ExistFound(View):
-    template = 'datHen/exist_found.html'
+    template = 'datHen/exist_pick_tech.html'
     
     def get(self, request, pk):
         request.session['client_id'] = ""
@@ -98,7 +91,7 @@ class ExistThirdStep(View):
         if ngay == self.hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
-        elif ngayDate.weekday() == 6:
+        elif ngayDate.weekday() == 6 or tech.is_on_vacation(check_date=ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -124,8 +117,12 @@ class ExistThirdStep(View):
         request.session['dichvu'] = [int(service) for service in serChon]
         services = Service.objects.filter(id__in=[int(service) for service in serChon])
         available = []
+        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
-        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+        if ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
+            available = []
+        else:
+            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdFormExist(request.POST, instance=client)
         if not form.is_valid():
@@ -207,7 +204,7 @@ class ThirdStep(View):
         if ngay == self.hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
-        elif ngayDate.weekday() == 6:
+        elif ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -235,7 +232,12 @@ class ThirdStep(View):
         services = Service.objects.filter(id__in=[int(service) for service in serChon])
         available = []
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
-        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
+        if ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
+            available = []
+        else:
+            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+            
         hen = tech.get_clients().filter(day_comes=ngay).order_by('time_at')
         form = ThirdForm(request.POST)
         
@@ -265,3 +267,21 @@ class ThirdStep(View):
         return redirect(self.success_url)
     
 
+class CancelViewConfirm(View):
+    template = "datHen/confirm_cancel.html"
+    success_url = reverse_lazy('datHen:find_client')
+    def get(self, request, pk):
+        client = get_object_or_404(Khach, id=pk)
+        context = {
+            'client': client
+        }
+        return render(request, self.template, context)
+    
+    def post(self, request, pk):
+        client = get_object_or_404(Khach, id=pk)
+        client.services.clear()
+        client.status = Khach.Status.cancel
+        client.save()
+        messages.success(request, "Your services have been successfully canceled.")
+        return redirect(self.success_url)
+    

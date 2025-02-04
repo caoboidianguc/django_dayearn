@@ -4,6 +4,7 @@ from django.db import models
 from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from django.urls import reverse
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 import datetime
@@ -13,24 +14,25 @@ from taggit.managers import TaggableManager
 
 
 class Technician(models.Model):
-    class Status(models.TextChoices):
-        on = "Working"
-        off = "Off Work"
-        available = "Available"
-        
     name = models.CharField(max_length=25)
     phone = PhoneNumberField()
     email = models.EmailField(max_length=40, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
-    isWork = models.BooleanField(default=False)
     start_work_at = models.TimeField()
     end_work = models.TimeField()
-    status = models.CharField(choices=Status.choices, max_length=12, default=Status.off)
-    picture = models.BinaryField(null=True, editable=True)
+    isWork = models.BooleanField(default=False)
+    picture = models.ImageField(upload_to='tech_pictures/', null=True, editable=True)
     content_type = models.CharField(max_length=256, null=True, help_text='The MIMEType of the file')
     services = models.ManyToManyField("Service", blank=True, related_name="tech")
     time_come_in = models.TimeField(null=True)
-    # work_days = models.DateField(null=True, blank=True)
+    work_days = models.CharField(max_length=7, default="1111110", help_text="MTWTFSS: 1 for work, 0 for off")
+    vacation_start = models.DateField(null=True, blank=True, help_text="Start vacation")
+    vacation_end = models.DateField(null=True, blank=True, help_text="End vacation, back work!")
+    
+    def is_on_vacation(self, check_date):
+        if self.vacation_start and self.vacation_end:
+            return self.vacation_start <= check_date <= self.vacation_end
+        return False
     
     class Meta:
         unique_together = ('name','phone',)
@@ -92,9 +94,6 @@ class Technician(models.Model):
                     yield timeCal
                 timeCal += timedelta(minutes=15)
 
-                
-
-    # thoigian = [(gio.hour, gio.minutes) for gio in timeSpan()]
     @property
     def timeSpan(self):
         batdau = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
@@ -116,7 +115,7 @@ class Technician(models.Model):
     
 class Khach(models.Model):
     class Status(models.TextChoices):
-        online = "WebSite"
+        online = "Confirmed"
         anyone = "Anyone"
         cancel = "Cancel"
         
@@ -132,7 +131,6 @@ class Khach(models.Model):
     status = models.CharField(choices=Status.choices, max_length=20, default=Status.online, help_text="choice Anyone for alternate! or cancel your appointment.")
     day_comes = models.DateField()
     time_at = models.TimeField()
-    payment = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     tags = TaggableManager()
     birthday = models.DateField(null=True, blank=True)
     # appointments = models.ManyToManyField("Appointment", blank=True, related_name="khachs", null=True)
@@ -172,7 +170,9 @@ class Khach(models.Model):
         them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
         return datetime.time(hour=them.hour, minute=them.minute)
     
-            
+    def get_cancel_url(self):
+        return reverse("datHen:cancel_confirm", kwargs={'pk':self.pk})
+    
     def get_absolute_url(self):
         return reverse("datHen:exist_found", kwargs={"pk": self.pk})
     def unique_error_message(self, model_class, unique_check):
@@ -187,7 +187,7 @@ class Khach(models.Model):
 class Service(models.Model):
     service = models.CharField(max_length=30)
     price = models.FloatField()
-    time_perform = models.DurationField()
+    time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
     description = models.CharField(max_length=300, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     def __str__(self) -> str:
