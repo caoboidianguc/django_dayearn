@@ -14,11 +14,13 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    {% if messages %} 
-    {% for tin in messages %} 
-    <li>{{ tin }}</li>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
     {% endfor %}
-    {% endif %}
+</ul>
+{% endif %}
 {% endblock headding %}
 
 
@@ -28,7 +30,7 @@
     {%for tech in allTech %}
     <div class="col-md-2 align-text-top" id="tech">
         <span class="fs-3" >
-            {{tech.name}}
+            <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{tech.name}}</a>
         </span>
             {%for khach in tech.get_today_clients %}
                 <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
@@ -61,13 +63,6 @@
     
 </div>
 
-    <script>
-        $(document).ready(function(){
-          $("button").click(function(){
-            $("#").hide();
-          });
-        });
-        </script>
         <style type="text/css">
             div.container_tech {
                 height: auto;
