@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block nutChinh %}
+<a class="nav-link" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
+{% endblock nutChinh %}
+
+{% block headding %}
+    {%if messages %}
+    <ul class="messages text-warning">
+        {% for message in messages %}
+            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <h1 class='title'>Reservation</h1>
+    <div>
+        {% if khach %}
+        {% for mot in khach.all %}
+        <div class="row">
+            <label class="form-label text-success">Hi {{ mot.full_name }}</label>
+            <div class="col-md-2 ">
+            <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
+        </div>
+        <div class="col-md-2 ">
+            <a href="{{ mot.get_cancel_url }}" class="btn btn-primary" role="button" >Cancel Appoinment</a>
+        </div>
+    </div>
+         {% endfor %}
+        {% endif %}
+    </div>
+{% endblock headding %}
+
+
+{% block content %}
+    <form action='' method='get'>
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-primary">
+                <div class="form-group col-md-4">
+                {{ formDatHen | crispy }}
+                </div>
+            </table>
+            <input type='submit' value='Find' class="btn btn-info" role="button">
+            <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
+        </div>
+    </form>
+
+    
+{% endblock content %}
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 

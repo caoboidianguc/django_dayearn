@@ -1,7 +1,6 @@
 from typing import Any
 from django import forms
 from datetime import timedelta, date
-import datetime
 from ledger.models import Khach, Service, Technician
 from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
@@ -66,7 +65,7 @@ class ExistClientForm(forms.ModelForm):
     
     class Meta:
         model = Khach
-        fields = ['phone']
+        fields = ['full_name','phone']
         
 
 
@@ -96,6 +95,12 @@ class ThirdForm(forms.ModelForm):
         fields = ['time_at','full_name', 'phone', 'email', 'status','technician']
     technician = forms.widgets.HiddenInput()
     
+    def __init__(self, *args,**kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].choices = [
+            choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
+        ]
+        
     email = forms.CharField(
         label="",
         required=False,
@@ -126,7 +131,11 @@ class ThirdFormExist(forms.ModelForm):
     class Meta:
         model=Khach
         fields = ['time_at', 'email', 'status','technician']
-       
+    def __init__(self, *args,**kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].choices = [
+            choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
+        ]
     technician = forms.widgets.HiddenInput()
      
     email = forms.CharField(

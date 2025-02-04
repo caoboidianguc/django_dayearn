@@ -3,7 +3,7 @@ from .models import Technician, Khach, Service
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
-from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, TurnForm
+from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, TurnForm, VacationForm
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
@@ -68,7 +68,7 @@ class EmpCreate(LoginRequiredMixin, View):
         contx = {'form': form}
         return render(request, self.template, contx)
     def post(self, request):
-        form = TechForm(request.POST)
+        form = TechForm(request.POST, request.FILES)
         if not form.is_valid():
             cont = {'form': form}
             return render(request, self.template, cont)
@@ -100,14 +100,14 @@ class AddService(LoginRequiredMixin, View):
     success_url = reverse_lazy("ledger:services")
     def get(self, request):
         form = ServiceForm()
-        cont = {'form': form}
-        return render(request, self.template, cont)
+        context = {'form': form}
+        return render(request, self.template, context)
+    
     def post(self, request):
         form = ServiceForm(request.POST)
         if not form.is_valid():
             cont = {'form': form}
             return render(request, self.template, cont)
-        # form.instance.thoiGian = timedelta(minutes=45)
         ser = form.save(commit=False)
         ser.owner = self.request.user
         ser.save()
@@ -140,3 +140,15 @@ class CustomerVisit(View):
     def post(self, request):
         pass
 
+class TechVacationView(LoginRequiredMixin,UpdateView):
+    model = Technician
+    form_class = VacationForm
+    template_name = 'ledger/vacation_tech.html'
+    success_url = reverse_lazy("datHen:listHen")
+    def get_object(self):
+        return get_object_or_404(Technician, id=self.kwargs.get('pk'))
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Set Vacation Time"
+        return context
+    
