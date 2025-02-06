@@ -1,5 +1,5 @@
 from django import forms
-from .models import Technician, Khach, Service, DayOff, TakeTurn
+from .models import Technician, Khach, Service, Chat
 from django.contrib.auth.forms import UserCreationForm
 from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
@@ -33,11 +33,6 @@ class TechForm(forms.ModelForm):
     )
         
         
-class TurnForm(forms.ModelForm):
-    class Meta:
-        model = TakeTurn
-        fields = ['tech', 'services']
-
 class ClientForm(forms.ModelForm):
     email = forms.CharField(required=False)
     class Meta:
@@ -66,13 +61,6 @@ class TaiKhoanCreationForm(UserCreationForm):
         fields = UserCreationForm.Meta.fields + ("email",)
         
     
-
-class DayOffForm(forms.ModelForm):
-    
-    class Meta:
-        model = DayOff
-        fields = '__all__'
-
 class VacationForm(forms.ModelForm):
     class Meta:
         model = Technician
@@ -81,3 +69,9 @@ class VacationForm(forms.ModelForm):
             'vacation_start': forms.DateInput(attrs={"type":"date"}),
             'vacation_end': forms.DateInput(attrs={"type":"date"}),
         }
+        
+class ChatForm(forms.ModelForm):
+    text = forms.CharField(required=True,min_length=5, max_length=500, strip=True)
+    class Meta:
+        model = Chat
+        fields = ['text']

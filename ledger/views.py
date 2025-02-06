@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service
+from .models import Technician, Khach, Service, Chat
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
-from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, TurnForm, VacationForm
+from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, VacationForm, ChatForm
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
@@ -14,14 +14,14 @@ from django.db.models import Count, Q, Sum
 
 
 class AllEmployee(LoginRequiredMixin,ListView):
-    template = 'ledger/index.html'
+    template = 'ledger/all_employee.html'
     def get(self,request):
         today = timezone.now().date()
         employee = Technician.objects.filter(owner=request.user).annotate(
             khach_count = Count('khachs', filter=Q(khachs__day_comes=today)),
-            total_services_done = Sum('khachs__services__id',
+            total_services_done = Count('khachs__services',
                                       distinct=True,
-                                      filter=Q(khachs__status=Khach.Status.cancel))
+                                      filter=Q(khachs__day_comes=today) & ~Q(khachs__status=Khach.Status.cancel))
         ).order_by("time_come_in")
         
         cont = {'employees': employee }
@@ -35,6 +35,7 @@ class UpdateTech(LoginRequiredMixin, View):
             tech.isWork = not tech.isWork  #toggle
             if tech.isWork:
                 tech.time_come_in = timezone.now().strftime('%H:%M')
+                tech.date_go_work = timezone.now().date()
             else:
                 tech.time_come_in = None
             tech.save()
@@ -82,7 +83,7 @@ class EmpCreate(LoginRequiredMixin, View):
     
 class TaoTaiKhoan(View):
     template = "ledger/user_form.html"
-    success_url = reverse_lazy('ledger:home')
+    success_url = reverse_lazy('ledger:all_employee')
     
     def get(self, request):
         form = TaiKhoanCreationForm()
@@ -113,28 +114,11 @@ class AddService(LoginRequiredMixin, View):
         ser.save()
         form.save_m2m
         return redirect(self.success_url)
-   
-class EmployeeTurn(View):
-    temp = "ledger/index.html"
-    success_url = reverse_lazy("ledger:tech_turn")
-    def get(self, request):
-        form = TurnForm()
-        cont = {'form': form}
-        return render(request, self.temp, cont)
-    
-    def post(self,request):
-        form = TurnForm(request.POST)
-        if not form.is_valid():
-            cont = {'form': form}
-            return render(request, self.temp, cont)
-        turn = form.save(commit=False)
-        turn.save()
-        form.save_m2m
-        return redirect(self.success_url)
-        
+       
 
 class CustomerVisit(View):
     template = "home.html"
+    # trang chu, when customer visit this is where they see first
     def get(self, request):
         return render(request, self.template)
     def post(self, request):
@@ -152,3 +136,20 @@ class TechVacationView(LoginRequiredMixin,UpdateView):
         context['title'] = "Set Vacation Time"
         return context
     
+class ChatView(View):
+    template = "ledger/chat_room.html"
+    def get(self, request, pk):
+        client = get_object_or_404(Khach, id=pk)
+        allChat = Chat.objects.all().order_by('created_at').select_related("client")
+        chat_form = ChatForm()
+        context = {
+            'allChat' : allChat, 'chat_form': chat_form, 'client' : client
+        }
+        return render(request, self.template, context)
+    
+class ChatCreateView(View):
+    def post(self, request, pk):
+        client = get_object_or_404(Khach, id=pk)
+        chat = Chat(text=request.POST['text'], client=client)
+        chat.save()
+        return redirect(reverse('ledger:chat_room', args=[pk]))
