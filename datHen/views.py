@@ -73,7 +73,7 @@ class ExistThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/exist_third_step.html'
     success_url = reverse_lazy('ledger:index')
-    gioHienTai = datetime.now().hour
+    gioHienTai = datetime.now()
     hnay = date.today().strftime("%Y-%m-%d")
     def get(self,request):
         client_id = request.session['client_id']

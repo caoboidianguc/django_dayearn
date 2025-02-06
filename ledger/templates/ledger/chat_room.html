@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+
+
+{% block headding %}
+<h1>DayEarn Chat Room</h1>
+{% endblock headding %}
+
+
+{% block content %}
+    <h1 class="title">Greeting !!</h1>
+    <div class="container is-fluid">
+    Greeting to {{ client.full_name }}
+    </div>
+
+
+    {% for talk in allChat %}
+    <div>
+        {{ talk.text }} 
+        <p>
+        {{ talk.client_name }}
+            {% if user.is_authenticated %}
+            --Manager--
+            {% endif %}
+            <span class="fw-light text-secondary">{{ talk.created_at }}</span>
+        </p>
+    </div>
+    {% endfor %}
+   
+
+    <form action="{% url 'ledger:chat_create' client.id %}" method="post">
+        {% csrf_token %}
+        <div class="form-floating col-md-3 align-items-center">
+        <div class="col-auto ">
+      
+            {{ chat_form | crispy }}
+            
+    </div>
+        <button type="submit" class="btn btn-primary w-25">Post</button>
+        <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
+    </div>
+    </form>  
+{% endblock content %}
+
+
+{% block footer %}
+    <strong>Feed back make we strong</strong> foundation from 2002
+{% endblock footer %}

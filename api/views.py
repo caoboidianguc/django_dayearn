@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import TechnicSerializer, KhachSerializer, ServiceSerializer
-from ledger.models import Technician, Khach, Service, TakeTurn
+from ledger.models import Technician, Khach, Service
 
 
 
