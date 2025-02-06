@@ -28,7 +28,7 @@ class Technician(models.Model):
     work_days = models.CharField(max_length=7, default="1111110", help_text="MTWTFSS: 1 for work, 0 for off")
     vacation_start = models.DateField(null=True, blank=True, help_text="Start vacation")
     vacation_end = models.DateField(null=True, blank=True, help_text="End vacation, back work!")
-    
+    date_go_work = models.DateField(null=True, blank=True)
     def is_on_vacation(self, check_date):
         if self.vacation_start and self.vacation_end:
             return self.vacation_start <= check_date <= self.vacation_end
@@ -54,8 +54,6 @@ class Technician(models.Model):
     def get_today_clients(self):
         return self.get_clients().filter(day_comes=datetime.date.today()).order_by('time_at')
     
-    def get_day_off(self):
-        return DayOff.objects.filter(tech=self)
     
     def get_available(self, ngay):
         start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
@@ -118,8 +116,6 @@ class Khach(models.Model):
         online = "Confirmed"
         anyone = "Anyone"
         cancel = "Cancel"
-        
-    
     full_name = models.CharField(max_length=25)
     phone = PhoneNumberField()
     email = models.EmailField(max_length=40, null=True, blank=True)
@@ -133,7 +129,6 @@ class Khach(models.Model):
     time_at = models.TimeField()
     tags = TaggableManager()
     birthday = models.DateField(null=True, blank=True)
-    # appointments = models.ManyToManyField("Appointment", blank=True, related_name="khachs", null=True)
     
     
     class Meta:
@@ -170,6 +165,9 @@ class Khach(models.Model):
         them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
         return datetime.time(hour=them.hour, minute=them.minute)
     
+    def get_chat_url(self):
+        return reverse("ledger:chat_room", kwargs={'pk':self.pk})
+    
     def get_cancel_url(self):
         return reverse("datHen:cancel_confirm", kwargs={'pk':self.pk})
     
@@ -190,6 +188,7 @@ class Service(models.Model):
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
     description = models.CharField(max_length=300, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
     def __str__(self) -> str:
         return self.service
     def save(self, *kwag, **kwargs):
@@ -204,43 +203,16 @@ class Service(models.Model):
         return self.time_perform.total_seconds()/60
         
 
-
-class TakeTurn(models.Model):
-    time_at = models.TimeField(auto_now_add=True)
-    tech = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name='tech_turn')
-    services = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='ser_turn')
-    def __str__(self) -> str:
-        return f"{self.services} at : {self.time_at}"
-    
-    
-class DayOff(models.Model):
-    tech = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="dayoff")
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True)
-    note = models.CharField(max_length=255, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.start_date} to {self.end_date} - {self.note if self.note else 'Day off'}"
-
-    def clean(self):
-        if self.start_date is not None and self.end_date is not None:
-            if self.start_date > self.end_date:
-                raise ValidationError("Start date must be before end date")
-
-
 class Chat(models.Model):
-    text = models.TextField(validators=[MinLengthValidator(1, "Say something!!")])
+    text = models.TextField(validators=[MinLengthValidator(1, "What's your message.")])
     created_at = models.DateTimeField(auto_now_add=True)
-    tech = models.ForeignKey(Technician, on_delete=models.CASCADE,related_name="tech_chats", null=True, blank=True)
-    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats", null=True, blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
+    client = models.ForeignKey(Khach, on_delete=models.DO_NOTHING, related_name="client_chats", null=True, blank=True)
     def __str__(self):
-        if len(self.text) < 15 : return self.text
-        return self.text[:11] + ' ...'
+        if len(self.text) < 45 : return self.text
+        return self.text[:40] + ' ...'
     
+    @property
+    def client_name(self):
+        return self.client.full_name if self.client else "Unknow"
     
-# class Appointment(models.Model):
-#     services = models.ManyToManyField("Service", blank=True, related_name="appointment")
-#     day_comes = models.DateField()
-#     time_at = models.TimeField()
-#     technician = models.ForeignKey(Technician, on_delete=models.DO_NOTHING, null=True, blank=True, related_name='appointment')
-
