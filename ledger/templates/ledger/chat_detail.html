@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+
+
+{% block headding %}
+<h1>DayEarn Chat Room</h1>
+{% endblock headding %}
+
+
+{% block content %}
+    <h1 class="title">Greeting !!</h1>
+    <div class="container is-fluid">
+    Greeting to {{ chat.client_name }}
+    </div>
+
+    <div>
+        {{ chat.text }} <span class="fw-light text-secondary">{{ chat.created_at }}</span>
+    </div>
+        <p>
+            {% if chat.owner == user %}
+            @Manager
+            {% else %}
+            {{ chat.client_name }}
+            {% endif %}
+        </p>
+    <h3>Replies:</h3>
+   {% for reply in replies %}
+    <div>
+        <p><span >{{ reply.text }}</span>
+            <span class="fw-light text-secondary">    {% if reply.owner == user %}
+                    @Manager
+                {% else %}
+                    by: {{ reply.client_name }}
+                {% endif %}
+                {{ reply.created_at }}</span>
+            </p>
+    </div>
+    <hr>
+   {% endfor %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-floating col-md-3 align-items-center">
+        <div class="col-auto ">
+      
+            {{ chat_form | crispy }}
+            
+    </div>
+        <button type="submit" class="btn btn-primary w-25">Reply</button>
+        <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:chat_room' khach_id %}'; return false; ">Back</button>
+    </div>
+    </form>  
+{% endblock content %}
+
+
+{% block footer %}
+    <strong>Feed back make we strong</strong> foundation from 2002
+{% endblock footer %}

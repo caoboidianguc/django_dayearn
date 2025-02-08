@@ -139,17 +139,97 @@ class TechVacationView(LoginRequiredMixin,UpdateView):
 class ChatView(View):
     template = "ledger/chat_room.html"
     def get(self, request, pk):
+        request.session['client_id'] = pk
         client = get_object_or_404(Khach, id=pk)
-        allChat = Chat.objects.all().order_by('created_at').select_related("client")
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
         chat_form = ChatForm()
         context = {
             'allChat' : allChat, 'chat_form': chat_form, 'client' : client
         }
         return render(request, self.template, context)
+
+class ChatDetailView(View):
+    template = "ledger/chat_detail.html"
+    def get(self, request, pk):
+        chat = get_object_or_404(Chat, id=pk)
+        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
+        khach_id = request.session['client_id']
+        context = {
+            'khach_id' : khach_id,
+            'chat' : chat,
+            'replies': replies,
+            'chat_form' : ChatForm()
+        }
+        return render(request, self.template, context)
     
+    def post(self, request, pk):
+        khach_id = request.session['client_id']
+        khach_moi = get_object_or_404(Khach, id=khach_id)
+        chat = get_object_or_404(Chat, id=pk)
+        form = ChatForm(request.POST)
+        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
+        if form.is_valid():
+            new_chat = form.save(commit=False)
+            # new_chat.owner = request.user
+            new_chat.client = khach_moi
+            new_chat.reply_to = chat
+            new_chat.save()
+            return redirect('ledger:chat_detail', pk=pk)
+        context = {
+            'chat' : chat,
+            'replies': replies,  # Fetch replies again
+            'chat_form' : form
+        }
+        return render(request, self.template, context)
+
 class ChatCreateView(View):
     def post(self, request, pk):
         client = get_object_or_404(Khach, id=pk)
         chat = Chat(text=request.POST['text'], client=client)
         chat.save()
         return redirect(reverse('ledger:chat_room', args=[pk]))
+    
+class UserChatView(LoginRequiredMixin, View):
+    template = "ledger/user_chat_room.html"
+    def get(self, request):
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
+        chat_form = ChatForm()
+        context = {
+            'allChat' : allChat, 'chat_form': chat_form,
+        }
+        return render(request, self.template, context)
+
+class UserChatCreateView(LoginRequiredMixin, View):
+    def post(self, request):
+        chat = Chat(text=request.POST['text'], owner=request.user)
+        chat.save()
+        return redirect(reverse('ledger:user_chat_room'))
+    
+class UserChatDetailView(LoginRequiredMixin, View):
+    template = "ledger/user_chat_detail.html"
+    def get(self, request, pk):
+        chat = get_object_or_404(Chat, id=pk)
+        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
+        context = {
+            'chat' : chat,
+            'replies': replies,
+            'chat_form' : ChatForm()
+        }
+        return render(request, self.template, context)
+    
+    def post(self, request, pk):
+        chat = get_object_or_404(Chat, id=pk)
+        form = ChatForm(request.POST)
+        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
+        if form.is_valid():
+            new_chat = form.save(commit=False)
+            new_chat.owner = request.user
+            new_chat.reply_to = chat
+            new_chat.save()
+            return redirect('ledger:chat_detail', pk=pk)
+        context = {
+            'chat' : chat,
+            'replies': replies,  # Fetch replies again
+            'chat_form' : form
+        }
+        return render(request, self.template, context)
