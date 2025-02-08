@@ -202,10 +202,12 @@ class Service(models.Model):
     def time_in_minute(self):
         return self.time_perform.total_seconds()/60
         
+from django.contrib.auth import get_user
 
 class Chat(models.Model):
     text = models.TextField(validators=[MinLengthValidator(1, "What's your message.")])
     created_at = models.DateTimeField(auto_now_add=True)
+    reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
     client = models.ForeignKey(Khach, on_delete=models.DO_NOTHING, related_name="client_chats", null=True, blank=True)
     def __str__(self):
@@ -214,5 +216,11 @@ class Chat(models.Model):
     
     @property
     def client_name(self):
-        return self.client.full_name if self.client else "Unknow"
+        return self.client.full_name if self.client else "@Manager"
     
+    # @property
+    # def owner_name(self):
+    #     current_user = get_user(None)
+    #     if self.owner == current_user:
+    #         return "Manager"
+    #     return self.owner.username if self.owner else "UUser"

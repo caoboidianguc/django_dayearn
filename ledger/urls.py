@@ -16,5 +16,11 @@ urlpatterns = [
     path('ledger/update_employee_status/', views.UpdateTech.as_view(), name="update_tech_status"),
     path('ledger/tech_vacation/<int:pk>/', views.TechVacationView.as_view(), name="vacation"),
     path('ledger/chat_room/<int:pk>/', views.ChatView.as_view(), name="chat_room"),
+    path('ledger/chat_room/detail/<int:pk>/', views.ChatDetailView.as_view(), name="chat_detail"),
+    path('ledger/user_chat_room/', views.UserChatView.as_view(), name="user_chat_room"),
     path('ledger/chat_create/<int:pk>/', views.ChatCreateView.as_view(), name="chat_create"),
+    path('ledger/user_chat_create/', views.UserChatCreateView.as_view(), name="user_chat_create"),
+    path('ledger/user_chat_room/detail/<int:pk>/', views.UserChatDetailView.as_view(), name="user_chat_detail"),
+    
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
