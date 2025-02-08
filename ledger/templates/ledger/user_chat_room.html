@@ -11,14 +11,15 @@
 {% block content %}
     <h1 class="title">Greeting !!</h1>
     <div class="container is-fluid">
-    Greeting to {{ client.full_name }}
+    Greeting to {{ user.username }}
     </div>
 
 
     {% for talk in allChat %}
-    <div> <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:chat_detail' talk.id %}">
+    <div>
+        <a href="{% url 'ledger:user_chat_detail' talk.id %}">
         {{ talk.text }} 
-    </a>
+        </a>
         <p>
             {% if talk.owner == user %}
             @Manager
@@ -30,8 +31,7 @@
     </div>
     {% endfor %}
    
-
-    <form action="{% url 'ledger:chat_create' client.id %}" method="post">
+    <form action="{% url 'ledger:user_chat_create' %}" method="post">
         {% csrf_token %}
         <div class="form-floating col-md-3 align-items-center">
         <div class="col-auto ">
