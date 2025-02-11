@@ -52,7 +52,6 @@ class UpdateTech(LoginRequiredMixin, View):
             }, status=404)
        
 
-
 class AllServices(LoginRequiredMixin, ListView):
     
     template = 'ledger/list_services.html'

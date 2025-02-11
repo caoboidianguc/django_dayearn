@@ -5,13 +5,24 @@
 
 
 {% block nutChinh %}
-<a class="nav-link" href="{% url 'datHen:first_step' %}">New Client</a>
-
-        {% comment %} <a class="nav-link" href="{% url 'datHen:schedule' %}">New Client</a> {% endcomment %}
-
+        <a class="nav-link" href="{% url 'datHen:first_step' %}">New Client</a>
+    {% if user.is_authenticated %}
+        <a class="nav-link" href="{% url 'datHen:user_find_client' %}">Been here</a>
+    {% else %}
         <a class="nav-link" href="{% url 'datHen:find_client' %}">Been here</a>
+        {% endif %}
         
 {% endblock nutChinh %}
+
+{% block nutPhu %}
+<!-- Add date navigation -->
+<div class="date-navigation">
+    <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous Day</a>
+    <span class="current-date">{{ selected_date|date:'F d' }}</span>
+    <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next Day</a>
+</div>
+{% endblock nutPhu %}
+
 
 {% block headding %}
 {% if messages %}
@@ -21,6 +32,7 @@
     {% endfor %}
 </ul>
 {% endif %}
+
 {% endblock headding %}
 
 
@@ -32,7 +44,7 @@
         <span class="fs-3" >
             <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{tech.name}}</a>
         </span>
-            {%for khach in tech.get_today_clients %}
+            {%for khach in tech.clients %}
                 <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
                     <div class="card-body">
                         <h5 class="card-title text-info">{{ khach.full_name }}</h5>
@@ -90,3 +102,4 @@
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
  
+{% comment %} https://x.com/i/grok/share/3nzx9SYAa4m3mxu4eKektNw33 {% endcomment %}

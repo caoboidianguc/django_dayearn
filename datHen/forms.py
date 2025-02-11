@@ -17,7 +17,11 @@ class ChonNgay(forms.widgets.DateInput):
 #date format is yyyy-mm-dd
 # time is 24h
 class DatHenFrom(forms.ModelForm):
-    
+    def __init__(self, *args,**kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].choices = [
+            choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
+        ]
     day_comes = forms.DateField(
         widget=ChonNgay(attrs={'min': date.today()})
         )
@@ -48,21 +52,19 @@ class DatHenFrom(forms.ModelForm):
     ))
 
     def clean_full_name(self):
-        data = super().clean()
-        data = self.cleaned_data['full_name']
-        return str(data).upper()
+        full_name = self.cleaned_data.get('full_name')
+        return full_name.upper() if full_name else ''
     
     class Meta:
-        
         model = Khach
         fields = ['technician', 'services', 'full_name', 'phone', 'email', 'day_comes', 'time_at', 'status']
         
-  
-
-
+class UserExistClientForm(forms.ModelForm):
+    class Meta:
+        model = Khach
+        fields = ['phone']
 
 class ExistClientForm(forms.ModelForm):
-    
     class Meta:
         model = Khach
         fields = ['full_name','phone']
@@ -123,7 +125,7 @@ class ThirdForm(forms.ModelForm):
     def clean_full_name(self):
         data = super().clean()
         data = self.cleaned_data['full_name']
-        return str(data).upper()
+        return str(data).upper().strip()
 
 
 
