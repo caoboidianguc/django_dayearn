@@ -118,13 +118,13 @@ class Khach(models.Model):
         cancel = "Cancel"
     full_name = models.CharField(max_length=25)
     phone = PhoneNumberField()
-    email = models.EmailField(max_length=40, null=True, blank=True)
-    technician = models.ForeignKey(Technician, on_delete=models.DO_NOTHING, null=True, blank=True, related_name='khachs')
+    email = models.EmailField(max_length=40, null=True, blank=True, help_text="Enter your email for booking confirmations.")
+    technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, related_name='khachs')
     points = models.PositiveIntegerField(default=0)
     first_comes = models.DateTimeField(editable=False,auto_now_add=True)
     desc = models.TextField(max_length=250,blank=True, null=True)
     services = models.ManyToManyField("Service", blank=True, related_name="khachs")
-    status = models.CharField(choices=Status.choices, max_length=20, default=Status.online, help_text="choice Anyone for alternate! or cancel your appointment.")
+    status = models.CharField(choices=Status.choices, max_length=20, default=Status.online, help_text="Choose anyone as an alternate!")
     day_comes = models.DateField()
     time_at = models.TimeField()
     tags = TaggableManager()
@@ -202,7 +202,6 @@ class Service(models.Model):
     def time_in_minute(self):
         return self.time_perform.total_seconds()/60
         
-from django.contrib.auth import get_user
 
 class Chat(models.Model):
     text = models.TextField(validators=[MinLengthValidator(1, "What's your message.")])
@@ -218,9 +217,3 @@ class Chat(models.Model):
     def client_name(self):
         return self.client.full_name if self.client else "@Manager"
     
-    # @property
-    # def owner_name(self):
-    #     current_user = get_user(None)
-    #     if self.owner == current_user:
-    #         return "Manager"
-    #     return self.owner.username if self.owner else "UUser"

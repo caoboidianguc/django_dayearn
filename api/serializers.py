@@ -28,8 +28,8 @@ class KhachSerializer(serializers.ModelSerializer):
     technician = TechnicSerializer()
     class Meta:
         model = Khach
-        fields = ('id','full_name', 'phone', 'email','time_at','day_comes', 'points', 'desc', 'services', 'technician')
-    
+        fields = '__all__'
+        
     def validate(self, attrs):
         attrs['full_name'] = bleach.clean(attrs['full_name'])
         attrs['desc'] = bleach.clean(attrs['desc'])

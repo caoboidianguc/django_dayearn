@@ -6,21 +6,26 @@
 
 
 {% block headding %}
-<h1 class="title">Add Services</h1>
+<h1 class="title">All Services</h1>
 {% endblock headding %}
 
 
 {% block content %}
 {% if dvu %}
-{% for ser in dvu %}
-<div class='box'>
-    <div>{{ ser.service }}<br>{{ser.price}}</div>
-    <span>{{ ser.time_perform }}</span>
+
+<div class="container text-center">
+    <div class="row row-cols-auto">
+        {% for ser in dvu %}
+        <div class="col"><span class="fs-4 text-capitalize text-primary">{{ ser.service }}</span><br>$ {{ser.price}}
+            <p>{{ ser.time_perform }}</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
-{% endfor %}
+
 {% else %}
 <div>
-    Please Add Service you serv
+    All your services will list here.
 </div>
 {% endif %}
 {% endblock content %}

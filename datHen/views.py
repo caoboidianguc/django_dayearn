@@ -3,34 +3,57 @@ from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Khach, Technician, Service
 from django.views.generic import View, ListView
 from django.urls import reverse_lazy
-from .forms import DatHenFrom, ExistClientForm, DateForm, ThirdForm, ThirdFormExist, ServicesChoiceForm
+from .forms import UserExistClientForm, ExistClientForm, DateForm, ThirdForm, ThirdFormExist, ServicesChoiceForm
 from datetime import timedelta, date, datetime
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
+
 
 
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
     def get(self, request):
-        allTech = Technician.objects.filter(owner=request.user)
-        # hnay = Khach.objects.filter(day_comes=datetime.datetime.today()).order_by("time_at", owner=request.user)
-        allKhachHen = {
-            # 'khachHen': hnay,
-            'allTech': allTech,
-                       }
-        return render(request, self.template_name, allKhachHen)
+        date_str = request.GET.get('date')
+        if date_str:
+            try:
+                selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                selected_date = timezone.now().date()
+        else:
+            selected_date = timezone.now().date()
+        prev_day = selected_date - timedelta(days=1)
+        next_day = selected_date + timedelta(days=1)
+        all_tech = Technician.objects.filter(owner=request.user)
+        context = {
+            'allTech' : all_tech,
+            'selected_date': selected_date,
+            'prev_day' : prev_day,
+            'next_day' : next_day,
+        }
+        for tech in all_tech:
+            tech.clients = tech.get_clients().filter(day_comes=selected_date).order_by('time_at')
+        return render(request, self.template_name, context)
 
 
+class UserFindClient(LoginRequiredMixin,View):
+    template = 'datHen/exist_client_user.html'
+    def get(self, request):
+        phone = request.GET.get('phone')
+        form = UserExistClientForm()
+        khach = Khach.objects.filter(phone=phone)
+        cont = {'formDatHen': form, 'khach': khach}
+        return render(request, self.template, cont)
     
 class FindClient(View):
     template = 'datHen/exist_client_hen_cancel.html'
     def get(self, request):
-        name = str(request.GET.get("full_name")).upper()
-        khach = Khach.objects.filter(full_name=name, phone=request.GET.get('phone'))
+        name = str(request.GET.get("full_name")).upper().strip()
+        phone = request.GET.get('phone')
         form = ExistClientForm()
+        khach = Khach.objects.filter(full_name=name, phone=phone)
         cont = {'formDatHen': form, 'khach': khach}
-        
         return render(request, self.template, cont)
     
 class ExistFound(View):
@@ -68,6 +91,7 @@ class ChoiceServicesExistView(View):
             'form': serviceForm
         }
         return render(request, self.template, cont)
+    
     
 class ExistThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
