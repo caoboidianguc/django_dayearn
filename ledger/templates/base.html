@@ -50,7 +50,6 @@
                         {% csrf_token %}
                         <button class="btn btn-outline-info" type="submit">Logout</button>
                       </form>
-                      {% comment %} <a href=" {% url 'logout' %}">Logout</a> {% endcomment %}
                       {% else %}
                       <a class="btn btn-outline-info" href=" {% url 'login' %}">Login</a>
                       {% endif %}
@@ -60,14 +59,12 @@
             </div>
           </nav>
           {% comment %} second bar {% endcomment %}
-          <nav class="nav justify-content-center fs-3" style="background-color: #e3f2fd;">
-            
+          <nav class="nav justify-content-center fs-4" style="background-color: #e3f2fd;">
+            {% block nutChinh %}
+          {% endblock nutChinh %}
                 <h1 class="nav-link">Good Day(^_^) {{ user.username | default:'You'}} </h1>
-                
-                {% block nutChinh %}
-                  
-                {% endblock nutChinh %}
-                
+                {% block nutPhu %}
+          {% endblock nutPhu %}
           </nav>        
         
 

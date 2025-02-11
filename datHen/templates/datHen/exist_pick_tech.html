@@ -14,13 +14,22 @@
 {% block content %}
 <h1>Please pick one mark technician_detail_exist</h1>
     
-     
-    {% for tech in allTech %}
-    <div>
-        <a href="{% url 'datHen:technician_detail_exist' tech.id %}"> {{ tech.name }} </a>
-</div>
-     {% endfor %}
-
+<div class="container text-center">
+    <div class="row row-cols-auto">
+        {% for employee in allTech %}
+      <div class="col">
+        <a href="{% url 'datHen:technician_detail_exist' employee.id %}">
+            {% if employee.picture %}
+                <img src="{{ employee.picture.url }}" alt="{{ employee.name }}" style="width: 120px; height: 120px; object-fit: cover;" id="tech-pic">
+                {% else %}
+                <img src="{{ STATIC_URL }}path/to/default-image.jpg" alt="No Image" style="width: 50px; height: 50px;" id="tech-pic">
+            {% endif %}
+            <div id="tech-name">{{ employee.name }} </div>
+        </a>
+        </div>
+        {% endfor %}
+    </div>
+  </div>
 {% endblock content %}
 
 
