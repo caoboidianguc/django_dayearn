@@ -7,3 +7,4 @@ djangorestframework
 django-taggit
 django-bower
 Pillow
+django-simple-history

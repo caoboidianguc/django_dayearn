@@ -17,7 +17,7 @@
 
     {% for talk in allChat %}
     <div> <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:chat_detail' talk.id %}">
-        {{ talk.text }} 
+        {{ talk }} 
     </a>
         <p>
             {% if talk.owner == user %}

@@ -15,11 +15,12 @@
 {% endblock nutChinh %}
 
 {% block nutPhu %}
+
 <!-- Add date navigation -->
 <div class="date-navigation">
-    <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous Day</a>
+    <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous</a>
     <span class="current-date">{{ selected_date|date:'F d' }}</span>
-    <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next Day</a>
+    <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next</a>
 </div>
 {% endblock nutPhu %}
 
@@ -58,7 +59,7 @@
                                         {%if khach.status == "Anyone" %}
                                     </br>Alternate: {{khach.status }}
                                             {% elif khach.status == 'Cancel' %}
-                                    </br>Had been {{khach.status}}
+                                    </br>Was {{khach.status}}ed
                                             {%endif%}
                                 </span>
                         </p>

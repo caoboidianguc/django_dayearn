@@ -51,9 +51,11 @@ INSTALLED_APPS = [
     'taggit',
     "crispy_bootstrap5",
     'crispy_forms',
+    'simple_history',
     'rest_framework',
     'api.apps.ApiConfig',
     'datHen.apps.DathenConfig',
+    
 ]
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
@@ -67,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'dayearn.urls'
