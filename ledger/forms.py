@@ -45,12 +45,19 @@ class ClientForm(forms.ModelForm):
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
-        fields = ['service','price','time_perform']
+        fields = ['service','price','time_perform','description']
     time_perform = forms.IntegerField(
         label="Time Perform (minutes)",
         min_value=10,
         help_text="Enter the time in minutes."
     )
+    description = forms.CharField(widget=forms.Textarea(
+                        attrs={'placeholder': 'You can add later',
+                               'rows': 4,
+                               'cols': 50}),
+                        label="Enter description of the service.",
+                        required=False,
+                        )
     def clean_time_perform(self):
         phut = self.cleaned_data['time_perform']
         return timezone.timedelta(minutes=phut)
@@ -71,7 +78,9 @@ class VacationForm(forms.ModelForm):
         }
         
 class ChatForm(forms.ModelForm):
-    text = forms.CharField(required=True,min_length=5, max_length=500, strip=True)
+    text = forms.CharField(required=True,min_length=5, max_length=500, strip=True, label="",
+                           widget=forms.TextInput(
+                        attrs={'placeholder': 'i gonna say it'}))
     class Meta:
         model = Chat
         fields = ['text']
