@@ -10,6 +10,7 @@ from django.core.validators import MinLengthValidator
 import datetime
 from datetime import timedelta
 from taggit.managers import TaggableManager
+from simple_history.models import HistoricalRecords
 
 
 
@@ -22,13 +23,14 @@ class Technician(models.Model):
     end_work = models.TimeField()
     isWork = models.BooleanField(default=False)
     picture = models.ImageField(upload_to='tech_pictures/', null=True, editable=True)
-    content_type = models.CharField(max_length=256, null=True, help_text='The MIMEType of the file')
     services = models.ManyToManyField("Service", blank=True, related_name="tech")
     time_come_in = models.TimeField(null=True)
     work_days = models.CharField(max_length=7, default="1111110", help_text="MTWTFSS: 1 for work, 0 for off")
     vacation_start = models.DateField(null=True, blank=True, help_text="Start vacation")
     vacation_end = models.DateField(null=True, blank=True, help_text="End vacation, back work!")
     date_go_work = models.DateField(null=True, blank=True)
+    history = HistoricalRecords()
+    
     def is_on_vacation(self, check_date):
         if self.vacation_start and self.vacation_end:
             return self.vacation_start <= check_date <= self.vacation_end
@@ -107,9 +109,6 @@ class Technician(models.Model):
             all_ser += client.get_services()
         return all_ser
     
-   
-        
-    
     
 class Khach(models.Model):
     class Status(models.TextChoices):
@@ -129,7 +128,7 @@ class Khach(models.Model):
     time_at = models.TimeField()
     tags = TaggableManager()
     birthday = models.DateField(null=True, blank=True)
-    
+    history = HistoricalRecords()
     
     class Meta:
         unique_together = ('full_name','phone',)
@@ -179,6 +178,11 @@ class Khach(models.Model):
             return "A client with this Full name and Phone already exists."
         return super().unique_error_message(model_class, unique_check)
     
+    def get_all_chat(self):
+        return self.client_chats.all()
+    def get_all_like(self):
+        return self.liked_chats.all()
+    
 
     
     
@@ -186,7 +190,7 @@ class Service(models.Model):
     service = models.CharField(max_length=30)
     price = models.FloatField()
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
-    description = models.CharField(max_length=300, null=True, blank=True)
+    description = models.CharField(max_length=800, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
@@ -198,7 +202,8 @@ class Service(models.Model):
     class Meta:
         unique_together = ('service','price')
         ordering = ['price']
-        
+    def get_url(self):
+        return reverse("ledger:service_detail", kwargs={'pk':self.pk})
     def time_in_minute(self):
         return self.time_perform.total_seconds()/60
         
@@ -210,10 +215,19 @@ class Chat(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
     client = models.ForeignKey(Khach, on_delete=models.DO_NOTHING, related_name="client_chats", null=True, blank=True)
     def __str__(self):
-        if len(self.text) < 45 : return self.text
-        return self.text[:40] + ' ...'
+        if len(self.text) < 200 : return self.text
+        return self.text[:200] + ' ...'
     
     @property
     def client_name(self):
         return self.client.full_name if self.client else "@Manager"
     
+class Like(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="likes")
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats")
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ['chat', 'client']
+        
+    def __str__(self):
+        return f"{self.client} liked chat {self.chat.id}"

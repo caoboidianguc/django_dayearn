@@ -14,8 +14,7 @@
     <div class="form-group col-md-4">
     {{ form | crispy }}
     </div>
-    <input type="submit" value="Add">
+    <input type="submit" value="  Add  " class="btn btn-primary w-auto">
     <input type="submit" onclick="window.location='{% url 'ledger:services' %}'; return false; " value="Cancel">
 </form>  
 {% endblock content %}
-    {% comment %} add minus to form.time_serv for every service {% endcomment %}

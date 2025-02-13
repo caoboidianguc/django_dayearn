@@ -232,3 +232,25 @@ class UserChatDetailView(LoginRequiredMixin, View):
             'chat_form' : form
         }
         return render(request, self.template, context)
+
+class ServiceDetail(LoginRequiredMixin, View):
+    template = "ledger/service_detail.html"
+    def get(self, request, pk):
+        service = get_object_or_404(Service, id=pk)
+        form = ServiceForm(instance=service)
+        context = {'service': service,
+                   'form': form}
+        return render(request, self.template, context)
+    
+    def post(self, request, pk):
+        service = get_object_or_404(Service, id=pk)
+        form = ServiceForm(request.POST, instance=service)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"{form.instance.service} was updated successfully!")
+            return redirect(reverse('ledger:services'))
+        context = {'service': service,
+                   'form': form}
+        return render(request, self.template, context)
+    
+    

@@ -89,7 +89,6 @@ class DateForm(forms.ModelForm):
     
      
   
-
 class ThirdForm(forms.ModelForm):
     
     class Meta:
@@ -106,7 +105,7 @@ class ThirdForm(forms.ModelForm):
     email = forms.CharField(
         label="",
         required=False,
-        widget=forms.widgets.EmailInput(attrs={'placeholder':'Email Optional'}))
+        widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
     
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),
@@ -143,7 +142,7 @@ class ThirdFormExist(forms.ModelForm):
     email = forms.CharField(
         label="",
         required=False,
-        widget=forms.widgets.EmailInput(attrs={'placeholder':'Email Optional'}))
+        widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
     
     def clean_full_name(self):
         data = super().clean()
