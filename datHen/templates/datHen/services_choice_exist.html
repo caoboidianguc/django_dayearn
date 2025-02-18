@@ -13,10 +13,9 @@
 
 
 {% block content %}
-
-    <h1>Favor Technician ? Services Exist</h1>
+<h1>Select services:</h1>
     <div>
-        Services Pick:
+        
         <div>
         {% for serv in dv %} 
             <p> {{ serv }} </p>
@@ -31,9 +30,10 @@
             <div class="form-group col-md-4">
                 {{ form.dichvu }}
             </div>
+            <br>
 
-              <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Back' >
-            <input type='submit' value='Next'  >
+              <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Back' class="btn btn-primary">
+            <input type='submit' value='Next ->' class="btn btn-info" >
             
         </div>
         

@@ -8,8 +8,8 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='title'>Exist Client's Schedule Third Step</h1>
-    
+    <h1 class='title'>If you like alternate nail tech in case of...</h1>
+    <h4>you can change the <span class="text-danger">Status to "Anyone"</span></h4>
     {% if messages %} 
     {% for tin in messages %} 
     <li class="tinnhan">{{ tin }}</li>
@@ -19,9 +19,21 @@
 
 
 {% block content %}
-
-    <h1>Technician: {{ tech }}</h1>
-    <h1>Day comes: {{ ngay | naturalday }}</h1>
+<h5>Your technician: <strong>{{ tech }}</strong></h5>
+    <h5>Day coming: <strong>{{ ngay | naturalday }}</strong></h5>
+    
+    <div class="work-schedule">
+      <h3>Total Time: {{ tongThoigian }} minutes</h3>
+      <div>Services Picked:</div>
+    </div>
+      
+      {% for service in allServices %}
+      <div>
+  <li><strong>{{ service.service }}</strong> </strong></li>
+  {% endfor %}
+      
+    </div>
+<br>
   
    
       {% if form.errors %}

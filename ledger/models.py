@@ -50,11 +50,13 @@ class Technician(models.Model):
         
         
     def get_clients(self):
-        allClients = self.khachs.all()
+        now = datetime.datetime.now()
+        allClients = self.khachs.filter(day_comes__gte=now)
         return allClients
     
     def get_today_clients(self):
-        return self.get_clients().filter(day_comes=datetime.date.today()).order_by('time_at')
+        hnay = self.get_clients().filter(day_comes=datetime.date.today()).exclude(status=Khach.Status.cancel)
+        return hnay.order_by('time_at')
     
     
     def get_available(self, ngay):
@@ -102,12 +104,14 @@ class Technician(models.Model):
             yield batdau
             batdau += timedelta(minutes=15)
     
-    def get_services_of_tech(self):
+    def get_services_of_tech(self, service = None):
         clients = self.get_today_clients()
         all_ser = []
+        if service:
+            all_ser.append(service)
         for client in clients:
-            all_ser += client.get_services()
-        return all_ser
+            all_ser.extend(client.get_services())
+        return all_ser.count()
     
     
 class Khach(models.Model):
@@ -185,13 +189,19 @@ class Khach(models.Model):
     
 
     
-    
 class Service(models.Model):
+    class Category(models.TextChoices):
+        nail = "Nail"
+        # hair = "Hair"
+        wax = "Wax"
+        feet = "Feet"
     service = models.CharField(max_length=30)
     price = models.FloatField()
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
     description = models.CharField(max_length=800, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    category = models.CharField(choices=Category.choices, max_length=15, default=Category.nail, help_text="Choose one of the categories.", null=True, blank=True)
+
 
     def __str__(self) -> str:
         return self.service

@@ -10,7 +10,10 @@ from datetime import timedelta
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q
+from django.core.paginator import Paginator
+import requests
+import os
 
 
 class AllEmployee(LoginRequiredMixin,ListView):
@@ -115,14 +118,6 @@ class AddService(LoginRequiredMixin, View):
         return redirect(self.success_url)
        
 
-class CustomerVisit(View):
-    template = "home.html"
-    # trang chu, when customer visit this is where they see first
-    def get(self, request):
-        return render(request, self.template)
-    def post(self, request):
-        pass
-
 class TechVacationView(LoginRequiredMixin,UpdateView):
     model = Technician
     form_class = VacationForm
@@ -141,9 +136,13 @@ class ChatView(View):
         request.session['client_id'] = pk
         client = get_object_or_404(Khach, id=pk)
         allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
+        allChat = allChat[:75]
+        paginator = Paginator(allChat, 25)
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
         chat_form = ChatForm()
         context = {
-            'allChat' : allChat, 'chat_form': chat_form, 'client' : client
+            'page_obj' : page_obj, 'chat_form': chat_form, 'client' : client
         }
         return render(request, self.template, context)
 
@@ -192,9 +191,13 @@ class UserChatView(LoginRequiredMixin, View):
     template = "ledger/user_chat_room.html"
     def get(self, request):
         allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
+        allChat = allChat[:75]
+        paginator = Paginator(allChat, 25)
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
         chat_form = ChatForm()
         context = {
-            'allChat' : allChat, 'chat_form': chat_form,
+            'page_obj' : page_obj, 'chat_form': chat_form,
         }
         return render(request, self.template, context)
 
@@ -253,4 +256,51 @@ class ServiceDetail(LoginRequiredMixin, View):
                    'form': form}
         return render(request, self.template, context)
     
+# trang chu, when customer visit this is where they see first
+    
+# "id": "4841897016034853"
+# get_user_access_token = 
+# for user_photo, and user post
+
+class CustomerVisit(View):
+    page_id = "4841897016034853"
+    access_token = os.environ.get('access_token')
+    url = f"https://graph.facebook.com/v22.0/{page_id}/feed?fields=full_picture,message,attachments{{media,image}}&access_token={access_token}"
+    template = "home.html"
+    allService = Service.objects.all()
+    nail = allService.filter(category="Nail")
+    feet = allService.filter(category="Feet")
+    wax = allService.filter(category="Wax")
+
+    def get(self, request):
+        response = requests.get(self.url)
+        if response.status_code == 200:
+            data = response.json()
+            latest_image_urls = []
+            for post in data.get('data', []):
+                if 'full_picture' in post:
+                    latest_image_urls.append(post['full_picture'])
+                # if 'attachments' in post and post['attachments']['data']:
+                #     for attachment in post['attachments']['data']:
+                #         if 'media' in attachment:
+                #             for media in attachment['media']:
+                #                 if isinstance(media, dict) and 'image' in media and isinstance(media['image'], dict):
+                #                     latest_image_urls.append(media['image']['src'])
+            latest_image_urls = latest_image_urls[:3]
+                        
+            context = {
+                'nails': self.nail,
+                'feets': self.feet,
+                'waxs': self.wax,
+                'latest_image_urls': latest_image_urls,
+            }
+        else:
+            print(f"Failed to fetch data: {response.status_code}")
+            context = {
+                'nails': self.nail,
+                'feets': self.feet,
+                'waxs': self.wax,
+                'latest_image_urls': [],
+            }
+        return render(request, self.template, context)
     

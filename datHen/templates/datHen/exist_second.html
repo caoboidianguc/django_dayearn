@@ -5,9 +5,7 @@
 
 
 {% block nutChinh %}
-{% comment %} <a class="navbar-item" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
-<strong>|</strong>
-<a class="navbar-item" href="{% url 'datHen:exist_client' %}"><h1 class='title'>Been here</h1></a> {% endcomment %}
+
 {% endblock nutChinh %}
 
 {% block headding %}
@@ -22,7 +20,7 @@
 
 {% block content %}
 
-    <h1>Technician: {{ tech }}</h1>
+    <h1>You technician: {{ tech }}</h1>
       
       <form action='{% url "datHen:service_choice_exist" %}' method='get'>
         {% csrf_token %}
@@ -32,8 +30,8 @@
                 {{ secondForm.day_comes | as_crispy_field }}
               </div>
               
-              <input type='submit' onclick="window.location='{% url 'datHen:first_step' %}'; return false; " value='Back' >
-            <input type='submit' value='Next'  >
+              <input type='submit' onclick="window.location='{% url 'datHen:first_step' %}'; return false; " value='Back' class="btn btn-primary">
+            <input type='submit' value='Next ->' class="btn btn-info" >
             
         </div>
         

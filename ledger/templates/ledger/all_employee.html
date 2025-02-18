@@ -15,8 +15,9 @@
 <div class="container text-center">
   <div class="row row-cols-auto">
     {% for employee in employees %}
-    <div class="row-cols-auto">
-      <button class="tech-button" style="background-color: {% if employee.isWork %}green{% else %}gray{% endif %}" id="em_{{employee.id}}">
+    {% if employee.isWork %}
+    <div class="cols-auto">
+      <button class="tech-button" style="background-color:green" id="em_{{employee.id}}">
         <div class="card-body">
              <h5 class="card-title align-text-top"> {{ employee.name }}</h5>
           <span class="card-subtitle align-content-center">{{ employee.time_come_in }}</span></br>
@@ -24,10 +25,26 @@
       </div>
       </button>
     </div>
-    {% endfor %} 
+    
+    {% endif %}
+    {% endfor %}
+  <hr style="border: 1px solid black; width: 100%; margin: 20px 0;">
+  {% for employee in employees %}
+  {% if not employee.isWork %}
+  <div class="cols-auto">
+    <button class="tech-button" style="background-color:gray" id="em_{{employee.id}}">
+      <div class="card-body">
+           <h5 class="card-title align-text-top"> {{ employee.name }}</h5>
+        <span class="card-subtitle align-content-center">Off</span></br>
+    </div>
+    </button>
+  </div>
+  
+  {% endif %}
+  {% endfor %}
   </div>
 </div>   
-    <hr>
+    
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -46,6 +63,16 @@
               if (response.success) {
                 button.css('background-color', response.color);
                 button.find('.card-subtitle').text(response.isWork ? 'Came at: ' + response.time_come_in : "Off");
+                
+                if (response.isWork){
+                  var clone = button.closest('.cols-auto').clone();
+                  button.closest('.cols-auto').remove();
+                  $('.row.row-cols-auto hr').before(clone);
+                } else {
+                  var clone = button.closest('.cols-auto').clone();
+                  button.closest('.cols-auto').remove();
+                  $('.row.row-cols-auto hr').after(clone);
+                }
               } else {
                 alert(response.error);
               }
@@ -58,5 +85,5 @@
 {% endblock content %}
     
 {% block footer %}
-    <a class="btn btn-primary" href="{% url 'password_change' %}">Change Password</a>
+    {% comment %} <a class="btn btn-primary" href="{% url 'password_change' %}">Change Password</a> {% endcomment %}
 {% endblock footer %}
