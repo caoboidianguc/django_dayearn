@@ -8,3 +8,5 @@ django-taggit
 django-bower
 Pillow
 django-simple-history
+requests
+python-dotenv

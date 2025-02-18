@@ -45,7 +45,7 @@ class ClientForm(forms.ModelForm):
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
-        fields = ['service','price','time_perform','description']
+        fields = ['service','price','time_perform','description','category']
     time_perform = forms.IntegerField(
         label="Time Perform (minutes)",
         min_value=10,

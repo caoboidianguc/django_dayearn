@@ -8,29 +8,30 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='title'>Client's Schedule Third Step</h1>
-    
-    
+<h1 class='title'>If you like alternate nail tech in case of...</h1>
+<h4>you can change the <span class="text-danger">Status to "Anyone"</span></h4>
 {% endblock headding %}
 
 
 {% block content %}
 
-    <h1>Technician: {{ tech }}</h1>
-    <h1>Day comes: {{ ngay | naturalday }}</h1>
-    <h1>hom nay: {{ hnay }}</h1>
+<h5>Your technician: <strong>{{ tech }}</strong></h5>
+<h5>Day coming: <strong>{{ ngay | naturalday }}</strong></h5>
     <div class="work-schedule">
-      <h1>hom nay: {{ tongThoigian }}</h1>
-      <div>Services Picked:</div>
-      {% for service in allServices %}
+      <h5>Total Time: <strong>{{ tongThoigian }}</strong> minutes</h5>
       
+    </div>
+      <h5>
+        <div>Services Picked:</div>
+      {% for service in allServices %}
+      <div>
   <li><strong>{{ service.service }}</strong> </strong></li>
   {% endfor %}
       
     </div>
-
+  </h5>
     <div class="work-schedule">
-        <div>Work schedule:</div>
+        <div>Please fill out:</div>
         {% for khach in hen %}
         
     <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
@@ -52,15 +53,11 @@
       <form action='' method='post'>
         {% csrf_token %}
         <div class="table-responsive">
-                
-              {% comment %} <div class="form-check">
-                {{ form.services | as_crispy_field }}
-              </div> {% endcomment %}
-
+        
               <div class="col-md-4 mb-3">
                 <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example">
                   
-                  <option selected>Pick your time:</option>
+                  <option selected>Select your time:</option>
                   {% for tieng in available %}
                   <option value="{{tieng.hour }}:{{tieng.minute }}">{{tieng.hour }} : {{tieng.minute }}</option>
                   {% endfor %}
@@ -83,7 +80,7 @@
                 {{ form.status | as_crispy_field }}
               </div>
 
-              <button class="btn btn-primary w-25" type='submit'> Take </button>
+              <button class="btn btn-primary w-25" type='submit'> Submit </button>
               <button type='submit' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
             
         </div>
@@ -103,4 +100,3 @@
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
  
-
