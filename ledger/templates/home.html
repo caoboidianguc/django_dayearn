@@ -1,29 +1,95 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
+{% load static %}
 
 {% block nutChinh %}
-<a class="nav-link" href="#">there no button here yet</a>
+
 {% endblock nutChinh %}
 
 {% block headding %}
-<h1>DayEarn Home</h1>
+<figure class="text-end text-primary">
+    <blockquote class="blockquote">
+      <p>Elegance is often first perceived through your appearance.</p>
+    </blockquote>
+    <figcaption class="blockquote-footer">
+        Where Beauty meets relaxation - <cite title="Source Title"> Elegant Nails & Spa</cite>
+    </figcaption>
+</figure>
 {% if messages %} 
     {% for tin in messages %} 
     <li class="text-success fs-4">{{ tin }}</li>
     {% endfor %}
-    {% endif %}
+{% endif %}
 {% endblock headding %}
 
-
 {% block content %}
-    <h1 class="title">Here present introduction!</h1>
-    <div class="container is-fluid">
-    a few thing to show
+<div class="hero" style="background-image: url('{% static 'ledger/images/nail.jpeg' %}'); background-size: cover; background-position: center; padding: 100px 0;">
+    <div class="container text-center text-white">
+        
+        <h1 class="display-4">Your Journey to Beauty Begins Here</h1>
+        <p class="lead">Experience the pinnacle of nail care and beauty treatments at Elegant Nails & Spa</p>
     </div>
+</div>
+
+<div class="container my-5">
+    <h2 class="text-center mb-4">Our Services</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <h3 class="text-center">Nails</h3>
+            {% for nail in nails %}
+            <ul class="list-unstyled text-md-center">
+                <li>{{ nail.service | title }}</li>
+                {% endfor %}
+                <li>Manicure</li>
+                <li>Gel Nails</li>
+                <li>Acrylic Nails</li>
+                <li>Nail Art</li>
+            </ul>
+            
+        </div>
+        <div class="col-md-4">
+            <h3 class="text-center">Feet</h3>
+            {% for feet in feets %}
+            <ul class="list-unstyled text-md-center">
+                <li>{{ feet.service | title}}</li>
+                {% endfor %}
+                <li>Foot Spa</li>
+                <li>Callus Treatment</li>
+                <li>Foot Massage</li>
+            </ul>
+            
+        </div>
+        <div class="col-md-4">
+            <h3 class="text-center">Wax</h3>
+            {% for wax in waxs %}
+            <ul class="list-unstyled text-md-center">
+                <li>{{ wax.service | title }}</li>
+                {% endfor %}
+                <li>Facial Waxing</li>
+                <li>Body Waxing</li>
+                <li>hand Wax</li>
+                <li>Leg Waxing</li>
+            </ul>
+            
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
-
 {% block footer %}
-    <strong>Linh</strong> foundation from 2002
+
+    >> Discover your beauty with us.
+    <br>
+    {% if latest_image_urls %}
+    <div class="image-container">
+        {% for image_url in latest_image_urls %}
+            <img src="{{ image_url }}" alt="Image from FB" style="max-width: 20%; height: auto;">
+            
+        {% endfor %} 
+    </div>
+        {% else %}
+        <p>No recent image found on FB.</p>
+    {% endif %}
 {% endblock footer %}
+

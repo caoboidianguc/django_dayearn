@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 
 {% block nutChinh %}
-<a class="nav-link" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
+
 {% endblock nutChinh %}
 
 {% block headding %}
@@ -13,7 +13,7 @@
         {% endfor %}
     </ul>
     {% endif %}
-    <h1 class='title'>Reschedule star with:</h1>
+    <h1 class='title'>Reschedule your appoinment or <span class="text-danger" >Cancel</span>:</h1>
     <div>
         {% if khach %}
         {% for mot in khach.all %}
@@ -23,7 +23,7 @@
             <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
         </div>
         <div class="col-md-2 ">
-            <a href="{{ mot.get_cancel_url }}" class="btn btn-primary" role="button" >Cancel Appoinment</a>
+            <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appoinment</a>
         </div>
         <div class="col-md-2 ">
             <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
@@ -44,7 +44,7 @@
                 {{ formDatHen | crispy }}
                 </div>
             </table>
-            <input type='submit' value='Find' class="btn btn-info" role="button">
+            <input type='submit' value=' Find' class="btn btn-info w-25" role="button">
             <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
         </div>
     </form>

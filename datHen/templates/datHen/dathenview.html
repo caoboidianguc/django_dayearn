@@ -5,12 +5,9 @@
 
 
 {% block nutChinh %}
-        <a class="nav-link" href="{% url 'datHen:first_step' %}">New Client</a>
-    {% if user.is_authenticated %}
-        <a class="nav-link" href="{% url 'datHen:user_find_client' %}">Been here</a>
-    {% else %}
-        <a class="nav-link" href="{% url 'datHen:find_client' %}">Been here</a>
-        {% endif %}
+        <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
+
+        <a class="nav-link" href="{% url 'datHen:user_find_client' %}"><span>Been here</span></a>
         
 {% endblock nutChinh %}
 

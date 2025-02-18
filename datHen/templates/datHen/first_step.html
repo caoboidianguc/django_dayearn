@@ -4,9 +4,7 @@
 
 
 {% block nutChinh %}
-{% comment %} <a class="nav-link" href="{% url 'datHen:schedule' %}"><h1 class='title'>New Client</h1></a>
-<strong>|</strong>
-<a class="nav-link" href="{% url 'datHen:exist_client' %}"><h1 class='title'>Been here</h1></a> {% endcomment %}
+
 {% endblock nutChinh %}
 
 {% block headding %}
@@ -24,12 +22,12 @@
 
     <h1>Favor one?</h1>
     
-     
+    
     <div class="container text-center">
         <div class="row row-cols-auto">
             {% for employee in tech %}
           <div class="col">
-            <a href="{{ employee.get_absolute_url }}" id="tech-item">
+            <a href="{{ employee.get_absolute_url }}" id="tech-item" class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0">
                 {% if employee.picture %}
                     <img src="{{ employee.picture.url }}" alt="{{ employee.name }}" style="width: 120px; height: 120px; object-fit: cover;" id="tech-pic">
                     {% else %}

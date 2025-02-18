@@ -84,7 +84,7 @@ class DateForm(forms.ModelForm):
 
     day_comes = forms.DateField(
         widget=ChonNgay(attrs={'min': date.today()}),
-        label="Please Pick a day"
+        label="Please Pick a date"
         )
     
      
@@ -103,7 +103,7 @@ class ThirdForm(forms.ModelForm):
         ]
         
     email = forms.CharField(
-        label="",
+        label="Email",
         required=False,
         widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
     
@@ -140,7 +140,7 @@ class ThirdFormExist(forms.ModelForm):
     technician = forms.widgets.HiddenInput()
      
     email = forms.CharField(
-        label="",
+        label="Email",
         required=False,
         widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
     
