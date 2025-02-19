@@ -10,3 +10,4 @@ Pillow
 django-simple-history
 requests
 python-dotenv
+bleach

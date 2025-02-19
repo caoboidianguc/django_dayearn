@@ -39,9 +39,10 @@
             {{ chat_form | crispy }}
             
     </div>
+</div>
         <button type="submit" class="btn btn-primary w-25">Post</button>
         <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
-    </div>
+    
     </form>  
      <!-- Pagination controls -->
    <nav aria-label="Page navigation example">
