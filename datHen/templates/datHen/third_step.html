@@ -25,7 +25,7 @@
         <div>Services Picked:</div>
       {% for service in allServices %}
       <div>
-  <li><strong>{{ service.service }}</strong> </strong></li>
+  <li><strong>{{ service | title }}</strong> </strong></li>
   {% endfor %}
       
     </div>

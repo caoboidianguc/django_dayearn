@@ -13,29 +13,44 @@
 
 
 {% block content %}
-<h1>Select services:</h1>
-    <div>
-        
-        <div>
-        {% for serv in dv %} 
-            <p> {{ serv }} </p>
-         {% endfor %}
-        </div>
-    </div>
+<h1>All services:</h1>
+    
 
     <form action="{% url 'datHen:third_step_exist' %}" method='get' id="ser_item">
         {% csrf_token %}
         <div class="table-responsive">
-                
-            <div class="form-group col-md-4">
-                {{ form.dichvu }}
+            <div class="container mt-4">
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-md-6 mb-4">
+                            
+                            <div class="card-body">
+                                
+                                <p class="card-text">
+                                    {% for choice in field.field.queryset %}
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" name="dichvu" value="{{ choice.id }}" class="form-check-input">
+                                            <span class="checkmark"></span>
+                                            <strong>{{ choice | title }}</strong> - 
+                                                <span class="text-secondary">{{ choice.description }} </span>
+                                            
+                                                
+                                        </label>
+                                    </div>
+                                </p>
+                                {% endfor %}
+                            </div>
+                            
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
-            <br>
-
+        </div>
               <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Back' class="btn btn-primary">
             <input type='submit' value='Next ->' class="btn btn-info" >
             
-        </div>
+       
         
     </form>
 

@@ -205,7 +205,6 @@ class ChoiceServicesView(View):
         return render(request, self.template, cont)
     
 
-# client view
 class ThirdStep(View):
     chuDe = "Dayearns Confirm schedule"
     template = 'datHen/third_step.html'

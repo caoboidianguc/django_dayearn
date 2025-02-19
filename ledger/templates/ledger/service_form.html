@@ -9,12 +9,15 @@
 
 
 {% block content %}
+<div>
 <form action="" method="post">
     {% csrf_token %}
     <div class="form-group col-md-4">
     {{ form | crispy }}
     </div>
-    <input type="submit" value="  Add  " class="btn btn-primary w-auto">
-    <input type="submit" onclick="window.location='{% url 'ledger:services' %}'; return false; " value="Cancel">
+
+    <input type="submit" value="Add " class="btn btn-primary w-25">
+    <input type="submit" onclick="window.location='{% url 'ledger:services' %}'; return false; " value="Cancel" class="btn btn-secondary">
 </form>  
+</div>
 {% endblock content %}

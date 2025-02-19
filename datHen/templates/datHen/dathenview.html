@@ -62,7 +62,7 @@
                         </p>
                         Get: {% if khach.services %}
                         {% for dichvu in khach.services.all %}
-                        <li>{{ dichvu }} </li>
+                        <li>{{ dichvu | title }} </li>
                         {% endfor %}
                         {% endif %} 
                     </div>
