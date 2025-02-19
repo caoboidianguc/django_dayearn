@@ -11,3 +11,21 @@
     border-radius: 15px; /* Optional: Add rounded corners */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
 }
+
+.navbar-item .btn {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .nav-link {
+        font-size: 0.9rem;
+    }
+
+    .navbar-end {
+        margin-left: auto;
+    }
+}
+
+.cursive-text {
+    font-family: 'cursive', sans-serif;
+}
