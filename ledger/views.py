@@ -135,7 +135,7 @@ class ChatView(View):
     def get(self, request, pk):
         request.session['client_id'] = pk
         client = get_object_or_404(Khach, id=pk)
-        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client")
         allChat = allChat[:75]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
@@ -211,7 +211,7 @@ class UserChatDetailView(LoginRequiredMixin, View):
     template = "ledger/user_chat_detail.html"
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
-        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
+        replies = Chat.objects.filter(reply_to=chat).order_by('-created_at')
         context = {
             'chat' : chat,
             'replies': replies,

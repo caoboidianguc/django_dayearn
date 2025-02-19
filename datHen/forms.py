@@ -153,6 +153,6 @@ class ThirdFormExist(forms.ModelForm):
 class ServicesChoiceForm(forms.Form):
     dichvu = forms.ModelMultipleChoiceField(queryset=Service.objects.all(), 
                                               widget=forms.CheckboxSelectMultiple,
-                                              label = "Choose Services:")
+                                              label = "")
     
     
