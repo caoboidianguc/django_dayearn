@@ -33,23 +33,22 @@
 </div>
 
 <div class="container my-5">
-    <h2 class="text-center mb-4">Our Services</h2>
+    <h2 class="text-center mb-3">Our Services</h2>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <h3 class="text-center">Nails</h3>
             {% for nail in nails %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ nail.service | title }}</li>
                 {% endfor %}
-                <li>Manicure</li>
                 <li>Gel Nails</li>
                 <li>Acrylic Nails</li>
                 <li>Nail Art</li>
             </ul>
             
         </div>
-        <div class="col-md-4">
-            <h3 class="text-center">Feet</h3>
+        <div class="col-md-3">
+            <h3 class="text-center">Pedicure</h3>
             {% for feet in feets %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ feet.service | title}}</li>
@@ -60,7 +59,18 @@
             </ul>
             
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <h3 class="text-center">Manicure</h3>
+            {% for tay in mani %}
+            <ul class="list-unstyled text-md-center">
+                <li>{{ tay.service | title }}</li>
+                {% endfor %}
+                <li>Manicure</li>
+                <li>Hand Massage</li>
+            </ul>
+            
+        </div>
+        <div class="col-md-3">
             <h3 class="text-center">Wax</h3>
             {% for wax in waxs %}
             <ul class="list-unstyled text-md-center">

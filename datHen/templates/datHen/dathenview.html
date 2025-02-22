@@ -3,7 +3,6 @@
 {% load humanize %}
 
 
-
 {% block nutChinh %}
         <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
 
@@ -16,7 +15,8 @@
 <!-- Add date navigation -->
 <div class="date-navigation">
     <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous</a>
-    <span class="current-date">{{ selected_date|date:'F d' }}</span>
+    <span class="current-date">{{ selected_date|date:'l' }}</span>
+    <!-- <span class="fs-6 text-secondary">{{ selected_date|date:'F d' }}</span> -->
     <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next</a>
 </div>
 {% endblock nutPhu %}
@@ -40,23 +40,23 @@
     {%for tech in allTech %}
     <div class="col-md-2 align-text-top" id="tech">
         <span class="fs-3" >
-            <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{tech.name}}</a>
+            <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{ tech.name | title }}</a>
         </span>
             {%for khach in tech.clients %}
                 <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
                     <div class="card-body">
                         <h5 class="card-title text-info">{{ khach.full_name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at | naturaltime }}</span></h6>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at }}</span></h6>
                         <p class="card-text">
                                 <span class="badge {% if khach.status == "Anyone" %} bg-warning 
-                                {%elif khach.status == 'Cancel' %} bg-danger
+                                {% elif khach.status == 'Cancel' %} bg-danger
                                 {% else %} bg-success
                                 {% endif %} text-wrap fs-6" style="width: 10rem;">
-                                        With: {{khach.technician}}
+                                        With: {{ khach.technician | title }}
                                         {%if khach.status == "Anyone" %}
-                                    </br>Alternate: {{khach.status }}
+                                    <br>Alternate: {{ khach.status }}
                                             {% elif khach.status == 'Cancel' %}
-                                    </br>Was {{khach.status}}ed
+                                    <br>Was {{ khach.status }}ed
                                             {%endif%}
                                 </span>
                         </p>
@@ -87,7 +87,25 @@
                 padding: 1px;
                 text-decoration: none;
               }
-              
+              div.card {
+                margin: 2px;
+                padding: 3px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+
+                height: auto;
+                text-align: center;
+                overflow: auto;
+                white-space: nowrap;
+              }
+
+              div.card-body {
+                padding: 1px;
+                text-align: center;
+                overflow: auto;
+                white-space: nowrap;
+            }
 
         </style>
 

@@ -6,13 +6,14 @@
 <a class="nav-link" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
 {% endblock nutChinh %}
 {% block headding %}
-    <h1 class='title'>Reservation</h1>
+    <h1 class='title'>Our technician</h1>
     
 {% endblock headding %}
 
 
 {% block content %}
-<h1>Please pick one mark technician_detail_exist</h1>
+<h1>Please choose your technician</h1>
+    <h4>You can assign to status to Anyone later</h4>
     
 <div class="container text-center">
     <div class="row row-cols-auto">
@@ -24,12 +25,34 @@
                 {% else %}
                 <img src="{{ STATIC_URL }}path/to/default-image.jpg" alt="No Image" style="width: 50px; height: 50px;" id="tech-pic">
             {% endif %}
-            <div id="tech-name">{{ employee.name }} </div>
+            <div id="tech-name">{{ employee.name | title }} </div>
         </a>
         </div>
         {% endfor %}
     </div>
   </div>
+
+  <style type="text/css">
+    #tech-item{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        padding: 7px;
+    }
+    #tech-pic{
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 20%;
+
+    }
+    #tech-name{
+        margin-top: 5px;
+        font-size: 16px;
+    }
+</style>
 {% endblock content %}
 
 

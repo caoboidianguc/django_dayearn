@@ -17,17 +17,12 @@
     <div>
         {% if khach %}
         {% for mot in khach.all %}
-        <div class="row">
-            <label class="form-label text-success">Hi {{ mot.full_name }}</label>
-            <div class="col-md-2 ">
+        <p><label class="form-label text-success">Hi {{ mot.full_name }} would you like to</label></p>
+        <div class="d-inline-flex gap-2">
+            
             <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
-        </div>
-        <div class="col-md-2 ">
-            <a href="{{ mot.get_cancel_url }}" class="btn btn-primary" role="button" >Cancel Appoinment</a>
-        </div>
-        <div class="col-md-2 ">
-            <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
-        </div>
+        
+            <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appoinment</a>
     </div>
          {% endfor %}
         {% endif %}
@@ -36,19 +31,21 @@
 
 
 {% block content %}
-    <form action='' method='get'>
-        {% csrf_token %}
-        <div class="table-responsive">
-            <table class="table table-primary">
-                <div class="form-group col-md-4">
-                {{ formDatHen | crispy }}
-                </div>
-            </table>
-            <input type='submit' value='Find' class="btn btn-info" role="button">
-            <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
-        </div>
-    </form>
+    {% if not khach %}
+        <form action='' method='get'>
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-primary">
+                    <div class="form-group col-md-4">
+                    {{ formDatHen | crispy }}
+                    </div>
+                </table>
+                <input type='submit' value='Find' class="btn btn-info" role="button">
+                <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
+            </div>
+        </form>
 
+    {% endif %} 
     
 {% endblock content %}
 

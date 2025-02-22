@@ -59,7 +59,7 @@ class AllServices(LoginRequiredMixin, ListView):
     
     template = 'ledger/list_services.html'
     def get(self, request):
-        serv = Service.objects.filter(owner=request.user)
+        serv = Service.objects.filter(owner=request.user).order_by('category')
         cont = {'dvu': serv}
         return render(request, self.template, cont)
     
@@ -268,8 +268,9 @@ class CustomerVisit(View):
     url = f"https://graph.facebook.com/v22.0/{page_id}/feed?fields=full_picture,message,attachments{{media,image}}&access_token={access_token}"
     template = "home.html"
     allService = Service.objects.all()
-    nail = allService.filter(category="Nail")
-    feet = allService.filter(category="Feet")
+    nail = allService.filter(category="Nail Enhancement")
+    mani = allService.filter(category="Manicure")
+    feet = allService.filter(category="Pedicure")
     wax = allService.filter(category="Wax")
 
     def get(self, request):
@@ -292,6 +293,7 @@ class CustomerVisit(View):
                 'nails': self.nail,
                 'feets': self.feet,
                 'waxs': self.wax,
+                'mani': self.mani,
                 'latest_image_urls': latest_image_urls,
             }
         else:
@@ -300,6 +302,7 @@ class CustomerVisit(View):
                 'nails': self.nail,
                 'feets': self.feet,
                 'waxs': self.wax,
+                'mani': self.mani,
                 'latest_image_urls': [],
             }
         return render(request, self.template, context)

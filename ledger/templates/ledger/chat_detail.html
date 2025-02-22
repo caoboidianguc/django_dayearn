@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
-
+{% load humanize %}
 
 {% block headding %}
 <h1>DayEarn Chat Room</h1>
@@ -15,7 +15,7 @@
     </div>
 
     <div>
-        {{ chat.text }} <span class="fw-light text-secondary">{{ chat.created_at }}</span>
+        {{ chat.text }} <span class="fw-light text-secondary">{{ chat.created_at | naturaltime }}</span>
     </div>
         <p>
             {% if chat.owner == user %}
@@ -33,7 +33,7 @@
                 {% else %}
                     by: {{ reply.client_name }}
                 {% endif %}
-                {{ reply.created_at }}</span>
+                {{ reply.created_at | naturaltime }}</span>
             </p>
     </div>
     <hr>

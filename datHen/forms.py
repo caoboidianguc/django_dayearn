@@ -151,7 +151,7 @@ class ThirdFormExist(forms.ModelForm):
     
 
 class ServicesChoiceForm(forms.Form):
-    dichvu = forms.ModelMultipleChoiceField(queryset=Service.objects.all(), 
+    dichvu = forms.ModelMultipleChoiceField(queryset=Service.objects.all().order_by('category'), 
                                               widget=forms.CheckboxSelectMultiple,
                                               label = "")
     

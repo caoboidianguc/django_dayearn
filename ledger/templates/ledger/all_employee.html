@@ -19,7 +19,7 @@
     <div class="cols-auto">
       <button class="tech-button" style="background-color:green" id="em_{{employee.id}}">
         <div class="card-body">
-             <h5 class="card-title align-text-top"> {{ employee.name }}</h5>
+             <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
           <span class="card-subtitle align-content-center">{{ employee.time_come_in }}</span></br>
           <span class="align-bottomr"> {{ employee.total_services_done | default:0 }} Service</span>
       </div>
@@ -34,7 +34,7 @@
   <div class="cols-auto">
     <button class="tech-button" style="background-color:gray" id="em_{{employee.id}}">
       <div class="card-body">
-           <h5 class="card-title align-text-top"> {{ employee.name }}</h5>
+           <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
         <span class="card-subtitle align-content-center">Off</span></br>
     </div>
     </button>

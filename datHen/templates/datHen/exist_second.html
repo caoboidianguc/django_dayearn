@@ -9,7 +9,7 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='title'>Exist Client's Schedule Second Step</h1>
+    <h1 class='title'>Please pick a date</h1>
     {% if messages %} 
     {% for tin in messages %} 
     <li class="tinnhan">{{ tin }}</li>
@@ -20,8 +20,6 @@
 
 {% block content %}
 
-    <h1>You technician: {{ tech }}</h1>
-      
       <form action='{% url "datHen:service_choice_exist" %}' method='get'>
         {% csrf_token %}
         <div class="table-responsive">
