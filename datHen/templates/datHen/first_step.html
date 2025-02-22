@@ -8,7 +8,7 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='title'>Client's Schedule One</h1>
+    <h1 class='title'>Our technician</h1>
     {% if messages %} 
     {% for tin in messages %} 
     <li>{{ tin }}</li>
@@ -20,8 +20,8 @@
 {% block content %}
 
 
-    <h1>Favor one?</h1>
-    
+    <h1>Please choose your technician</h1>
+    <h4>You can assign to status to Anyone later</h4>
     
     <div class="container text-center">
         <div class="row row-cols-auto">
@@ -29,37 +29,40 @@
           <div class="col">
             <a href="{{ employee.get_absolute_url }}" id="tech-item" class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0">
                 {% if employee.picture %}
-                    <img src="{{ employee.picture.url }}" alt="{{ employee.name }}" style="width: 120px; height: 120px; object-fit: cover;" id="tech-pic">
+                    <img src="{{ employee.picture.url }}" alt="{{ employee.name }}" style="width: 120px; height: 120px; object-fit: cover; " id="tech-pic">
                     {% else %}
                     <img src="{{ STATIC_URL }}path/to/default-image.jpg" alt="No Image" style="width: 50px; height: 50px;" id="tech-pic">
                 {% endif %}
-                <div id="tech-name">{{ employee.name }} </div>
+                <div id="tech-name">{{ employee.name | title }} </div>
             </a>
             </div>
             {% endfor %}
         </div>
       </div>
+      <style type="text/css">
+        #tech-item{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            padding: 7px;
+        }
+        #tech-pic{
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 20%;
     
+        }
+        #tech-name{
+            margin-top: 5px;
+            font-size: 16px;
+        }
+    </style>
 {% endblock content %}
 
-<style>
-    tech-item{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-    }
-    tech-pic{
-        width: 120px;
-        height: 120px;
-        object-fit: cover;
-    }
-    tech-name{
-        margin-top: 8px;
-        font-size: 14px;
-    }
-</style>
+
 
 {% block footer %}
     <strong>Contact Us somewhere</strong>

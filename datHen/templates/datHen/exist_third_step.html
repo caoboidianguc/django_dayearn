@@ -19,11 +19,10 @@
 
 
 {% block content %}
-<h5>Your technician: <strong>{{ tech }}</strong></h5>
-    <h5>Day coming: <strong>{{ ngay | naturalday }}</strong></h5>
+<h5>Your technician: <strong>{{ tech | title }}</strong></h5>
+    <h5>Day coming: <strong>{{ ngay | date:"F d" }}</strong></h5>
     
     <div class="work-schedule">
-      <h3>Total Time: {{ tongThoigian }} minutes</h3>
       <div>Services Picked:</div>
     </div>
       

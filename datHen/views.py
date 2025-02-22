@@ -75,7 +75,6 @@ class ExistSecond(View):
         tech = get_object_or_404(Technician, id=pk)        
         secondForm = DateForm()
         cont = {
-            'tech': tech,
                 'secondForm': secondForm,
             }
         request.session['tech_id'] = pk
@@ -127,7 +126,7 @@ class ExistThirdStep(View):
                 'tech': tech,
                 'available': available,
                 'hen': hen,
-                'ngay': ngay}
+                'ngay': ngayDate}
         
         return render(request, self.template, cont)
     
@@ -154,7 +153,7 @@ class ExistThirdStep(View):
                 'tech': tech,
                 'available': available,
                 'hen': hen,
-                'ngay': ngay}
+                'ngay': ngayDate}
             return render(request, self.template, cont)
         
         khac = form.save(commit=False)
@@ -239,8 +238,7 @@ class ThirdStep(View):
                 'tech': tech,
                 'available': available,
                 'hen': hen,
-                'ngay': ngay,
-                'tongThoigian': time_perform,
+                'ngay': ngayDate,
                 'allServices': services
                 }
         form.instance.technician = tech
@@ -269,8 +267,7 @@ class ThirdStep(View):
                 'tech': tech,
                 'available': available,
                 'hen': hen,
-                'ngay': ngay,
-                'tongThoigian': time_perform,
+                'ngay': ngayDate,
                 'allServices': services}
             return render(request, self.template, cont)
         

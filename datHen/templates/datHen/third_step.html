@@ -15,10 +15,9 @@
 
 {% block content %}
 
-<h5>Your technician: <strong>{{ tech }}</strong></h5>
-<h5>Day coming: <strong>{{ ngay | naturalday }}</strong></h5>
+<h5>Your technician: <strong>{{ tech | title }}</strong></h5>
+<h5>Day coming: <strong>{{ ngay | date:"F d" }}</strong></h5>
     <div class="work-schedule">
-      <h5>Total Time: <strong>{{ tongThoigian }}</strong> minutes</h5>
       
     </div>
       <h5>
@@ -32,17 +31,17 @@
   </h5>
     <div class="work-schedule">
         <div>Please fill out:</div>
-        {% for khach in hen %}
+        {% comment %} {% for khach in hen %}
         
     <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
-    {% endfor %}
+    {% endfor %} {% endcomment %}
         
       </div>
       {% if form.errors %}
     <div class="alert alert-danger">
         {{ form.errors }}
       {% if 'A client with this Full name and Phone already exists.' in form.non_field_errors %} 
-        <a href="{% url 'datHen:find_client' %}">Go There</a>
+        <span class="fs-3"><a href="{% url 'datHen:find_client' %}">Go Here</a></span>
         {% else %}
           {% for error in form.non_field_errors %}
           <p class="errorlist"> {{ error}}</p>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
-
+{% load humanize %}
 
 {% block headding %}
 <h1>DayEarn Chat Room</h1>
@@ -25,7 +25,7 @@
             {% else %}
             {{ talk.client_name }}
             {% endif %}
-            <span class="fw-light text-secondary">{{ talk.created_at }}</span>
+            <span class="fw-light text-secondary">{{ talk.created_at | naturaltime }}</span>
         </p>
     </div>
     {% endfor %}

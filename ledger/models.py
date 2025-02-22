@@ -191,16 +191,17 @@ class Khach(models.Model):
     
 class Service(models.Model):
     class Category(models.TextChoices):
-        nail = "Nail"
-        # hair = "Hair"
+        nail = "Nail Enhancement"
+        mani = "Manicure"
+        fix = "Fix"
         wax = "Wax"
-        feet = "Feet"
+        pedi = "Pedicure"
     service = models.CharField(max_length=30)
     price = models.FloatField()
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
     description = models.CharField(max_length=800, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    category = models.CharField(choices=Category.choices, max_length=15, default=Category.nail, help_text="Choose one of the categories.", null=True, blank=True)
+    category = models.CharField(choices=Category.choices, max_length=20, default=Category.nail, help_text="Choose one of the categories.")
 
 
     def __str__(self) -> str:
