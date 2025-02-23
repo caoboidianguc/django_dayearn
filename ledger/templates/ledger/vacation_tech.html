@@ -15,7 +15,7 @@
     <div class="form-group col-md-4">
     {{ form | crispy }}
     </div>
-    <input type="submit" value="Vacation">
-    <input type="submit" onclick="window.location='{% url "datHen:listHen" %}'; return false; " value="Cancel">
+    <input type='submit' value='Vacation' class="btn btn-info" role="button">
+    <input type="submit" onclick="window.location='{% url "datHen:listHen" %}'; return false; " value="No Vacation" class="btn btn-primary" role="button">
 </form>  
 {% endblock content %}

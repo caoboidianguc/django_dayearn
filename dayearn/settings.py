@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     "phonenumber_field",
     'djangobower',
-    'taggit',
     "crispy_bootstrap5",
     'crispy_forms',
     'simple_history',
