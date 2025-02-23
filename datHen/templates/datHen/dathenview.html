@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load humanize %}
-
+{% load static %}
 
 {% block nutChinh %}
         <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
@@ -12,17 +12,30 @@
 
 {% block nutPhu %}
 
-<!-- Add date navigation -->
 <div class="date-navigation">
     <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous</a>
     <span class="current-date">{{ selected_date|date:'l' }}</span>
-    <!-- <span class="fs-6 text-secondary">{{ selected_date|date:'F d' }}</span> -->
     <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next</a>
 </div>
+
 {% endblock nutPhu %}
 
+{% block time %}
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <span class="fs-4 text-secondary">{{ selected_date|date:'F d' }}</span> 
+  </div>
+{% endblock time %}
 
 {% block headding %}
+<link rel="stylesheet" href="{% static 'css/dathenview.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+      });
+  </script>
+
 {% if messages %}
 <ul class="messages">
     {% for message in messages %}
@@ -32,7 +45,6 @@
 {% endif %}
 
 {% endblock headding %}
-
 
 {% block content %}
 
@@ -44,14 +56,15 @@
         </span>
             {%for khach in tech.clients %}
                 <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
-                    <div class="card-body">
-                        <h5 class="card-title text-info">{{ khach.full_name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at }}</span></h6>
-                        <p class="card-text">
+                    <button class="btn btn-lg" type="button" data-bs-toggle="popover" data-bs-title="{{ khach.phone_formatted }}" data-bs-html="true" data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appoinment</a><p>Tag: {{ khach.tag | default:"" }}</p><a href="{{ khach.get_client_detail_url }}" class="btn btn-primary" role="button" >Detail</a><p>{{ khach.desc | default:""}}</p></div>'>
+                        <div class="card-body">
+                            <h5 class="card-title text-info">{{ khach.full_name }}</h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at }}</span></h6>
+                            <p class="card-text">
                                 <span class="badge {% if khach.status == "Anyone" %} bg-warning 
                                 {% elif khach.status == 'Cancel' %} bg-danger
                                 {% else %} bg-success
-                                {% endif %} text-wrap fs-6" style="width: 10rem;">
+                                {% endif %} text-wrap fw-medium" style="width: 10rem;">
                                         With: {{ khach.technician | title }}
                                         {%if khach.status == "Anyone" %}
                                     <br>Alternate: {{ khach.status }}
@@ -59,55 +72,21 @@
                                     <br>Was {{ khach.status }}ed
                                             {%endif%}
                                 </span>
-                        </p>
-                        Get: {% if khach.services %}
-                        {% for dichvu in khach.services.all %}
-                        <li>{{ dichvu | title }} </li>
-                        {% endfor %}
-                        {% endif %} 
-                    </div>
+                            </p>
+                        
+                            {% if khach.services %}
+                                {% for dichvu in khach.services.all %}
+                                    <li>{{ dichvu | title }} </li>
+                                {% endfor %}
+                            {% endif %} 
+                        </div>
+                    </button>
                 </div>
         {%endfor%}
     </div>
     {%endfor%}
     
 </div>
-
-        <style type="text/css">
-            div.container_tech {
-                height: auto;
-                text-align: top;
-                overflow: auto;
-                white-space: nowrap;
-              }
-              
-              div.container_tech #tech {
-                display: inline-block;
-                text-align: top;
-                padding: 1px;
-                text-decoration: none;
-              }
-              div.card {
-                margin: 2px;
-                padding: 3px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                background-color: #f9f9f9;
-
-                height: auto;
-                text-align: center;
-                overflow: auto;
-                white-space: nowrap;
-              }
-
-              div.card-body {
-                padding: 1px;
-                text-align: center;
-                overflow: auto;
-                white-space: nowrap;
-            }
-
-        </style>
 
         
 {% endblock content %}
@@ -118,4 +97,3 @@
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
  
-{% comment %} https://x.com/i/grok/share/3nzx9SYAa4m3mxu4eKektNw33 {% endcomment %}

@@ -31,10 +31,6 @@
   </h5>
     <div class="work-schedule">
         <div>Please fill out:</div>
-        {% comment %} {% for khach in hen %}
-        
-    <li><span>From: </span><strong>{{ khach.time_at }}</strong> on {{ khach.day_comes | naturalday }} , Done at: <strong>{{ khach.get_done_at }}</strong></li>
-    {% endfor %} {% endcomment %}
         
       </div>
       {% if form.errors %}

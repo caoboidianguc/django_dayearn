@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% load static %}
+
+{% block nutChinh %}
+
+{% endblock nutChinh %}
+
+{% block headding %}
+    <h1 class='title'>Detail about {{ client.full_name }} </h1>
+    
+{% endblock headding %}
+
+
+{% block content %}
+<div class="client">
+    <div class="client-info fs-4">
+        <p>{{ client.phone_formatted }}</p>
+        <p>{{ client.email }}</p>
+        <p>Latest visit: {{ client.day_comes | naturalday }} 
+            {% if client.status == 'Cancel'%}
+                <span class="fs-5 text-danger"> but Canceled</span>
+             {% endif %} </p>
+        <p>Total points: {{ client.points }}</p>
+    </div>
+</div>
+<h2>Update Tag and Description</h2>
+<form method='post' >
+    {% csrf_token %}
+    <div class="table-responsive">
+            
+        <div class="form-group col-md-4">
+            {{ form | crispy }}
+        </div>
+
+        <input type='submit' value='Submit' class="btn btn-primary" role="button">
+        <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
+    </div>
+    
+</form>
+
+{% endblock content %}
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 

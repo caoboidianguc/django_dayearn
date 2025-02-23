@@ -16,10 +16,10 @@
 {% block content %}
 <div>
     {% if client %}
-    <h5>Name: {{ client.full_name }} </h5><span>{{ client.phone }}</span>
+    <h5>Name: {{ client.full_name }} </h5><span>{{ client.phone_formatted }}</span>
     <div>
         Last Appoinment:
-        {{ client.day_comes }} at {{ client.time_at }}
+        {{ client.day_comes }} at <strong>{{ client.time_at }}</strong>
     </div>
     <div>
         {% for service in client.services.all %}
