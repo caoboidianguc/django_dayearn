@@ -9,9 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 import datetime
 from datetime import timedelta
-from taggit.managers import TaggableManager
 from simple_history.models import HistoricalRecords
-
 
 
 class Technician(models.Model):
@@ -50,8 +48,8 @@ class Technician(models.Model):
         
         
     def get_clients(self):
-        now = datetime.datetime.now()
-        allClients = self.khachs.filter(day_comes__gte=now)
+        # now = datetime.datetime.now()
+        allClients = self.khachs.all() #filter(day_comes__gte=now)
         return allClients
     
     def get_today_clients(self):
@@ -130,7 +128,7 @@ class Khach(models.Model):
     status = models.CharField(choices=Status.choices, max_length=20, default=Status.online, help_text="Choose anyone as an alternate!")
     day_comes = models.DateField()
     time_at = models.TimeField()
-    tags = TaggableManager()
+    tag = models.CharField(max_length=20, null=True, blank=True)
     birthday = models.DateField(null=True, blank=True)
     history = HistoricalRecords()
     
@@ -140,12 +138,15 @@ class Khach(models.Model):
 
     def __str__(self) -> str:
         return self.full_name
-    # this should be on clean method
-    def huy(self):
-        if self.status == "Cancel":
-            self.time_at = self.technician.end_work
-            return self.time_at
-     
+    
+    def phone_formatted(self):
+        so = str(self.phone)
+        if len(so) == 12:
+            so = f"{so[:2]} ({so[2:5]}) {so[5:8]}-{so[8:]}"
+            return so
+        else:
+            return so
+        
     def get_services(self):
         services = []
         for dv in self.services.all():
@@ -174,8 +175,12 @@ class Khach(models.Model):
     def get_cancel_url(self):
         return reverse("datHen:cancel_confirm", kwargs={'pk':self.pk})
     
+    def get_client_detail_url(self):
+        return reverse("datHen:client_detail", kwargs={'pk':self.pk})
+    
     def get_absolute_url(self):
         return reverse("datHen:exist_found", kwargs={"pk": self.pk})
+    
     def unique_error_message(self, model_class, unique_check):
         #override message __all__
         if unique_check == ("full_name", "phone"):
@@ -242,3 +247,6 @@ class Like(models.Model):
         
     def __str__(self):
         return f"{self.client} liked chat {self.chat.id}"
+    
+    
+    # https://x.com/i/grok/share/9LV6H9gJ0sjFemQXJkti3QV5L payment with Pi

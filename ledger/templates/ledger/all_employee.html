@@ -17,7 +17,7 @@
     {% for employee in employees %}
     {% if employee.isWork %}
     <div class="cols-auto">
-      <button class="tech-button" style="background-color:green" id="em_{{employee.id}}">
+      <button class="tech-button" style="border: 2px solid green" id="em_{{employee.id}}">
         <div class="card-body">
              <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
           <span class="card-subtitle align-content-center">{{ employee.time_come_in }}</span></br>
@@ -32,7 +32,7 @@
   {% for employee in employees %}
   {% if not employee.isWork %}
   <div class="cols-auto">
-    <button class="tech-button" style="background-color:gray" id="em_{{employee.id}}">
+    <button class="tech-button" style="border: 2px solid gray" id="em_{{employee.id}}">
       <div class="card-body">
            <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
         <span class="card-subtitle align-content-center">Off</span></br>
@@ -61,7 +61,7 @@
             },
             success: function(response) {
               if (response.success) {
-                button.css('background-color', response.color);
+                button.css('border', response.color);
                 button.find('.card-subtitle').text(response.isWork ? 'Came at: ' + response.time_come_in : "Off");
                 
                 if (response.isWork){

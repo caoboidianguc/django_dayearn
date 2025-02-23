@@ -155,4 +155,8 @@ class ServicesChoiceForm(forms.Form):
                                               widget=forms.CheckboxSelectMultiple,
                                               label = "")
     
+class KhachDetailForm(forms.ModelForm):
+    class Meta:
+        model = Khach
+        fields = ['tag','desc']
     
