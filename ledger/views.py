@@ -307,3 +307,18 @@ class CustomerVisit(View):
             }
         return render(request, self.template, context)
     
+class ClientWalkinView(LoginRequiredMixin, CreateView):
+    template_name = "ledger/walkin.html"
+    # template_name = "home.html"
+    model = Khach
+    fields = ['full_name', 'phone']
+    success_url = reverse_lazy('ledger:walkin')
+    def form_valid(self, form):
+        form.instance.day_comes = timezone.now().today().date()
+        form.instance.time_at = timezone.now().time()
+        form.instance.technician = Technician.objects.get(owner=self.request.user, name="anyOne")
+        messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
+        return super().form_valid(form)
+    
+
+    

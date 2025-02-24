@@ -21,6 +21,20 @@
     <li class="text-success fs-4">{{ tin }}</li>
     {% endfor %}
 {% endif %}
+
+{% comment %} {% if user.is_authenticated and form %}
+<form method='post'>
+    {% csrf_token %}
+    <div class="table-responsive">
+        <div class="form-group col-md-4">
+            {{ form | crispy }}
+        </div>
+        <input type='submit' value='Submit' class="btn btn-primary" role="button">
+        <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
+    </div>
+    
+</form>
+{% endif %} {% endcomment %}
 {% endblock headding %}
 
 {% block content %}
@@ -85,6 +99,8 @@
         </div>
     </div>
 </div>
+
+
 {% endblock content %}
 
 {% block footer %}

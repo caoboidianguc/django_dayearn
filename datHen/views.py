@@ -2,7 +2,7 @@ from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Khach, Technician, Service
 from django.views.generic import View
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import UpdateView, CreateView
 from django.urls import reverse_lazy
 from .forms import (UserExistClientForm, ExistClientForm, DateForm, ThirdForm, 
                     ThirdFormExist, ServicesChoiceForm, KhachDetailForm)
@@ -329,6 +329,7 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
     
     def get_success_url(self):
         return self.success_url
-    
-    
+
+
+
     

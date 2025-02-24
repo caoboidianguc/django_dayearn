@@ -11,13 +11,11 @@
 {% endblock nutChinh %}
 
 {% block nutPhu %}
-
 <div class="date-navigation">
     <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous</a>
     <span class="current-date">{{ selected_date|date:'l' }}</span>
     <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next</a>
 </div>
-
 {% endblock nutPhu %}
 
 {% block time %}
@@ -39,7 +37,7 @@
 {% if messages %}
 <ul class="messages">
     {% for message in messages %}
-        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        <li {% if message.tags == "success" %} class="text-success fs-5" {% else %} class="text-danger" {% endif %}>{{ message }}</li>
     {% endfor %}
 </ul>
 {% endif %}
