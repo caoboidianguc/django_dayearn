@@ -158,5 +158,5 @@ class ServicesChoiceForm(forms.Form):
 class KhachDetailForm(forms.ModelForm):
     class Meta:
         model = Khach
-        fields = ['tag','desc']
+        fields = ['tag','desc','technician']
     
