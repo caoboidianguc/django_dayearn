@@ -21,7 +21,10 @@ class AllEmployee(LoginRequiredMixin,ListView):
     def get(self,request):
         today = timezone.now().date()
         employee = Technician.objects.filter(owner=request.user).order_by("time_come_in")
-        cont = {'employees': employee }
+        sort_tech = sorted(list(employee), 
+                           key= lambda tech: tech.get_services_today(),reverse=False
+                           )
+        cont = {'employees': sort_tech }
         return render(request, self.template, cont)
               
 class UpdateTech(LoginRequiredMixin, View):

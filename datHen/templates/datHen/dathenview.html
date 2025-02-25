@@ -36,6 +36,7 @@
         const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
         const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
       });
+      
   </script>
 
 {% if messages %}
@@ -55,13 +56,14 @@
     <div class="col-md-2 align-text-top" id="tech">
         <span class="fs-3" >
             <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{ tech.name | title }}
-            <span class="text-info fs-5">
-                {{ tech.get_services_today }}
-              </span></a>
+                <span class="text-info fs-5">
+                    {{ tech.get_services_today }}
+                </span>
+            </a>
         </span>
             {%for khach in tech.clients %}
                 <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
-                    <button class="btn btn-lg" type="button" data-bs-toggle="popover" data-bs-title="{{ khach.phone_formatted }}" data-bs-html="true" data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appoinment</a><p>Tag: {{ khach.tag | default:"" }}</p><a href="{{ khach.get_client_detail_url }}" class="btn btn-primary" role="button" >Detail</a><p>{{ khach.desc | default:""}}</p></div>'>
+                    <a tabindex="0" class="btn btn-lg" role="button" data-bs-trigger="focus" data-bs-toggle="popover" data-bs-title="{{ khach.phone_formatted }}" data-bs-html="true" data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appoinment</a><p>Tag: {{ khach.tag | default:"" }}</p><a href="{{ khach.get_client_detail_url }}" class="btn btn-primary" role="button" >Detail</a><p>{{ khach.desc | default:""}}</p></div>'>
                         <div class="card-body">
                             <h5 class="card-title text-info">{{ khach.full_name }}</h5>
                             <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at }}</span></h6>
@@ -85,7 +87,7 @@
                                 {% endfor %}
                             {% endif %} 
                         </div>
-                    </button>
+                    </a>
                 </div>
         {%endfor%}
     </div>

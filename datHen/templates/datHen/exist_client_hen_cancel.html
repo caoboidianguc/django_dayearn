@@ -6,13 +6,6 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    {%if messages %}
-    <ul class="messages text-warning">
-        {% for message in messages %}
-            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
     <h1 class='title'>Reschedule your appoinment or <span class="text-danger" >Cancel</span>:</h1>
     <div>
         {% if khach %}
@@ -21,11 +14,9 @@
         <div class="d-inline-flex gap-2">
             
             <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
-        
-        
-            <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
-        
-        
+        {% if mot.do_cancel %}
+                <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
+            {% endif %}
             <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
         
     </div>
