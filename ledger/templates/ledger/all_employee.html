@@ -6,12 +6,12 @@
 {% endblock nutPhu %}
 
 {% block content %}
-{% if not user.is_authenticated %}
+{% comment %} {% if not user.is_authenticated %}
 <div>
     <a href="{% url 'ledger:register' %}">Register Account</a>
-</div>
+</div> 
 {% endif %}
-
+{% endcomment %}
 <div class="container text-center">
   <div class="row row-cols-auto">
     {% for employee in employees %}
@@ -35,7 +35,7 @@
     <button class="tech-button btn-secondary" style="border: 2px solid gray" id="em_{{employee.id}}">
       <div class="card-body">
            <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
-        <span class="card-subtitle align-content-center">Off</span></br>
+        <span class="card-subtitle align-content-center">Off</span>
     </div>
     </button>
   </div>

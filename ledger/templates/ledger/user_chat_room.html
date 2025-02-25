@@ -4,17 +4,11 @@
 
 
 {% block headding %}
-<h1>DayEarn Chat Room</h1>
+<h1>Elegant Nails & Spa Chat Room Greeting to {{ user.username }}</h1>
 {% endblock headding %}
 
 
 {% block content %}
-    <h1 class="title">Greeting !!</h1>
-    <div class="container is-fluid">
-    Greeting to {{ user.username }}
-    </div>
-
-
     {% for talk in page_obj %}
     <div>
         <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:user_chat_detail' talk.id %}">

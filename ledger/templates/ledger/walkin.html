@@ -6,7 +6,7 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='text-success'>Welcome Walk in custommer</h1>
+    <h1 class='text-success'>Welcome to our salon!</h1>
     {% if messages %} 
             {% for tin in messages %} 
             <div class="fs-3 text-success">
@@ -20,12 +20,9 @@
 <form method='post' >
     {% csrf_token %}
     <div class="table-responsive">
-            
         <div class="form-group col-md-4">
             {{ form | crispy }}
         </div>
-
-        
         <input type='submit' value='Submit' class="btn btn-primary w-25" role="button">
         <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
     </div>

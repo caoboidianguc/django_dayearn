@@ -144,7 +144,9 @@ class Khach(models.Model):
             return so
         else:
             return so
-        
+    def do_cancel(self):
+        if self.day_comes >= datetime.datetime.today().date(): return True
+        else: return False
     def get_services(self):
         services = []
         for dv in self.services.all():
@@ -247,4 +249,3 @@ class Like(models.Model):
         return f"{self.client} liked chat {self.chat.id}"
     
     
-    # https://x.com/i/grok/share/9LV6H9gJ0sjFemQXJkti3QV5L payment with Pi
