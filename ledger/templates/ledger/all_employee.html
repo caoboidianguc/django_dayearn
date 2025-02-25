@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-{% comment %} {% static "index.js" %} {% endcomment %}
 
-{% block nutChinh %}
+
+{% block nutPhu %}
         <a class="nav-link" href="{% url 'ledger:add_employee' %}">Add Tech</a>
-{% endblock nutChinh %}
+{% endblock nutPhu %}
 
 {% block content %}
 {% if not user.is_authenticated %}
@@ -17,11 +17,11 @@
     {% for employee in employees %}
     {% if employee.isWork %}
     <div class="cols-auto">
-      <button class="tech-button" style="border: 2px solid green" id="em_{{employee.id}}">
+      <button class="tech-button btn btn-ligh" style="border: 2px solid green" id="em_{{employee.id}}">
         <div class="card-body">
              <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
-          <span class="card-subtitle align-content-center">{{ employee.time_come_in }}</span></br>
-          <span class="align-bottomr"> {{ employee.total_services_done | default:0 }} Service</span>
+          <div class="card-subtitle align-content-center">{{ employee.time_come_in }}</div>
+          <span class="align-bottomr fs-3 text-primary"> {{ employee.get_services_today | default:0 }}</span> Service
       </div>
       </button>
     </div>
@@ -32,7 +32,7 @@
   {% for employee in employees %}
   {% if not employee.isWork %}
   <div class="cols-auto">
-    <button class="tech-button" style="border: 2px solid gray" id="em_{{employee.id}}">
+    <button class="tech-button btn-secondary" style="border: 2px solid gray" id="em_{{employee.id}}">
       <div class="card-body">
            <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
         <span class="card-subtitle align-content-center">Off</span></br>

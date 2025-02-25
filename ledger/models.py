@@ -102,14 +102,12 @@ class Technician(models.Model):
             yield batdau
             batdau += timedelta(minutes=15)
     
-    def get_services_of_tech(self, service = None):
-        clients = self.get_today_clients()
+    def get_services_today(self):
+        clients = self.get_today_clients().exclude(status="Cancel")
         all_ser = []
-        if service:
-            all_ser.append(service)
         for client in clients:
             all_ser.extend(client.get_services())
-        return all_ser.count()
+        return len(all_ser)
     
     
 class Khach(models.Model):

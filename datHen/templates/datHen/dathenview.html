@@ -4,25 +4,29 @@
 {% load static %}
 
 {% block nutChinh %}
-        <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
-
-        <a class="nav-link" href="{% url 'datHen:user_find_client' %}"><span>Been here</span></a>
-        
+        <div class="d-flex flex-row">
+            <div class="nav-item">
+                <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{% url 'datHen:user_find_client' %}"><span>Been here</span></a>
+            </div>
+        </div>
 {% endblock nutChinh %}
-
-{% block nutPhu %}
-<div class="date-navigation">
-    <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous</a>
-    <span class="current-date">{{ selected_date|date:'l' }}</span>
-    <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next</a>
-</div>
-{% endblock nutPhu %}
-
 {% block time %}
-<div class="d-grid gap-2 d-md-flex justify-content-md-end">
-    <span class="fs-4 text-secondary">{{ selected_date|date:'F d' }}</span> 
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <span class="fs-4 text-secondary">{{ selected_date|date:'F d' }}</span> 
   </div>
 {% endblock time %}
+{% block nutPhu %}
+    <div class="date-navigation">
+        <a href="?date={{ prev_day|date:'Y-m-d' }}" class="btn btn-info">Previous</a>
+            <span class="current-date">{{ selected_date|date:'l' }}</span>
+        <a href="?date={{ next_day|date:'Y-m-d' }}" class="btn btn-info">Next</a>
+    </div>
+{% endblock nutPhu %}
+
+
 
 {% block headding %}
 <link rel="stylesheet" href="{% static 'css/dathenview.css' %}">
@@ -50,7 +54,10 @@
     {%for tech in allTech %}
     <div class="col-md-2 align-text-top" id="tech">
         <span class="fs-3" >
-            <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{ tech.name | title }}</a>
+            <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{ tech.name | title }}
+            <span class="text-info fs-5">
+                {{ tech.get_services_today }}
+              </span></a>
         </span>
             {%for khach in tech.clients %}
                 <div class="card" style="width: 14rem;" id="client_{{khach.full_name}}">
