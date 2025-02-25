@@ -74,14 +74,19 @@
 
     
     <nav class="nav justify-content-center fs-4" style="background-color: #e3f2fd;">
-        {% block nutChinh %}
-        {% endblock nutChinh %}
         <h1 class="nav-link"><span class="cursive-text display-5">Elegant Nails & Spa</span> {{ user.username|default:'' }}</h1>
-        {% block nutPhu %}
-        {% endblock nutPhu %}
     </nav>
-    <nav class="nav justify-content-center fs-4" style="background-color: #e3f2fd;">
-        {% block time %}{% endblock time %}
+    <nav class="nav d-flex justify-content-center fs-4" style="background-color: #e3f2fd;">
+        <span class="me-auto">
+            {% block nutChinh %}
+            {% endblock nutChinh %}
+        </span>
+        <span class="mx-auto">
+            {% block time %}{% endblock time %}
+        </span>
+        <span class="ms-auto">
+            {% block nutPhu %}   {% endblock nutPhu %}
+        </span>
     </nav>
     <div class="container-md">
         {% block headding %}

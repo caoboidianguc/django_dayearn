@@ -20,14 +20,11 @@ class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
     def get(self,request):
         today = timezone.now().date()
-        employee = Technician.objects.filter(owner=request.user).annotate(
-            khach_count = Count('khachs', filter=Q(khachs__day_comes=today)),
-            total_services_done = Count('khachs__services',
-                                      distinct=True,
-                                      filter=Q(khachs__day_comes=today) & ~Q(khachs__status=Khach.Status.cancel))
-        ).order_by("time_come_in")
-        
-        cont = {'employees': employee }
+        employee = Technician.objects.filter(owner=request.user).order_by("time_come_in")
+        sort_tech = sorted(list(employee), 
+                           key= lambda tech: tech.get_services_today(),reverse=False
+                           )
+        cont = {'employees': sort_tech }
         return render(request, self.template, cont)
               
 class UpdateTech(LoginRequiredMixin, View):

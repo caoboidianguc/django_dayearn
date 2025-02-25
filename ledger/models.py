@@ -102,14 +102,12 @@ class Technician(models.Model):
             yield batdau
             batdau += timedelta(minutes=15)
     
-    def get_services_of_tech(self, service = None):
-        clients = self.get_today_clients()
+    def get_services_today(self):
+        clients = self.get_today_clients().exclude(status="Cancel")
         all_ser = []
-        if service:
-            all_ser.append(service)
         for client in clients:
             all_ser.extend(client.get_services())
-        return all_ser.count()
+        return len(all_ser)
     
     
 class Khach(models.Model):
@@ -146,7 +144,9 @@ class Khach(models.Model):
             return so
         else:
             return so
-        
+    def do_cancel(self):
+        if self.day_comes >= datetime.datetime.today().date(): return True
+        else: return False
     def get_services(self):
         services = []
         for dv in self.services.all():
@@ -249,4 +249,3 @@ class Like(models.Model):
         return f"{self.client} liked chat {self.chat.id}"
     
     
-    # https://x.com/i/grok/share/9LV6H9gJ0sjFemQXJkti3QV5L payment with Pi

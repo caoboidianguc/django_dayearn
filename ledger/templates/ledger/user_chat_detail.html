@@ -4,17 +4,12 @@
 
 
 {% block headding %}
-<h1>DayEarn Chat Room</h1>
+<h1>Chat Room Greeting to {{ user.username }}</h1>
 {% endblock headding %}
 
 
 {% block content %}
-    <h1 class="title">Greeting !! User chat detail</h1>
-    <div class="container is-fluid">
-    Greeting to {{ user.username }}
-    </div>
-
-    <div>
+    <div class="fs-4">
         {{ chat.text }} <span class="fw-light text-secondary">{{ chat.created_at }}</span>
         <p>
             {% if chat.owner == user %}
