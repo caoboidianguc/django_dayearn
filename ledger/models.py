@@ -103,7 +103,8 @@ class Technician(models.Model):
             batdau += timedelta(minutes=15)
     
     def get_services_today(self):
-        clients = self.get_today_clients().exclude(status="Cancel")
+        now = datetime.datetime.now()
+        clients = self.get_today_clients().filter(time_at__lte=now)
         all_ser = []
         for client in clients:
             all_ser.extend(client.get_services())

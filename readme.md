@@ -55,3 +55,7 @@ Add to TEMPLATE_CONTEXT_PROCESSORS:
 <!-- https://django-taggit.readthedocs.io/en/latest/ -->
 
 pip install bleach
+
+start database: psql -U postgres
+psql -U postgres -d dayearn_db
+
