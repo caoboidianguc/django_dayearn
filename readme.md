@@ -1,35 +1,14 @@
-<!-- cai dat virtualenv -->
-pip install virtualenvwrapper-win
-<!-- khoi dong virtualenv (dayearn-ten tu chon) -->
-py -m venv dayearn
-dayearn\Scripts\activate
-pip install Django
-should run python v12
-python3 -m venv venv --prompt=dayearn
+
 
 pip install "django-phonenumber-field[phonenumbers]"
 <!-- https://django-phonenumber-field.readthedocs.io/en/latest/ -->
 
-Mac source ./venv/bin/activate
-Win venv\Scripts\activate
-win dayearn\Scripts\activate
 
 pip install -r requirements.txt
 django-admin startproject
 
 
-
-Add to INSTALLED_APPS:
-'crispy_forms',
-"crispy_bootstrap5",
-'phonenumber_field',
-'taggit',
-
-
-
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+SPY_TEMPLATE_PACK = "bootstrap5"
 
 PHONENUMBER_DB_FORMAT = 'NATIONAL'
 PHONENUMBER_DEFAULT_REGION = 'US'
@@ -58,4 +37,23 @@ pip install bleach
 
 start database: psql -U postgres
 psql -U postgres -d dayearn_db
+az group create --name dayearnGroup --location eastus
+    {
+  "id": "/subscriptions/d8947932-258a-479d-a0c4-f0ff6b537603/resourceGroups/dayearnGroup",
+  "location": "eastus",
+  "managedBy": null,
+  "name": "dayearnGroup",
+  "properties": {
+    "provisioningState": "Succeeded"
+  },
+  "tags": null,
+  "type": "Microsoft.Resources/resourceGroups"
+    }
+    <!-- https://x.com/i/grok/share/RSk9RJv7VJ2s2lVMkTB7NqVy9 -->
 
+az appservice plan create --name dayearnPlan --resource-group dayearnGroup --sku B1 --is-linux
+az webapp create --resource-group dayearnGroup --plan dayearnPlan --name quang-dayearn --runtime "PYTHON|3.11"
+https://quang-dayearn.azurewebsites.net.
+
+django_dayearn % az webapp deployment user set --user-name jubi --password Dayearn.7818  
+https://jubi@quang-dayearn.scm.azurewebsites.net/quang-dayearn.git
