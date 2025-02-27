@@ -16,7 +16,7 @@ class SingleTech(generics.RetrieveUpdateAPIView):
     queryset = Technician.objects.all()
     serializer_class = TechnicSerializer
     
-    
+
 # @api_view()
 # def khach(request):
 #     items = Khach.objects.all()
