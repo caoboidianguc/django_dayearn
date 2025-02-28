@@ -22,9 +22,9 @@ load_dotenv()
 SECRET_KEY = 'django-insecure-81w87l+rc-3sv!!^dk=6cl)9@7pscwf*25+zhd(+43j3q_ttos'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = ['dayearn.azurewebsites.net', 'localhost', '127.0.0.1']
+DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
