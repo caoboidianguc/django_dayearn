@@ -4,11 +4,16 @@
 {% block nutChinh %}
 <a class="nav-link" href="{% url 'datHen:listHen' %}"><h1 class='title'>Back</h1></a>
 {% endblock nutChinh %}
-
+{% block nutPhu %}
+    {%if client %} 
+    <a href="{{ client.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
+    {% endif %}
+{%endblock nutPhu %}
 {% block headding %}
     <h1 class='title'>You're about to cancel your Appoinment?</h1>
     <div>
         Please review the information below before confirming the cancellation.
+        
     </div>
 {% endblock headding %}
 
@@ -45,4 +50,4 @@
 {% block footer %}
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
- 
+

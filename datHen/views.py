@@ -12,6 +12,9 @@ from django.core.mail import EmailMessage
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 
+chuDe = "Elegant Nails & Spa Confirm schedule"
+tenSpa = "Elegant Nails & Spa"
+cancleAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/"
 
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
@@ -94,9 +97,8 @@ class ChoiceServicesExistView(View):
     
     
 class ExistThirdStep(View):
-    chuDe = "Dayearns Confirm schedule"
     template = 'datHen/exist_third_step.html'
-    gioHienTai = datetime.now()
+    gioHienTai = datetime.now() + timedelta(hours=1)
     hnay = date.today().strftime("%Y-%m-%d")
     def get_success_url(self):
         if self.request.user.is_authenticated:
@@ -117,7 +119,7 @@ class ExistThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == self.hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
+            available = [gio for gio in available if gio.hour > self.gioHienTai.hour]
         elif ngayDate.weekday() == 6 or tech.is_on_vacation(check_date=ngayDate):
             available = []
         else:
@@ -164,12 +166,12 @@ class ExistThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
-        tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
+        tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? Just give us a call!"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        EmailMessage(self.chuDe, tinNhan, to=[form.instance.email]).send()
+        EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
         thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
         if tech.email != None:
-            EmailMessage(self.chuDe, thongbao, to=[tech.email]).send()
+            EmailMessage(chuDe, thongbao, to=[tech.email]).send()
                     
         return redirect(self.get_success_url())
 
@@ -207,9 +209,8 @@ class ChoiceServicesView(View):
     
 
 class ThirdStep(View):
-    chuDe = "Dayearns Confirm schedule"
     template = 'datHen/third_step.html'
-    gioHienTai = datetime.now()
+    gioHienTai = datetime.now() + timedelta(hours=1)
     hnay = date.today().strftime("%Y-%m-%d")
     def get_success_url(self):
         if self.request.user.is_authenticated:
@@ -229,13 +230,12 @@ class ThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == self.hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            available = [gio for gio in available if gio.hour > self.gioHienTai.hour and gio.minute > self.gioHienTai.minute]
+            available = [gio for gio in available if gio.hour >= self.gioHienTai.hour]
         elif ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         form = ThirdForm()
-        
         form.instance.day_comes = ngay
         cont = {'form' : form, 
                 'tech': tech,
@@ -279,12 +279,12 @@ class ThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
-        tinNhan = f"You scheduled with DayEarns \nOn: {form.instance.day_comes} \nAt: {form.instance.time_at} \nTechnician: {form.instance.technician}"
+        tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? Just give us a call!"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        EmailMessage(self.chuDe, tinNhan, to=[form.instance.email]).send()
+        EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
         thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
         if tech.email != None:
-            EmailMessage(self.chuDe, thongbao, to=[tech.email]).send()
+            EmailMessage(chuDe, thongbao, to=[tech.email]).send()
                     
         return redirect(self.get_success_url())
     
