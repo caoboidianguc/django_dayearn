@@ -4,7 +4,7 @@ from datetime import timedelta, date
 from ledger.models import Khach, Service, Technician
 from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column
+from crispy_forms.layout import Layout, Row, Field, Div, Column
 from django.core.exceptions import ValidationError
 
  
@@ -158,5 +158,24 @@ class ServicesChoiceForm(forms.Form):
 class KhachDetailForm(forms.ModelForm):
     class Meta:
         model = Khach
-        fields = ['tag','desc','technician']
-    
+        fields = ['services','technician','tag','desc']
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Div(
+                    Field('tag'),
+                    Field('desc'),
+                    css_class='col-6'
+                ),
+                Div(
+                    Field('technician'),
+                    Field('services'),
+                    css_class='col-6'
+                )
+            )
+        )
+        
+        

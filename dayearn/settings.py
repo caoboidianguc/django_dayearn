@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-81w87l+rc-3sv!!^dk=6cl)9@7pscwf*25+zhd(+43j3q_ttos
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'quang-dayearn.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'dayearn.azurewebsites.net']
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'datHen.apps.DathenConfig',
     
 ]
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
@@ -142,6 +141,9 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# For production
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

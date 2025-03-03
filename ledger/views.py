@@ -3,7 +3,8 @@ from .models import Technician, Khach, Service, Chat
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
-from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, VacationForm, ChatForm
+from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, 
+                    VacationForm, ChatForm, KhachWalkin)
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
@@ -306,16 +307,33 @@ class CustomerVisit(View):
     
 class ClientWalkinView(LoginRequiredMixin, CreateView):
     template_name = "ledger/walkin.html"
-    # template_name = "home.html"
+    form_class = KhachWalkin
     model = Khach
-    fields = ['full_name', 'phone']
     success_url = reverse_lazy('ledger:walkin')
     def form_valid(self, form):
-        form.instance.day_comes = timezone.now().today().date()
-        form.instance.time_at = timezone.now().time()
-        form.instance.technician = Technician.objects.get(owner=self.request.user, name="anyOne")
+        full_name = form.cleaned_data['full_name'].upper()
+        phone = form.cleaned_data['phone']
+        existing_client = form.cleaned_data.get('existing_client')
+        if existing_client:
+            khach = existing_client
+            khach.day_comes = timezone.now().today().date()
+            khach.time_at = timezone.now().time()
+            khach.status = Khach.Status.anyone
+            khach.technician = Technician.objects.get(owner=self.request.user, name="anyOne")
+            khach.save()
+        else:
+            khach, _ = Khach.objects.get_or_create(
+                full_name=full_name,
+                phone=phone,
+                defaults={
+                    'day_comes': timezone.now().today().date(),
+                    'time_at': timezone.now().time(),
+                    'technician': Technician.objects.get(owner=self.request.user, name="anyOne"),
+                }
+            )
+            
+        form.instance = khach
         messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
         return super().form_valid(form)
     
 
-    

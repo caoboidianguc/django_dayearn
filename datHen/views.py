@@ -332,5 +332,4 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         return self.success_url
 
 
-
     

@@ -37,23 +37,3 @@ pip install bleach
 
 start database: psql -U postgres
 psql -U postgres -d dayearn_db
-az group create --name dayearnGroup --location eastus
-    {
-  "id": "/subscriptions/d8947932-258a-479d-a0c4-f0ff6b537603/resourceGroups/dayearnGroup",
-  "location": "eastus",
-  "managedBy": null,
-  "name": "dayearnGroup",
-  "properties": {
-    "provisioningState": "Succeeded"
-  },
-  "tags": null,
-  "type": "Microsoft.Resources/resourceGroups"
-    }
-    <!-- https://x.com/i/grok/share/RSk9RJv7VJ2s2lVMkTB7NqVy9 -->
-
-az appservice plan create --name dayearnPlan --resource-group dayearnGroup --sku B1 --is-linux
-az webapp create --resource-group dayearnGroup --plan dayearnPlan --name quang-dayearn --runtime "PYTHON|3.11"
-https://quang-dayearn.azurewebsites.net.
-
-django_dayearn % az webapp deployment user set --user-name jubi --password Dayearn.7818  
-https://jubi@quang-dayearn.scm.azurewebsites.net/quang-dayearn.git
