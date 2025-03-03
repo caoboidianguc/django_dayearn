@@ -84,3 +84,25 @@ class ChatForm(forms.ModelForm):
     class Meta:
         model = Chat
         fields = ['text']
+        
+class KhachWalkin(forms.ModelForm):
+    class Meta:
+        model = Khach
+        fields = ['full_name', 'phone']
+        
+    def clean(self):
+        clean_data = super().clean()
+        name = clean_data.get('full_name')
+        phone = clean_data.get('phone')
+        if name and phone:
+            existing_client = Khach.objects.filter(full_name=name.upper(), phone=phone).first()
+            if existing_client:
+                clean_data['existing_client'] = existing_client
+            else:
+                clean_data['existing_client'] = None
+        return clean_data
+    def validate_unique(self):
+        if self.cleaned_data.get('existing_client'):
+            return
+        return super().validate_unique()
+        
