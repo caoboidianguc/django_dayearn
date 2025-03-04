@@ -160,22 +160,4 @@ class KhachDetailForm(forms.ModelForm):
         model = Khach
         fields = ['services','technician','tag','desc']
     services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Row(
-                Div(
-                    Field('tag'),
-                    Field('desc'),
-                    css_class='col-6'
-                ),
-                Div(
-                    Field('technician'),
-                    Field('services'),
-                    css_class='col-6'
-                )
-            )
-        )
-        
-        
+   

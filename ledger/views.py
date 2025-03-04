@@ -254,11 +254,7 @@ class ServiceDetail(LoginRequiredMixin, View):
                    'form': form}
         return render(request, self.template, context)
     
-# trang chu, when customer visit this is where they see first
-    
-# "id": "4841897016034853"
-# get_user_access_token = 
-# for user_photo, and user post
+
 
 class CustomerVisit(View):
     page_id = "4841897016034853"

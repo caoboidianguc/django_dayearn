@@ -98,7 +98,6 @@ class ChoiceServicesExistView(View):
     
 class ExistThirdStep(View):
     template = 'datHen/exist_third_step.html'
-    gioHienTai = datetime.now()
     hnay = date.today().strftime("%Y-%m-%d")
     def get_success_url(self):
         if self.request.user.is_authenticated:
@@ -110,7 +109,7 @@ class ExistThirdStep(View):
         tech = get_object_or_404(Technician, id=pk)
         client = get_object_or_404(Khach, id=client_id)
         ngay = request.session['date']
-        
+        gioHienTai = datetime.now() + timezone(minutes=30)
         serChon = request.GET.getlist('dichvu')
         request.session['dichvu'] = [int(service) for service in serChon]
         services = Service.objects.filter(id__in=[int(service) for service in serChon])
@@ -119,7 +118,7 @@ class ExistThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == self.hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            available = [gio for gio in available if gio.hour > self.gioHienTai.hour]
+            available = [gio for gio in available if gio.hour > gioHienTai.hour]
         elif ngayDate.weekday() == 6 or tech.is_on_vacation(check_date=ngayDate):
             available = []
         else:
@@ -210,7 +209,6 @@ class ChoiceServicesView(View):
 
 class ThirdStep(View):
     template = 'datHen/third_step.html'
-    gioHienTai = datetime.now()
     hnay = date.today().strftime("%Y-%m-%d")
     def get_success_url(self):
         if self.request.user.is_authenticated:
@@ -220,7 +218,7 @@ class ThirdStep(View):
         pk = request.session['id']
         tech = get_object_or_404(Technician, id=pk)
         ngay = request.session['date']
-        
+        gioHienTai = datetime.now() + timezone(minutes=30)
         serChon = request.GET.getlist('dichvu')
         request.session['dichvu'] = [int(service) for service in serChon]
         services = Service.objects.filter(id__in=[int(service) for service in serChon])
@@ -230,7 +228,7 @@ class ThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == self.hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            available = [gio for gio in available if gio.hour > self.gioHienTai.hour]
+            available = [gio for gio in available if gio.hour > gioHienTai.hour]
         elif ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
             available = []
         else:
@@ -305,7 +303,6 @@ class CancelViewConfirm(View):
     
     def post(self, request, pk):
         client = get_object_or_404(Khach, id=pk)
-        
         total_point = sum([service.price for service in client.services.all()])
         client.points -= total_point
         client.services.clear()
@@ -316,7 +313,6 @@ class CancelViewConfirm(View):
     
 class ClientDetailView(LoginRequiredMixin, UpdateView):
     template_name = 'datHen/client_detail.html'
-    model = Khach
     form_class = KhachDetailForm
     success_url = reverse_lazy('datHen:listHen')
     def get_object(self, queryset = None):
@@ -330,6 +326,5 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
     
     def get_success_url(self):
         return self.success_url
-
 
     
