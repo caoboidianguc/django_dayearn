@@ -11,7 +11,6 @@ from datetime import timedelta
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.db.models import Count, Q
 from django.core.paginator import Paginator
 import requests
 import os

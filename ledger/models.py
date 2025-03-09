@@ -230,10 +230,17 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
-    client = models.ForeignKey(Khach, on_delete=models.DO_NOTHING, related_name="client_chats", null=True, blank=True)
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats", null=True, blank=True)
     def __str__(self):
         if len(self.text) < 200 : return self.text
         return self.text[:200] + ' ...'
+    
+    @property
+    def nickName(self):
+        if self.client:
+            nickname = self.client.full_name[:4]
+            return nickname
+        return "@Manager"
     
     @property
     def client_name(self):
@@ -248,5 +255,4 @@ class Like(models.Model):
         
     def __str__(self):
         return f"{self.client} liked chat {self.chat.id}"
-    
     
