@@ -15,17 +15,6 @@ class AllTechView(generics.ListCreateAPIView):
 class SingleTech(generics.RetrieveUpdateAPIView):
     queryset = Technician.objects.all()
     serializer_class = TechnicSerializer
-    
-
-# @api_view()
-# def khach(request):
-#     items = Khach.objects.all()
-#     tim = request.query_params.get('full_name')
-#     if tim:
-#         items = items.filter(full_name__contains=tim)
-        
-#     serialized_item = KhachSerializer(items, many=True)
-#     return Response(serialized_item.data)
 
 class SingleKhach(generics.RetrieveUpdateAPIView):
     queryset = Khach.objects.all()

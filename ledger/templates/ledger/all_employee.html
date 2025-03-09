@@ -32,7 +32,7 @@
   {% for employee in employees %}
   {% if not employee.isWork %}
   <div class="cols-auto">
-    <button class="tech-button btn-secondary" style="border: 2px solid gray" id="em_{{employee.id}}">
+    <button class="tech-button btn btn-secondary" style="border: 2px solid gray" id="em_{{employee.id}}">
       <div class="card-body">
            <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
         <span class="card-subtitle align-content-center">Off</span>
@@ -61,17 +61,15 @@
             },
             success: function(response) {
               if (response.success) {
-                button.css('border', response.color);
+                button.css('border', '2px solid ' + response.color);
                 button.find('.card-subtitle').text(response.isWork ? 'Came at: ' + response.time_come_in : "Off");
                 
                 if (response.isWork){
-                  var clone = button.closest('.cols-auto').clone();
-                  button.closest('.cols-auto').remove();
-                  $('.row.row-cols-auto hr').before(clone);
+                  button.closest('.cols-auto').insertBefore('.row.row-cols-auto hr');
+                  button.addClass('btn-light').removeClass('btn-secondary');
                 } else {
-                  var clone = button.closest('.cols-auto').clone();
-                  button.closest('.cols-auto').remove();
-                  $('.row.row-cols-auto hr').after(clone);
+                  button.closest('.cols-auto').insertAfter('.row.row-cols-auto hr');
+                  button.addClass('btn-secondary').removeClass('btn-light');
                 }
               } else {
                 alert(response.error);

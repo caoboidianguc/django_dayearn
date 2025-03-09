@@ -4,7 +4,7 @@
 {% load humanize %}
 
 {% block headding %}
-<h1 class="text-info">Elegant Nails & Spa Greeting to {{ chat.client_name }}</h1>
+<h1 class="text-info">Elegant Nails & Spa Greeting to {{ chat.nickName }}</h1>
 {% endblock headding %}
 
 
@@ -16,7 +16,7 @@
             {% if chat.owner == user %}
             @Manager
             {% else %}
-            {{ chat.client_name }}
+            {{ chat.nickName }}
             {% endif %}
         </p>
     <h3>Replies:</h3>
@@ -26,7 +26,7 @@
             <span class="fw-light text-secondary">    {% if reply.owner == user %}
                     @Manager
                 {% else %}
-                    by: {{ reply.client_name }}
+                    by: {{ reply.nickName }}
                 {% endif %}
                 {{ reply.created_at | naturaltime }}</span>
             </p>
