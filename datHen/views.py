@@ -2,7 +2,7 @@ from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Khach, Technician, Service
 from django.views.generic import View
-from django.views.generic.edit import UpdateView, CreateView
+from django.views.generic.edit import UpdateView
 from django.urls import reverse_lazy
 from .forms import (UserExistClientForm, ExistClientForm, DateForm, ThirdForm, 
                     ThirdFormExist, ServicesChoiceForm, KhachDetailForm)
@@ -60,7 +60,7 @@ class FindClient(View):
         cont = {'formDatHen': form, 'khach': khach}
         return render(request, self.template, cont)
     
-class ExistFound(View):
+class ExistPickTech(View):
     template = 'datHen/exist_pick_tech.html'
     
     def get(self, request, pk):
@@ -109,7 +109,7 @@ class ExistThirdStep(View):
         tech = get_object_or_404(Technician, id=pk)
         client = get_object_or_404(Khach, id=client_id)
         ngay = request.session['date']
-        gioHienTai = datetime.now() + timezone(minutes=30)
+        gioHienTai = datetime.now() + timedelta(minutes=30)
         serChon = request.GET.getlist('dichvu')
         request.session['dichvu'] = [int(service) for service in serChon]
         services = Service.objects.filter(id__in=[int(service) for service in serChon])
@@ -218,7 +218,7 @@ class ThirdStep(View):
         pk = request.session['id']
         tech = get_object_or_404(Technician, id=pk)
         ngay = request.session['date']
-        gioHienTai = datetime.now() + timezone(minutes=30)
+        gioHienTai = datetime.now() + timedelta(minutes=30)
         serChon = request.GET.getlist('dichvu')
         request.session['dichvu'] = [int(service) for service in serChon]
         services = Service.objects.filter(id__in=[int(service) for service in serChon])
@@ -323,6 +323,14 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['client'] = self.get_object()
         return context
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        services = form.cleaned_data['services']
+        totalPoint = sum(dv.price for dv in services)
+        self.object.points = totalPoint
+        self.object.save()
+        form.save_m2m()
+        return super().form_valid(form)
     
     def get_success_url(self):
         return self.success_url
