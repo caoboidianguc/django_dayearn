@@ -22,8 +22,15 @@
 <form method='post' >
     {% csrf_token %}
     <div class="table-responsive">
-        <div class="form-group col-md-4">
-            {{ form | crispy }}
+        <div class="row g3">
+            <div class="col-md-6 mb-3">
+                {{ form.full_name | as_crispy_field }}
+                {{ form.phone | as_crispy_field }}
+                
+            </div>
+            <div class="col-md-auto mb-2">
+                {{ form.services | as_crispy_field }}            
+            </div>
         </div>
         <input type='submit' value='Submit' class="btn btn-primary w-25" role="button">
         <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">

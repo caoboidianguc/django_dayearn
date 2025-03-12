@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat
+from .models import Technician, Khach, Service, Chat, Like
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
@@ -142,6 +142,24 @@ class ChatView(View):
             'page_obj' : page_obj, 'chat_form': chat_form, 'client' : client
         }
         return render(request, self.template, context)
+
+def like_chat(request, chat_id):
+    client_id = request.session.get('client_id')
+    if not client_id:
+        redirect('ledger:index')
+    client = get_object_or_404(Khach, id=client_id)
+    chat = get_object_or_404(Chat, id=chat_id)
+    Like.objects.get_or_create(chat=chat, client=client)
+    return redirect('ledger:chat_room', client.id)
+
+def unLike_chat(request, chat_id):
+    client_id = request.session.get('client_id')
+    if not client_id:
+        redirect('ledger:index')
+    client = get_object_or_404(Khach, id=client_id)
+    chat = get_object_or_404(Chat, id=chat_id)
+    Like.objects.filter(chat=chat, client=client).delete()
+    return redirect('ledger:chat_room', client.id)
 
 class ChatDetailView(View):
     template = "ledger/chat_detail.html"
@@ -308,6 +326,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         full_name = form.cleaned_data['full_name'].upper()
         phone = form.cleaned_data['phone']
+        dv = form.cleaned_data['services']
         existing_client = form.cleaned_data.get('existing_client')
         if existing_client:
             khach = existing_client
@@ -326,7 +345,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
                     'technician': Technician.objects.get(owner=self.request.user, name="anyOne"),
                 }
             )
-            
+        khach.services.set(dv)    
         form.instance = khach
         messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
         return super().form_valid(form)

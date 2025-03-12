@@ -95,9 +95,9 @@
     >> Discover your beauty with us.
     <br>
     {% if latest_image_urls %}
-    <div class="image-container">
+    <div class="image-container" style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
         {% for image_url in latest_image_urls %}
-            <img src="{{ image_url }}" alt="Image from FB" style="max-width: 20%; height: auto;">
+            <img src="{{ image_url }}" alt="Image from FB" style="max-width: 50%; height: auto;">
             
         {% endfor %} 
     </div>
