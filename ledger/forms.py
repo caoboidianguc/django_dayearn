@@ -88,7 +88,7 @@ class ChatForm(forms.ModelForm):
 class KhachWalkin(forms.ModelForm):
     class Meta:
         model = Khach
-        fields = ['full_name', 'phone']
+        fields = ['full_name', 'phone','services']
     def clean(self):
         clean_data = super().clean()
         full_name = clean_data.get('full_name')
@@ -104,4 +104,7 @@ class KhachWalkin(forms.ModelForm):
         if self.cleaned_data.get('existing_client'):
             return
         return super().validate_unique()
+    
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple(), label='How can we help you today:')
+
     
