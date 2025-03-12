@@ -23,6 +23,7 @@ urlpatterns = [
     path('ledger/user_chat_create/', views.UserChatCreateView.as_view(), name="user_chat_create"),
     path('ledger/user_chat_room/detail/<int:pk>/', views.UserChatDetailView.as_view(), name="user_chat_detail"),
     path('ledger/walkin/', views.ClientWalkinView.as_view(), name='walkin' ),
-    
+    path('ledger/chat/<int:chat_id>/like/', views.like_chat, name='like'),
+    path('ledger/chat/<int:chat_id>/unlike/', views.unLike_chat, name='unlike'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

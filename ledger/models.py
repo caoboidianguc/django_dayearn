@@ -242,10 +242,18 @@ class Chat(models.Model):
             return nickname
         return "@Manager"
     
+    def total_likes(self):
+        all_like = self.likes.all()
+        return len(all_like)
+    
     @property
     def client_name(self):
         return self.client.full_name if self.client else "@Manager"
     
+    def like_by(self, khach):
+        return self.likes.filter(client=khach).exists()
+        
+            
 class Like(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="likes")
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats")
