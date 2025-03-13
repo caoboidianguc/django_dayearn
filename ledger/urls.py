@@ -19,11 +19,10 @@ urlpatterns = [
     path('ledger/chat_room/<int:pk>/', views.ChatView.as_view(), name="chat_room"),
     path('ledger/chat_room/detail/<int:pk>/', views.ChatDetailView.as_view(), name="chat_detail"),
     path('ledger/user_chat_room/', views.UserChatView.as_view(), name="user_chat_room"),
-    path('ledger/chat_create/<int:pk>/', views.ChatCreateView.as_view(), name="chat_create"),
+    path('ledger/chat/<int:pk>/create/', views.ChatCreateView.as_view(), name="chat_create"),
     path('ledger/user_chat_create/', views.UserChatCreateView.as_view(), name="user_chat_create"),
     path('ledger/user_chat_room/detail/<int:pk>/', views.UserChatDetailView.as_view(), name="user_chat_detail"),
     path('ledger/walkin/', views.ClientWalkinView.as_view(), name='walkin' ),
-    path('ledger/chat/<int:chat_id>/like/', views.like_chat, name='like'),
-    path('ledger/chat/<int:chat_id>/unlike/', views.unLike_chat, name='unlike'),
+    path('ledger/chat/<int:chat_id>/like/', views.ChatLikeView.as_view(), name='chat_like'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
