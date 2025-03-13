@@ -241,17 +241,14 @@ class Chat(models.Model):
             nickname = self.client.full_name[:4]
             return nickname
         return "@Manager"
-    
+    @property
     def total_likes(self):
-        all_like = self.likes.all()
-        return len(all_like)
+        return self.likes.count()
     
     @property
     def client_name(self):
         return self.client.full_name if self.client else "@Manager"
     
-    def like_by(self, khach):
-        return self.likes.filter(client=khach).exists()
         
             
 class Like(models.Model):

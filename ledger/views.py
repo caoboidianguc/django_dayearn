@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 import requests
 import os
+from django.db.models import Prefetch
 
 
 class AllEmployee(LoginRequiredMixin,ListView):
@@ -132,7 +133,9 @@ class ChatView(View):
     def get(self, request, pk):
         request.session['client_id'] = pk
         client = get_object_or_404(Khach, id=pk)
-        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client")
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client").prefetch_related(
+            Prefetch('likes', queryset=Like.objects.filter(client=client), to_attr='current_client_like')
+        )#chat.current_client_like will be a list of Like objects for the current client
         allChat = allChat[:75]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
@@ -142,24 +145,25 @@ class ChatView(View):
             'page_obj' : page_obj, 'chat_form': chat_form, 'client' : client
         }
         return render(request, self.template, context)
-
-def like_chat(request, chat_id):
-    client_id = request.session.get('client_id')
-    if not client_id:
-        redirect('ledger:index')
-    client = get_object_or_404(Khach, id=client_id)
-    chat = get_object_or_404(Chat, id=chat_id)
-    Like.objects.get_or_create(chat=chat, client=client)
-    return redirect('ledger:chat_room', client.id)
-
-def unLike_chat(request, chat_id):
-    client_id = request.session.get('client_id')
-    if not client_id:
-        redirect('ledger:index')
-    client = get_object_or_404(Khach, id=client_id)
-    chat = get_object_or_404(Chat, id=chat_id)
-    Like.objects.filter(chat=chat, client=client).delete()
-    return redirect('ledger:chat_room', client.id)
+    
+class ChatLikeView(View):
+    def post(self, request, chat_id):
+        client_id = request.session.get('client_id')
+        if not client_id:
+            return JsonResponse({'error':'Client not found'}, status=400)
+        client = get_object_or_404(Khach, id=client_id)
+        chat = get_object_or_404(Chat, id= chat_id)
+        like, created = Like.objects.get_or_create(chat=chat, client=client)
+        if not created:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+        total_likes = chat.total_likes
+        return JsonResponse({
+            'liked': liked,
+            'total_likes': total_likes
+        })
 
 class ChatDetailView(View):
     template = "ledger/chat_detail.html"
