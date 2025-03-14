@@ -6,12 +6,14 @@
 {% endblock nutChinh %}
 
 {% block headding %}
-    <h1 class='text-info'>Welcome to our salon!</h1>
+   
     {% if messages %} 
             {% for tin in messages %} 
             <div class="fs-3 text-success">
                 {{ tin }}</div>
             {% endfor %}
+            {% else %}
+            <h1 class='text-info'>Welcome to our salon!</h1>
             {% endif %}
 {% endblock headding %}
 

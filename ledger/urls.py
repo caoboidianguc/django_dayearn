@@ -28,3 +28,6 @@ urlpatterns = [
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# http://127.0.0.1:8000/ledger/chat_room/detail/1/
+# http://127.0.0.1:8000/ledger/user_chat_room/detail/1/

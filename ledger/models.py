@@ -257,6 +257,8 @@ class Like(models.Model):
         unique_together = [('chat', 'client'), ('chat', 'owner')]
         
     def __str__(self):
-        return f"{self.client} liked chat {self.chat.id}"
+        if self.client:
+            return f"{self.client} liked chat {self.chat.id}"
+        return f"{self.owner} liked chat {self.chat.id}"
     
     

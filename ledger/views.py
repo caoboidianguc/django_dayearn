@@ -268,7 +268,7 @@ class UserChatDetailView(LoginRequiredMixin, View):
             new_chat.owner = request.user
             new_chat.reply_to = chat
             new_chat.save()
-            return redirect('ledger:chat_detail', pk=pk)
+            return redirect('ledger:user_chat_detail', pk=pk)
         context = {
             'chat' : chat,
             'replies': replies,  # Fetch replies again
