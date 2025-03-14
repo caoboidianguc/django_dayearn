@@ -158,5 +158,6 @@ class ServicesChoiceForm(forms.Form):
 class KhachDetailForm(forms.ModelForm):
     class Meta:
         model = Khach
-        fields = ['tag','desc','technician']
+        fields = ['services','technician','tag','desc']
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
     

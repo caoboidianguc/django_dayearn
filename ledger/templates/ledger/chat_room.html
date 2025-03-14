@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
 {% load humanize %}
+{% load static %}
 
 {% block headding %}
 <h1>Elegant Nails & Spa Greeting to {{ client.full_name }}</h1>
@@ -14,10 +15,16 @@
         {{ talk }} 
     </a>
         <p>
+            <button class="like-button {% if talk.current_client_like %}liked{% endif %}"
+                            data-chat-id="{{ talk.id }}"
+                            data-url="{% url 'ledger:chat_like' talk.id %}">
+                <i class="fas fa-heart"></i>
+            </button>
+            <span class="like-count">{{ talk.total_likes }}</span>
             {% if talk.owner == user %}
             @Manager
             {% else %}
-            {{ talk.client_name }}
+            {{ talk.nickName }}
             {% endif %}
             <span class="fw-light text-secondary">{{ talk.created_at | naturaltime }}</span>
         </p>
@@ -55,6 +62,10 @@
         {% endif %}
     </ul>
 </nav>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/chat.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
 {% endblock content %}
 
 

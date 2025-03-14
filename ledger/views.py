@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat
+from .models import Technician, Khach, Service, Chat, Like
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
@@ -10,10 +10,10 @@ from datetime import timedelta
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.db.models import Count, Q
 from django.core.paginator import Paginator
 import requests
 import os
+from django.db.models import Prefetch
 
 
 class AllEmployee(LoginRequiredMixin,ListView):
@@ -39,12 +39,13 @@ class UpdateTech(LoginRequiredMixin, View):
             else:
                 tech.time_come_in = None
             tech.save()
-            return JsonResponse({
+            context = {
                 'success' : True,
                 'isWork': tech.isWork,
                 'time_come_in': tech.time_come_in if tech.isWork else '',
                 'color': 'green' if tech.isWork else 'gray'
-            })
+            }
+            return JsonResponse(context)
         except Technician.DoesNotExist:
             return JsonResponse({
                 'success' : False,
@@ -132,7 +133,9 @@ class ChatView(View):
     def get(self, request, pk):
         request.session['client_id'] = pk
         client = get_object_or_404(Khach, id=pk)
-        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client")
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client").prefetch_related(
+            Prefetch('likes', queryset=Like.objects.filter(client=client) , to_attr="current_client_like")
+        )
         allChat = allChat[:75]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
@@ -143,6 +146,43 @@ class ChatView(View):
         }
         return render(request, self.template, context)
 
+class ChatLikeView(View):
+    def post(sefl, request, chat_id):
+        client_id = request.session.get('client_id')
+        if not client_id:
+            return JsonResponse({'error': "client not found"}, status=400)
+        client = get_object_or_404(Khach, id=client_id)
+        chat = get_object_or_404(Chat, id= chat_id)
+        like, create = Like.objects.get_or_create(chat=chat, client=client)
+        if not create:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+        total_likes = chat.total_likes
+        return JsonResponse({
+            'liked' : liked,
+            'total_likes': total_likes
+        })
+
+class ChatUserLikeView(View):
+    def post(sefl, request, chat_id):
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': "you need to login."}, status=401)
+        chu_trang = request.user
+        chat = get_object_or_404(Chat, id= chat_id)
+        like, create = Like.objects.get_or_create(chat=chat, owner=chu_trang)
+        if not create:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+        total_likes = chat.total_likes
+        return JsonResponse({
+            'liked' : liked,
+            'total_likes': total_likes
+        })
+    
 class ChatDetailView(View):
     template = "ledger/chat_detail.html"
     def get(self, request, pk):
@@ -187,7 +227,10 @@ class ChatCreateView(View):
 class UserChatView(LoginRequiredMixin, View):
     template = "ledger/user_chat_room.html"
     def get(self, request):
-        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
+        chu_trang = request.user
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client").prefetch_related(
+            Prefetch('likes', queryset=Like.objects.filter(owner=chu_trang) , to_attr="current_owner_like")
+        )
         allChat = allChat[:75]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
@@ -306,14 +349,14 @@ class CustomerVisit(View):
     
 class ClientWalkinView(LoginRequiredMixin, CreateView):
     template_name = "ledger/walkin.html"
-    # template_name = "home.html"
     model = Khach
     form_class = KhachWalkin
     success_url = reverse_lazy('ledger:walkin')
     def form_valid(self, form):
         existing_client = form.cleaned_data.get('existing_client')
-        name = form.cleaned_data.get('full_name')
+        name = form.cleaned_data.get('full_name').upper()
         phone = form.cleaned_data.get('phone')
+        dv = form.cleaned_data.get('services')
         if existing_client:
             khach = existing_client
             khach.day_comes = timezone.now().today().date()
@@ -327,13 +370,12 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
             defaults={
                 'day_comes': timezone.now().today().date(),
                 'time_at': timezone.now().time(),
-                'technician': Technician.objects.get(owner=self.request.user, name='anyOne')
+                'technician': Technician.objects.get(owner=self.request.user, name='anyOne'),
             }
         )
-        
+        khach.services.set(dv)
         form.instance = khach
         messages.success(self.request, f"Welcom {form.instance.full_name}!")
         return super().form_valid(form)
     
 
-    

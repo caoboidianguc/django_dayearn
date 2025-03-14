@@ -313,23 +313,29 @@ class CancelViewConfirm(View):
         messages.success(request, "Your services have been successfully canceled.")
         return redirect(self.get_success_url())
     
+
 class ClientDetailView(LoginRequiredMixin, UpdateView):
     template_name = 'datHen/client_detail.html'
-    model = Khach
     form_class = KhachDetailForm
     success_url = reverse_lazy('datHen:listHen')
     def get_object(self, queryset = None):
         pk=self.kwargs.get('pk')
         return get_object_or_404(Khach, id=pk)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['client'] = self.get_object()
         return context
-    
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        services = form.cleaned_data['services']
+        totalPoint = sum(dv.price for dv in services)
+        self.object.points = totalPoint
+        self.object.save()
+        form.save_m2m()
+        return super().form_valid(form)
+
     def get_success_url(self):
         return self.success_url
 
-
-
-    

@@ -108,11 +108,10 @@
     >> Discover your beauty with us.
     <br>
     {% if latest_image_urls %}
-    <div class="image-container">
+    <div class="image-container" style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
         {% for image_url in latest_image_urls %}
-            <img src="{{ image_url }}" alt="Image from FB" style="max-width: 20%; height: auto;">
-            
-        {% endfor %} 
+            <img src="{{ image_url }}" alt="Image from FB" style="max-width: 50%; height: auto; display: inline-block;">
+        {% endfor %}
     </div>
         {% else %}
         <p>No recent image found on FB.</p>
