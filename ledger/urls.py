@@ -24,5 +24,6 @@ urlpatterns = [
     path('ledger/user_chat_room/detail/<int:pk>/', views.UserChatDetailView.as_view(), name="user_chat_detail"),
     path('ledger/walkin/', views.ClientWalkinView.as_view(), name='walkin' ),
     path('ledger/chat/<int:chat_id>/like/', views.ChatLikeView.as_view(), name='chat_like'),
+    path('ledger/chat_user/<int:chat_id>/like/', views.ChatUserLikeView.as_view(), name='user_chat_like'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

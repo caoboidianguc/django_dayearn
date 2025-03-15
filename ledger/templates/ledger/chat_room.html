@@ -14,24 +14,20 @@
     <div> <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:chat_detail' talk.id %}">
         {{ talk }} 
     </a>
-        <p> <button class="like-button {% if talk.current_client_like %}liked{% endif %}"
-                    data-chat-id="{{ talk.id }}"
-                    data-url="{% url 'ledger:chat_like' talk.id %}">
-                {% if talk.current_client_like %}UnLike{% else %} Like {% endif %}
-        </button>
-            <span class="like-count">
-                {{ talk.total_likes }}
-            </span>
-
-            <span class="fw-light text-secondary">
+        <p>
+            <button class="like-button {% if talk.current_client_like %}liked{% endif %}"
+                            data-chat-id="{{ talk.id }}"
+                            data-url="{% url 'ledger:chat_like' talk.id %}">
+                <i class="fas fa-heart"></i>
+            </button>
+            <span class="like-count">{{ talk.total_likes }}</span>
             {% if talk.owner == user %}
             @Manager
             {% else %}
             {{ talk.nickName }}
             {% endif %}
-            {{ talk.created_at | naturaltime }}</span>
+            <span class="fw-light text-secondary">{{ talk.created_at | naturaltime }}</span>
         </p>
-        
     </div>
     {% endfor %}
   
@@ -50,7 +46,6 @@
     
     </form>  
 
-     <!-- Pagination controls -->
    <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
@@ -66,66 +61,13 @@
         {% endif %}
     </ul>
 </nav>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    //CSRF csrf_token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0 ; i < cookies.length; i++ ) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length +1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length +1 ));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-    function csrfSafeMethod(method) {
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-    }
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        }
-    });
 
-    $(document).ready(function() {
-        $('.like-button').on('click', function() {
-            const button = $(this);
-            const url = button.data('url');
-            $.ajax({
-                url: url,
-                type: 'POST',
-                headers: {
-                    "X-CSRFToken": csrftoken
-                },
-                success: function(data) {
-                    if (data.liked) {
-                        button.addClass('liked').text('UnLike');
-                    } else {
-                        button.removeClass('liked').text("Like");
-                    }
-                    button.closest('p').find('.like-count').text(data.total_likes);
-                },
-                error: function(xhr, status, error) {
-                    console.log('Error', error);
-                    alert('Failed to update like. Please try again.');
-                }
-            });
-        });
-    });
-</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/chat.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
 {% endblock content %}
 
 
 {% block footer %}
-    <strong>Feed back makes we better</strong> foundation from 2002
+    <strong>Feed back make we strong</strong> foundation from 2002
 {% endblock footer %}
-
-<script></script>
