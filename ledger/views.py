@@ -134,8 +134,8 @@ class ChatView(View):
         request.session['client_id'] = pk
         client = get_object_or_404(Khach, id=pk)
         allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client").prefetch_related(
-            Prefetch('likes', queryset=Like.objects.filter(client=client), to_attr='current_client_like')
-        )#chat.current_client_like will be a list of Like objects for the current client
+            Prefetch('likes', queryset=Like.objects.filter(client=client), to_attr='current_client_like'),
+        )
         allChat = allChat[:75]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
@@ -147,30 +147,47 @@ class ChatView(View):
         return render(request, self.template, context)
     
 class ChatLikeView(View):
-    def post(self, request, chat_id):
+    def post(sefl, request, chat_id):
         client_id = request.session.get('client_id')
         if not client_id:
-            return JsonResponse({'error':'Client not found'}, status=400)
+            return JsonResponse({'error': "client not found"}, status=400)
         client = get_object_or_404(Khach, id=client_id)
         chat = get_object_or_404(Chat, id= chat_id)
-        like, created = Like.objects.get_or_create(chat=chat, client=client)
-        if not created:
+        like, create = Like.objects.get_or_create(chat=chat, client=client)
+        if not create:
             like.delete()
             liked = False
         else:
             liked = True
         total_likes = chat.total_likes
         return JsonResponse({
-            'liked': liked,
+            'liked' : liked,
             'total_likes': total_likes
         })
 
+class ChatUserLikeView(LoginRequiredMixin, View):
+    def post(sefl, request, chat_id):
+        chu_trang = request.user
+        chat = get_object_or_404(Chat, id= chat_id)
+        like, create = Like.objects.get_or_create(chat=chat, owner=chu_trang)
+        if not create:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+        total_likes = chat.total_likes
+        return JsonResponse({
+            'liked' : liked,
+            'total_likes': total_likes
+        })
+        
 class ChatDetailView(View):
     template = "ledger/chat_detail.html"
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
-        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
         khach_id = request.session['client_id']
+        khach_moi = get_object_or_404(Khach, id=khach_id)
+        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
         context = {
             'khach_id' : khach_id,
             'chat' : chat,
@@ -209,7 +226,10 @@ class ChatCreateView(View):
 class UserChatView(LoginRequiredMixin, View):
     template = "ledger/user_chat_room.html"
     def get(self, request):
-        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('created_at').select_related("client")
+        chu_tai_khoan = request.user
+        allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client").prefetch_related(
+            Prefetch('likes', queryset=Like.objects.filter(owner=chu_tai_khoan), to_attr='current_owner_like')
+        )
         allChat = allChat[:75]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
@@ -247,7 +267,7 @@ class UserChatDetailView(LoginRequiredMixin, View):
             new_chat.owner = request.user
             new_chat.reply_to = chat
             new_chat.save()
-            return redirect('ledger:chat_detail', pk=pk)
+            return redirect('ledger:user_chat_detail', pk=pk)
         context = {
             'chat' : chat,
             'replies': replies,  # Fetch replies again

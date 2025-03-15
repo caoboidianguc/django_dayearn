@@ -253,11 +253,14 @@ class Chat(models.Model):
             
 class Like(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="likes")
-    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats")
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats", null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="owner_likes", null=True)
     class Meta:
-        unique_together = ['chat', 'client']
+        unique_together = [('chat', 'client'), ('chat','owner'),]
         
     def __str__(self):
-        return f"{self.client} liked chat {self.chat.id}"
+        if self.client:
+            return f"{self.client} liked chat {self.chat.id}"
+        return f"{self.owner} liked chat {self.chat.id}"
     

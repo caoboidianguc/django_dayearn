@@ -21,6 +21,9 @@
     </div>
         
     <h3>Replies:</h3>
+    <p class="text-warning" style="filter: blur(0.2px)">
+        Do not post full client names. Only the first 4 letters should be shown. (example: {{chat.nickName}})
+    </p>
    {% for reply in replies %}
     <div>
         <p>{{ reply.text }}</p>

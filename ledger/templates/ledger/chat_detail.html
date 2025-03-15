@@ -22,14 +22,17 @@
     <h3>Replies:</h3>
    {% for reply in replies %}
     <div>
-        <p><span >{{ reply.text }}</span>
+        <div>
+            <p >{{ reply.text }}</p>
+            
+           
             <span class="fw-light text-secondary">    {% if reply.owner == user %}
                     @Manager
                 {% else %}
                     by: {{ reply.nickName }}
                 {% endif %}
                 {{ reply.created_at | naturaltime }}</span>
-            </p>
+            </div>
     </div>
     <hr>
    {% endfor %}
@@ -46,6 +49,8 @@
         <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:chat_room' khach_id %}'; return false; ">Back</button>
     </div>
     </form>  
+
+    
 {% endblock content %}
 
 
