@@ -78,7 +78,7 @@ class VacationForm(forms.ModelForm):
         }
         
 class ChatForm(forms.ModelForm):
-    text = forms.CharField(required=True,min_length=5, max_length=500, strip=True, label="",
+    text = forms.CharField(required=True,min_length=1, max_length=500, strip=True, label="",
                            widget=forms.TextInput(
                         attrs={'placeholder': 'i gonna say it'}))
     class Meta:

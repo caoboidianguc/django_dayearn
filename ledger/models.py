@@ -238,7 +238,7 @@ class Chat(models.Model):
     @property
     def nickName(self):
         if self.client:
-            nickname = self.client.full_name[:4]
+            nickname = self.client.full_name[:3]
             return nickname
         return "@Manager"
     @property

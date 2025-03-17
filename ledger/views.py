@@ -15,6 +15,7 @@ from django.core.paginator import Paginator
 import requests
 import os
 from django.db.models import Prefetch
+from django.views.decorators.http import require_POST
 
 
 class AllEmployee(LoginRequiredMixin,ListView):
@@ -222,6 +223,25 @@ class ChatCreateView(View):
         chat = Chat(text=request.POST['text'], client=client)
         chat.save()
         return redirect(reverse('ledger:chat_room', args=[pk]))
+
+@require_POST
+def chat_delete(request, pk):
+    if 'client_id' not in request.session:
+        return JsonResponse({
+            'success': False,
+            'error' : "Client not identified."
+        }, status=403)
+    client_id = request.session['client_id']
+    chat = get_object_or_404(Chat, id=pk)
+    if chat.client_id != client_id:
+        return JsonResponse({
+            'success': False,
+            'error' : "You don't have permisson to delete this post."
+        }, status=403)
+    chat.delete()
+    return JsonResponse({
+            'success': True,
+        })
     
 class UserChatView(LoginRequiredMixin, View):
     template = "ledger/user_chat_room.html"
