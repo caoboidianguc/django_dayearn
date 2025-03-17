@@ -10,10 +10,18 @@
 
 
 {% block content %}
+
     {% for talk in page_obj %}
-    <div> <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:chat_detail' talk.id %}">
-        {{ talk }} 
-    </a>
+    <div> 
+        <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:chat_detail' talk.id %}">
+            {{ talk }} 
+        </a>
+        {% if talk.client_id == client.id %}
+        <button class="delete-chat" 
+                data-chat-id="{{ talk.id }}" 
+                data-url="{% url 'ledger:chat_delete' talk.id %}">
+                <i class="fa-solid fa-trash"></i></button>
+                {% endif %}
         <p>
             <button class="like-button {% if talk.current_client_like %}liked{% endif %}"
                             data-chat-id="{{ talk.id }}"
@@ -71,3 +79,5 @@
 {% block footer %}
     <strong>Feed back make we strong</strong> foundation from 2002
 {% endblock footer %}
+
+

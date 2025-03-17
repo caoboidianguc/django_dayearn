@@ -1,6 +1,5 @@
 from django.urls import path, re_path, include
 from ledger import views
-from django.contrib.auth import views as xem
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -25,5 +24,6 @@ urlpatterns = [
     path('ledger/walkin/', views.ClientWalkinView.as_view(), name='walkin' ),
     path('ledger/chat/<int:chat_id>/like/', views.ChatLikeView.as_view(), name='chat_like'),
     path('ledger/chat_user/<int:chat_id>/like/', views.ChatUserLikeView.as_view(), name='user_chat_like'),
+    path('ledger/chat/<int:pk>/delete/', views.chat_delete, name='chat_delete'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
