@@ -1,0 +1,21 @@
+/* in able css to work after new element added, you have to clear history */
+
+.delete-chat {
+    color:rgb(55, 115, 245);
+    border: none;
+    font-size: 14px;
+    outline: none;
+    background: none;
+    padding: auto;
+}
+
+.like-button {
+    background: none;
+    border: rgb(23, 23, 23);
+    cursor: pointer;
+    font-size: 14px;
+    color: #cccccc73;
+}
+.like-button.liked {
+    color: red;
+}
