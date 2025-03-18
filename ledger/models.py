@@ -10,6 +10,7 @@ from django.core.validators import MinLengthValidator
 import datetime
 from datetime import timedelta
 from simple_history.models import HistoricalRecords
+from django.utils.translation import gettext_lazy as _
 
 
 class Technician(models.Model):
@@ -55,22 +56,7 @@ class Technician(models.Model):
     def get_today_clients(self):
         hnay = self.get_clients().filter(day_comes=datetime.date.today()).exclude(status=Khach.Status.cancel)
         return hnay.order_by('time_at')
-    
-    
-    def get_available(self, ngay):
-        start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
-        end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
-        clients = self.get_clients().filter(day_comes=ngay)
-        xongs = [client for client in clients]
-        thoigian = start
-        while thoigian < end:
-            if clients:
-                if not any(khach.start_at() <= thoigian.time() < khach.get_done_at() for khach in xongs):
-                    yield thoigian
-                thoigian += timedelta(minutes=15)
-            else:
-                yield thoigian
-                thoigian += timedelta(minutes=15)
+
                 
     def get_available_with(self, ngay, thoigian):
         start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
@@ -93,14 +79,6 @@ class Technician(models.Model):
                 if not over_lap:
                     yield timeCal
                 timeCal += timedelta(minutes=15)
-
-    @property
-    def timeSpan(self):
-        batdau = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
-        ketthuc = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
-        while batdau < ketthuc:
-            yield batdau
-            batdau += timedelta(minutes=15)
     
     def get_services_today(self):
         now = datetime.datetime.now()
@@ -109,8 +87,48 @@ class Technician(models.Model):
         for client in clients:
             all_ser.extend(client.get_services())
         return len(all_ser)
-    
-    
+    # def get_available_with(self, ngay, thoigian):
+    #     day_of_week = ngay.weekday()
+    #     try:
+    #         work_day = TechWorkDay.objects.get(tech=self, day_of_week=day_of_week)
+    #         start = datetime.datetime.combine(ngay, work_day.start_time)
+    #         end = datetime.datetime.combine(ngay, work_day.end_time)
+    #     except TechWorkDay.DoesNotExist:
+    #         return
+    #     clients = self.get_clients().filter(day_comes=ngay)
+    #     time_cal = start
+    #     while time_cal < end:
+    #         time_compare = time_cal + datetime.timedelta(minutes=thoigian)
+    #         overlap = False
+            
+    #         for client in clients:
+    #             client_start = datetime.datetime.combine(ngay, client.start_at())
+    #             client_end = datetime.datetime.combine(ngay, client.get_done_at())
+                
+    #             if (client_start <= time_cal < client_end) or (time_cal < client_start < time_compare):
+    #                 overlap = True
+    #                 break
+            
+    #         if not overlap:
+    #             yield time_cal.time()
+    #         time_cal += datetime.timedelta(minutes=15)
+
+Day_Of_Week = (
+    (0, _('Monday')),
+    (1, _('Tuesday')),
+    (2, _('Wednesday')),
+    (3, _('Thursday')),
+    (4, _('Friday')),
+    (5, _('Saturday')),
+    (6, _('Sunday')),
+)
+
+class TechWorkDay(models.Model):
+    tech = models.ForeignKey(Technician, on_delete=models.CASCADE)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    day_of_week = models.IntegerField(choices=Day_Of_Week)
+
 class Khach(models.Model):
     class Status(models.TextChoices):
         online = "Confirmed"
