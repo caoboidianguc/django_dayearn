@@ -1,22 +1,23 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Technician, Khach, Service, Chat, Like
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, UpdateView, CreateView, DeleteView
+from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from django.views import View
 from .forms import ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, VacationForm, ChatForm, KhachWalkin
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.utils import timezone
 from django.core.paginator import Paginator
 import requests
 import os
 from django.db.models import Prefetch
+from django.views.decorators.http import require_POST
 
 
-class AllEmployee(LoginRequiredMixin,ListView):
+class AllEmployee(LoginRequiredMixin, View):
     template = 'ledger/all_employee.html'
     def get(self,request):
         today = timezone.now().date()
@@ -53,7 +54,7 @@ class UpdateTech(LoginRequiredMixin, View):
             }, status=404)
        
 
-class AllServices(LoginRequiredMixin, ListView):
+class AllServices(LoginRequiredMixin, View):
     
     template = 'ledger/list_services.html'
     def get(self, request):
@@ -223,6 +224,35 @@ class ChatCreateView(View):
         chat = Chat(text=request.POST['text'], client=client)
         chat.save()
         return redirect(reverse('ledger:chat_room', args=[pk]))
+    
+# class ChatDelete(DeleteView):
+#     model = Chat
+#     success_url = reverse_lazy('ledger:chat_room')
+#     def get_object(self, queryset=None):
+#         client_id = self.request.session['client_id']
+#         obj = super().get_object(queryset)
+#         if obj.client_id != client_id:
+#             raise Http404("You don't have permission to delete this post.")
+#         return obj
+
+@require_POST
+def chatDelete(request, pk):
+    if 'client_id' not in request.session:
+        return JsonResponse({
+            'success': False,
+            'error': 'Client not identified'
+        }, status=403)
+    client_id = request.session['client_id']
+    chat = get_object_or_404(Chat, id=pk)
+    if chat.client_id != client_id:
+        return JsonResponse({
+            'success': False,
+            'error': "You don’t have permission to delete this post."
+        }, status=403)
+    chat.delete()
+    return JsonResponse({
+        'success': True,
+    }, status=200)
     
 class UserChatView(LoginRequiredMixin, View):
     template = "ledger/user_chat_room.html"
