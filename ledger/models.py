@@ -87,6 +87,7 @@ class Technician(models.Model):
         for client in clients:
             all_ser.extend(client.get_services())
         return len(all_ser)
+    
     # def get_available_with(self, ngay, thoigian):
     #     day_of_week = ngay.weekday()
     #     try:
@@ -211,8 +212,14 @@ class Khach(models.Model):
     def get_all_like(self):
         return self.liked_chats.all()
     
-
-    
+class KhachVisit(models.Model):
+    khach = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="khachvisits")
+    date = models.DateField()
+    services = models.ManyToManyField('Service')
+    total_spent = models.DecimalField(max_digits=7, decimal_places=2, editable=False, null=True)
+    def __str__(self) -> str:
+        return self.khach.full_name
+   
 class Service(models.Model):
     class Category(models.TextChoices):
         nail = "Nail Enhancement"

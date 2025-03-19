@@ -1,6 +1,6 @@
 from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
-from ledger.models import Khach, Technician, Service
+from ledger.models import Khach, Technician, Service, KhachVisit
 from django.views.generic import View
 from django.views.generic.edit import UpdateView
 from django.urls import reverse_lazy
@@ -16,6 +16,17 @@ chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
 cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/"
 
+def saveKhachVisit(client, date, services):
+    try:
+        khachvisit = KhachVisit(khach=client, date=date)
+        khachvisit.save()
+        khachvisit.services.set(services)
+        khachvisit.total_spent = sum(dv.price for dv in services)
+        khachvisit.save(update_fields=['total_spent'])
+    except ValueError as e:
+        print(f"Error saving KhachVisit: {e}")
+        return
+    
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
     def get(self, request):
@@ -73,9 +84,7 @@ class ExistPickTech(View):
 class ExistSecond(View):
     template = 'datHen/exist_second.html'
     def get(self, request, pk):
-        # request.session['tech_id'] = ""
         request.session['date'] = request.GET.get('day_comes')
-        # date = request.session['date']
         tech = get_object_or_404(Technician, id=pk)        
         secondForm = DateForm()
         cont = {
@@ -165,6 +174,7 @@ class ExistThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
+        saveKhachVisit(khac, ngay, services)
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
@@ -278,6 +288,7 @@ class ThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
+        saveKhachVisit(khac, ngay, services)
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
@@ -330,6 +341,9 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         self.object.points = totalPoint
         self.object.save()
         form.save_m2m()
+        ngay = timezone.now().today().date()
+        khach = self.get_object()
+        saveKhachVisit(khach, ngay, services)
         return super().form_valid(form)
     
     def get_success_url(self):
