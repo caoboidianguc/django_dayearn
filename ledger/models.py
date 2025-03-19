@@ -213,7 +213,7 @@ class Khach(models.Model):
         return self.liked_chats.all()
     
 class KhachVisit(models.Model):
-    khach = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="khachvisits")
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="khachvisits")
     date = models.DateField()
     services = models.ManyToManyField('Service')
     total_spent = models.DecimalField(max_digits=7, decimal_places=2, editable=False, null=True)
