@@ -187,7 +187,6 @@ class ChatDetailView(View):
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
         khach_id = request.session['client_id']
-        khach_moi = get_object_or_404(Khach, id=khach_id)
         replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
         context = {
             'khach_id' : khach_id,
@@ -205,14 +204,13 @@ class ChatDetailView(View):
         replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
         if form.is_valid():
             new_chat = form.save(commit=False)
-            # new_chat.owner = request.user
             new_chat.client = khach_moi
             new_chat.reply_to = chat
             new_chat.save()
             return redirect('ledger:chat_detail', pk=pk)
         context = {
             'chat' : chat,
-            'replies': replies,  # Fetch replies again
+            'replies': replies,
             'chat_form' : form
         }
         return render(request, self.template, context)

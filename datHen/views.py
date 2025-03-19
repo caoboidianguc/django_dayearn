@@ -18,11 +18,18 @@ cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/"
 
 def saveKhachVisit(client, date, services):
     try:
-        khachvisit = KhachVisit(khach=client, date=date)
+        khachvisit = KhachVisit(client=client, date=date)
         khachvisit.save()
         khachvisit.services.set(services)
         khachvisit.total_spent = sum(dv.price for dv in services)
         khachvisit.save(update_fields=['total_spent'])
+    except ValueError as e:
+        print(f"Error saving KhachVisit: {e}")
+        return
+def cancelKhachVisit(client, date):
+    try:
+        visit = KhachVisit.objects.filter(client=client, date=date)
+        visit.delete()
     except ValueError as e:
         print(f"Error saving KhachVisit: {e}")
         return
@@ -319,6 +326,9 @@ class CancelViewConfirm(View):
         client.services.clear()
         client.status = Khach.Status.cancel
         client.save()
+        cancelKhachVisit(client=client, date=client.day_comes)
+        tinNhan = f"{tenSpa} \nYour appointment is set for: \nDate: {client.day_comes} \nTime: {client.time_at} \nTechnician: {client.technician} \nWas canceled."
+        EmailMessage(chuDe, tinNhan, to=[client.email]).send()
         messages.success(request, "Your services have been successfully canceled.")
         return redirect(self.get_success_url())
     
