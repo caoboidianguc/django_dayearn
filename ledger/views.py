@@ -165,7 +165,25 @@ class ChatLikeView(View):
             'liked' : liked,
             'total_likes': total_likes
         })
-
+@require_POST
+def chatDetailLike(request, chat_id):
+        client_id = request.session.get('client_id')
+        if not client_id:
+            return JsonResponse({'error': "client not found"}, status=400)
+        client = get_object_or_404(Khach, id=client_id)
+        chat = get_object_or_404(Chat, id= chat_id)
+        like, create = Like.objects.get_or_create(chat=chat, client=client)
+        if not create:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+        total_likes = chat.total_likes
+        return JsonResponse({
+            'liked' : liked,
+            'total_likes': total_likes
+        })
+        
 class ChatUserLikeView(LoginRequiredMixin, View):
     def post(sefl, request, chat_id):
         chu_trang = request.user
@@ -187,7 +205,10 @@ class ChatDetailView(View):
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
         khach_id = request.session['client_id']
-        replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
+        khach = get_object_or_404(Khach, id=khach_id)
+        replies = Chat.objects.filter(reply_to=chat).order_by('created_at').select_related("client").prefetch_related(
+            Prefetch('likes', queryset=Like.objects.filter(client=khach), to_attr="current_khach_like")
+        )
         context = {
             'khach_id' : khach_id,
             'chat' : chat,

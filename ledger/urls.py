@@ -23,6 +23,7 @@ urlpatterns = [
     path('ledger/user_chat_room/detail/<int:pk>/', views.UserChatDetailView.as_view(), name="user_chat_detail"),
     path('ledger/walkin/', views.ClientWalkinView.as_view(), name='walkin' ),
     path('ledger/chat/<int:chat_id>/like/', views.ChatLikeView.as_view(), name='chat_like'),
+    path('ledger/chat_detail/<int:chat_id>/like/', views.chatDetailLike, name='chat_detail_like'),
     path('ledger/chat_user/<int:chat_id>/like/', views.ChatUserLikeView.as_view(), name='user_chat_like'),
     path('ledger/chat/<int:pk>/delete/', views.chat_delete, name='chat_delete'),
     

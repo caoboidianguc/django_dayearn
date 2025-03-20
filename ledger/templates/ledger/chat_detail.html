@@ -2,6 +2,8 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
 {% load humanize %}
+{% load static %}
+
 
 {% block headding %}
 <h1 class="text-info">Elegant Nails & Spa Greeting to {{ chat.nickName }}</h1>
@@ -22,17 +24,30 @@
     <h3>Replies:</h3>
    {% for reply in replies %}
     <div>
-        <div>
-            <p >{{ reply.text }}</p>
-            
-           
+
+            {{ reply.text }}
+                {% if reply.client_id == khach_id %}
+                    <button class="delete-chat" 
+                        data-chat-id="{{ reply.id }}" 
+                        data-url="{% url 'ledger:chat_delete' reply.id %}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    {% endif %}
+            <p>
+            <button class="like-button {% if reply.current_khach_like %}liked{% endif %}"
+                    data-chat-id="{{ reply.id }}"
+                    data-url="{% url 'ledger:chat_detail_like' reply.id %}">
+                    <i class="fas fa-heart"></i>
+            </button>
+            <span class="like-count">{{ reply.total_likes }}</span>
             <span class="fw-light text-secondary">    {% if reply.owner == user %}
                     @Manager
                 {% else %}
                     by: {{ reply.nickName }}
                 {% endif %}
                 {{ reply.created_at | naturaltime }}</span>
-            </div>
+            </p>
+        
     </div>
     <hr>
    {% endfor %}
@@ -50,7 +65,9 @@
     </div>
     </form>  
 
-    
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/chat.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
 {% endblock content %}
 
 
