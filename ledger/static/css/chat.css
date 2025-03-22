@@ -19,3 +19,7 @@
 .like-button.liked {
     color: red;
 }
+.reply-count {
+    padding-left: 15px;
+    padding-right: 10px;
+}

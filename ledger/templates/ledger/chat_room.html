@@ -27,7 +27,10 @@
                             data-url="{% url 'ledger:chat_like' talk.id %}">
                 <i class="fas fa-heart"></i>
             </button>
-            <span class="like-count">{{ talk.total_likes }}</span>
+            <span class="like-count"> {{ talk.total_likes }}</span>
+            <span class="reply-count">
+                <i class="fa-regular fa-comment"></i> {{ talk.get_reply_count }}
+            </span>
             {% if talk.owner == user %}
             @Manager
             {% else %}
