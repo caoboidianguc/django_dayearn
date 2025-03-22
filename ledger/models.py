@@ -251,6 +251,7 @@ class Service(models.Model):
         
 
 class Chat(models.Model):
+    isNew = models.BooleanField(default=True)
     text = models.TextField(validators=[MinLengthValidator(1, "What's your message.")])
     created_at = models.DateTimeField(auto_now_add=True)
     reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
@@ -273,6 +274,13 @@ class Chat(models.Model):
     @property
     def client_name(self):
         return self.client.full_name if self.client else "@Manager"
+    
+    @property
+    def get_reply_count(self):
+        return self.replies.count()
+    
+    def get_detail_url(self):
+        return reverse('ledger:user_chat_detail', kwargs={'pk': self.pk})
     
         
             
