@@ -165,6 +165,7 @@ class ChatLikeView(View):
             'liked' : liked,
             'total_likes': total_likes
         })
+        
 @require_POST
 def chatDetailLike(request, chat_id):
         client_id = request.session.get('client_id')
@@ -194,6 +195,8 @@ class ChatUserLikeView(LoginRequiredMixin, View):
             liked = False
         else:
             liked = True
+            chat.isNew = False
+            chat.save()
         total_likes = chat.total_likes
         return JsonResponse({
             'liked' : liked,
@@ -211,6 +214,7 @@ class ChatDetailView(View):
         )
         context = {
             'khach_id' : khach_id,
+            'client': khach,
             'chat' : chat,
             'replies': replies,
             'chat_form' : ChatForm()
@@ -289,6 +293,9 @@ class UserChatDetailView(LoginRequiredMixin, View):
     template = "ledger/user_chat_detail.html"
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
+        if chat.isNew:
+            chat.isNew = False
+            chat.save()
         replies = Chat.objects.filter(reply_to=chat).order_by('-created_at')
         context = {
             'chat' : chat,
@@ -361,7 +368,7 @@ class CustomerVisit(View):
                 #             for media in attachment['media']:
                 #                 if isinstance(media, dict) and 'image' in media and isinstance(media['image'], dict):
                 #                     latest_image_urls.append(media['image']['src'])
-            latest_image_urls = latest_image_urls[:3]
+            latest_image_urls = latest_image_urls[:5]
                         
             context = {
                 'nails': self.nail,

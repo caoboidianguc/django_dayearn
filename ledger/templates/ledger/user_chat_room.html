@@ -11,8 +11,8 @@
 {% block content %}
     {% for talk in page_obj %}
     <div>
-        <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{% url 'ledger:user_chat_detail' talk.id %}">
-        {{ talk.text }} 
+        <a class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0" href="{{ talk.get_detail_url }}">
+            <span class="chat-text {% if talk.isNew %}fw-bold{% endif %}">{{ talk.text }} </span>
         </a>
         <p>
             <button class="like-button {% if talk.current_owner_like %}liked{% endif %}"
@@ -20,9 +20,12 @@
                 data-url="{% url 'ledger:user_chat_like' talk.id %}">
             <i class="fas fa-heart"></i>
         </button>
-
         <span class="like-count">
             {{ talk.total_likes }}
+        </span>
+
+        <span class="reply-count">
+            <i class="fa-regular fa-comment"></i> {{ talk.get_reply_count }}
         </span>
             {% if talk.owner == user %}
             @Manager
