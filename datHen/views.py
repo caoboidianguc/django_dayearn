@@ -14,7 +14,7 @@ from django.utils import timezone
 
 chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
-cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/"
+cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/" #adjust link for production
 
 def saveKhachVisit(client, date, services):
     try:
@@ -31,7 +31,7 @@ def cancelKhachVisit(client, date):
         visit = KhachVisit.objects.filter(client=client, date=date)
         visit.delete()
     except ValueError as e:
-        print(f"Error saving KhachVisit: {e}")
+        print(f"Error retrived visit: {e}")
         return
     
 class DatHenView(LoginRequiredMixin,View):
@@ -327,9 +327,9 @@ class CancelViewConfirm(View):
         client.status = Khach.Status.cancel
         client.save()
         cancelKhachVisit(client=client, date=client.day_comes)
-        tinNhan = f"{tenSpa} \nYour appointment is set for: \nDate: {client.day_comes} \nTime: {client.time_at} \nTechnician: {client.technician} \nWas canceled."
+        tinNhan = f"{tenSpa}\nYour appointment was canceled.\nOriginal details:\nDate: {client.day_comes}\nTime: {client.time_at}\nTechnician: {client.technician}"
         EmailMessage(chuDe, tinNhan, to=[client.email]).send()
-        messages.success(request, "Your services have been successfully canceled.")
+        messages.success(request, "Your services have been canceled successfully.")
         return redirect(self.get_success_url())
     
 class ClientDetailView(LoginRequiredMixin, UpdateView):

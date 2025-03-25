@@ -21,7 +21,6 @@ from django.views.decorators.http import require_POST
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
     def get(self,request):
-        today = timezone.now().date()
         employee = Technician.objects.filter(owner=request.user).order_by("time_come_in")
         sort_tech = sorted(list(employee), 
                            key= lambda tech: tech.get_services_today(),reverse=False
@@ -273,7 +272,7 @@ class UserChatView(LoginRequiredMixin, View):
         allChat = Chat.objects.filter(reply_to__isnull=True).order_by('-created_at').select_related("client").prefetch_related(
             Prefetch('likes', queryset=Like.objects.filter(owner=chu_tai_khoan), to_attr='current_owner_like')
         )
-        allChat = allChat[:75]
+        allChat = allChat[:100]
         paginator = Paginator(allChat, 25)
         page_number = request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
@@ -293,10 +292,13 @@ class UserChatDetailView(LoginRequiredMixin, View):
     template = "ledger/user_chat_detail.html"
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
+        chu_tai_khoan = request.user
         if chat.isNew:
             chat.isNew = False
             chat.save()
-        replies = Chat.objects.filter(reply_to=chat).order_by('-created_at')
+        replies = Chat.objects.filter(reply_to=chat).order_by('-created_at').select_related("client").prefetch_related(
+            Prefetch('likes', queryset=Like.objects.filter(owner=chu_tai_khoan), to_attr='current_owner_like')
+        )
         context = {
             'chat' : chat,
             'replies': replies,

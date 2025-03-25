@@ -45,7 +45,6 @@ class TechWorkDayForm(forms.ModelForm):
 class ClientForm(forms.ModelForm):
     email = forms.CharField(required=False)
     class Meta:
-        """Meta definition for Clientform."""
         model = Khach
         fields = ['full_name', 'phone', 'email', 'services']
         
@@ -114,6 +113,9 @@ class KhachWalkin(forms.ModelForm):
             return
         return super().validate_unique()
     
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple(), label='How can we help you today:')
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple(),
+                                              label='How can we help you today:',
+                                              required=True,
+                                              error_messages={'required':'Please choose at least one service.'},)
 
     

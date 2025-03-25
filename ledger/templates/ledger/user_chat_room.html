@@ -18,14 +18,14 @@
             <button class="like-button {% if talk.current_owner_like %}liked{% endif %}"
                 data-chat-id="{{ talk.id }}"
                 data-url="{% url 'ledger:user_chat_like' talk.id %}">
-            <i class="fas fa-heart"></i>
+                <i class="bi bi-heart-fill"></i>
         </button>
         <span class="like-count">
             {{ talk.total_likes }}
         </span>
 
         <span class="reply-count">
-            <i class="fa-regular fa-comment"></i> {{ talk.get_reply_count }}
+            <i class="bi bi-chat"></i> {{ talk.get_reply_count }}
         </span>
             {% if talk.owner == user %}
             @Manager
