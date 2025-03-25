@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 
  
 
-    
 class ChonNgay(forms.widgets.DateInput):
     input_type = 'date'
     input_formats= "%Y-%m-%d"
