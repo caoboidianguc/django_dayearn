@@ -135,7 +135,7 @@ class Khach(models.Model):
         online = "Confirmed"
         anyone = "Anyone"
         cancel = "Cancel"
-    full_name = models.CharField(max_length=25)
+    full_name = models.CharField(max_length=25, validators=[MinLengthValidator(5)])
     phone = PhoneNumberField()
     email = models.EmailField(max_length=40, null=True, blank=True, help_text="Enter your email for booking confirmations.")
     technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, related_name='khachs')
