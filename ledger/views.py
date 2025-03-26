@@ -421,5 +421,10 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
         form.instance = khach
         messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
         return super().form_valid(form)
+
+def services_info(request, category):
+    template = "ledger/services_info.html"
+    allServices = Service.objects.filter(category=category)
+    return render(request, template, {'allServices': allServices, 'category': category})
     
 
