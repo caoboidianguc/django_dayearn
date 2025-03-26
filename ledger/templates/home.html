@@ -25,11 +25,11 @@
 {% endblock headding %}
 
 {% block content %}
-<div class="hero" style="background-image: url('{% static 'ledger/images/spa.jpeg' %}'); background-size: cover; background-position: center; padding: 150px 0;">
+<div class="hero" style="background-image: url('{% static 'ledger/images/elegant.jpg' %}'); background-size: cover; background-position: center; padding: 150px 0;">
     <div class="container text-center text-white">
         
-        <h1 class="display-4">Your Journey to Beauty Begins Here</h1>
-        <p class="lead">Experience the pinnacle of nail care and beauty treatments at Elegant Nails & Spa</p>
+        <h1 class="display-4 text-bottom">Your Journey to Beauty Begins Here</h1>
+        <p class="lead text-bottom">Experience the pinnacle of nail care and beauty treatments at Elegant Nails & Spa</p>
     </div>
 </div>
 
@@ -37,7 +37,8 @@
     <h2 class="text-center mb-3">Our Services</h2>
     <div class="row">
         <div class="col-md-3">
-            <h3 class="text-center">Nails</h3>
+            <a class="nav-link" href="{% url 'ledger:service_info' category='Nail Enhancement' %}">
+            <h3 class="text-center">Nails</h3></a>
             {% for nail in nails %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ nail.service | title }}</li>
@@ -49,7 +50,8 @@
             
         </div>
         <div class="col-md-3">
-            <h3 class="text-center">Pedicure</h3>
+            <a class="nav-link" href="{% url 'ledger:service_info' category='Pedicure' %}">
+            <h3 class="text-center">Pedicure</h3></a>
             {% for feet in feets %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ feet.service | title}}</li>
@@ -61,7 +63,8 @@
             
         </div>
         <div class="col-md-3">
-            <h3 class="text-center">Manicure</h3>
+            <a class="nav-link" href="{% url 'ledger:service_info' category='Manicure' %}">
+            <h3 class="text-center">Manicure</h3></a>
             {% for tay in mani %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ tay.service | title }}</li>
@@ -72,7 +75,8 @@
             
         </div>
         <div class="col-md-3">
-            <h3 class="text-center">Wax</h3>
+            <a class="nav-link" href="{% url 'ledger:service_info' category='Wax' %}">
+            <h3 class="text-center">Wax</h3></a>
             {% for wax in waxs %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ wax.service | title }}</li>
