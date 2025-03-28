@@ -5,9 +5,10 @@
 {% endblock nutChinh %}
 
 
-{% block headding %}
+{% block heading %}
 <h1 class="title">{{ category | title }} Info</h1>
-{% endblock headding %}
+
+{% endblock heading %}
 
 
 {% block content %}
@@ -25,6 +26,7 @@
         </div>
     {% endfor %}
 </div>
-
+<br>
+<a class="btn btn-info w-25" href="{% url 'datHen:first_step' %}">I'm New</a>
 {% endblock content %}
     

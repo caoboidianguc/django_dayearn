@@ -20,7 +20,7 @@
       <button class="tech-button btn btn-ligh" style="border: 2px solid green" id="em_{{employee.id}}">
         <div class="card-body">
              <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
-          <div class="card-subtitle align-content-center">{{ employee.time_come_in }}</div>
+          <div class="card-subtitle align-content-center">{{ employee.time_come_in |time:"H:i A"}}</div>
           <span class="align-bottomr fs-3 text-primary"> {{ employee.get_services_today | default:0 }}</span> Service
       </div>
       </button>
