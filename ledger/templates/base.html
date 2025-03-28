@@ -29,7 +29,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'ledger:index' %}">Home</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="text-primary fs-2"><i class="bi bi-calendar-day"></i></span>
+                <span class="text-primary fs-1"><i class="bi bi-calendar-day"></i></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -51,7 +51,7 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'datHen:first_step' %}">New Client!</a>
+                            <a class="nav-link" href="{% url 'datHen:first_step' %}">I'm New</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'datHen:find_client' %}">Been Here</a>
@@ -90,8 +90,8 @@
         </span>
     </nav>
     <div class="container-md">
-        {% block headding %}
-        {% endblock headding %}
+        {% block heading %}
+        {% endblock heading %}
     </div>
 
     <div class="container-fluid">

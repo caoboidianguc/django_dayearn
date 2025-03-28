@@ -1,5 +1,5 @@
 from django import forms
-from .models import Technician, Khach, Service, Chat, TechWorkDay
+from .models import Technician, Khach, Service, Chat, TechWorkDay, Supply
 from django.contrib.auth.forms import UserCreationForm
 from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
@@ -118,4 +118,10 @@ class KhachWalkin(forms.ModelForm):
                                               required=True,
                                               error_messages={'required':'Please choose at least one service.'},)
 
-    
+
+class SupplyForm(forms.ModelForm):
+    class Meta:
+        model = Supply
+        fields = ['title','quantity','info']
+    info = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Detail for item'}),
+                           required=False)

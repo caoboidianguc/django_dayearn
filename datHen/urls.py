@@ -10,9 +10,6 @@ urlpatterns = [
     path('first_step/', views.FirstStep.as_view(), name='first_step' ),
     path('third_step/', views.ThirdStep.as_view(), name='third_step' ),
     path('tech/<int:pk>/', views.Second.as_view(), name='technician_detail' ),
-]
-
-urlpatterns += [
     path('tech_exist/<int:pk>/', views.ExistSecond.as_view(), name='technician_detail_exist' ),
     path('third_step_exist/', views.ExistThirdStep.as_view(), name='third_step_exist' ),
     path('services_choice/', views.ChoiceServicesView.as_view(), name='service_choice' ),
@@ -21,3 +18,4 @@ urlpatterns += [
     path("client_detail/<int:pk>/", views.ClientDetailView.as_view(), name='client_detail' ),
     
 ]
+

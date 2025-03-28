@@ -88,17 +88,23 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'dayearn.wsgi.application'
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DBNAME', 'dayearn_db'),
-        'USER': os.environ.get('DBUSER', 'postgres'),
-        'PASSWORD': os.environ.get('DBPASS', '7818'),
-        'HOST': os.environ.get('DBHOST', 'localhost'),
-        'PORT': os.environ.get('DBPORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('DBNAME', 'dayearn_db'),
+#         'USER': os.environ.get('DBUSER', 'postgres'),
+#         'PASSWORD': os.environ.get('DBPASS', '7818'),
+#         'HOST': os.environ.get('DBHOST', 'localhost'),
+#         'PORT': os.environ.get('DBPORT', '5432'),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

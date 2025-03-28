@@ -29,3 +29,8 @@ urlpatterns = [
     path('ledger/service/info/<str:category>/', views.services_info, name='service_info'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    path('ledger/supply/create/', views.SupplyCreateView.as_view(), name='supply_create'),
+    path('ledger/supply/all/', views.AllSupply.as_view(), name='all_supply'),
+]
