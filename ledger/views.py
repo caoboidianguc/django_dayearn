@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat, Like
+from .models import Technician, Khach, Service, Chat, Like, Supply
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
 from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, 
-                    VacationForm, ChatForm, KhachWalkin)
+                    VacationForm, ChatForm, KhachWalkin, SupplyForm)
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
@@ -25,6 +25,10 @@ class AllEmployee(LoginRequiredMixin,ListView):
         sort_tech = sorted(list(employee), 
                            key= lambda tech: tech.get_services_today(),reverse=False
                            )
+        for tech in sort_tech:
+            if tech.time_come_in == None or tech.time_come_in.date() < timezone.now().date():
+                tech.isWork = False
+                tech.save()
         cont = {'employees': sort_tech }
         return render(request, self.template, cont)
               
@@ -35,15 +39,16 @@ class UpdateTech(LoginRequiredMixin, View):
             tech = Technician.objects.get(id=tech_id)
             tech.isWork = not tech.isWork  #toggle
             if tech.isWork:
-                tech.time_come_in = timezone.now().strftime('%H:%M')
+                tech.time_come_in = timezone.now()
                 tech.date_go_work = timezone.now().date()
             else:
                 tech.time_come_in = None
             tech.save()
+            time_come_in_str = tech.time_come_in.strftime('%H:%M') if tech.time_come_in else ''
             return JsonResponse({
                 'success' : True,
                 'isWork': tech.isWork,
-                'time_come_in': tech.time_come_in if tech.isWork else '',
+                'time_come_in': time_come_in_str,
                 'color': 'green' if tech.isWork else 'gray'
             })
         except Technician.DoesNotExist:
@@ -428,3 +433,16 @@ def services_info(request, category):
     return render(request, template, {'allServices': allServices, 'category': category})
     
 
+class SupplyCreateView(LoginRequiredMixin, CreateView):
+    template_name = "ledger/supply_create.html"
+    model = Supply
+    form_class = SupplyForm
+    success_url = reverse_lazy('ledger:supply_create')
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        messages.success(self.request, f"{form.instance.title} has been added to the supply list.")
+        return super().form_valid(form)
+    
+class AllSupply(LoginRequiredMixin, ListView):
+    model = Supply
+    template_name = "ledger/all_supplies.html"

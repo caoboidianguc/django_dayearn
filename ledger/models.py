@@ -23,7 +23,7 @@ class Technician(models.Model):
     isWork = models.BooleanField(default=False)
     picture = models.ImageField(upload_to='tech_pictures/', null=True, editable=True)
     services = models.ManyToManyField("Service", blank=True, related_name="tech")
-    time_come_in = models.TimeField(null=True)
+    time_come_in = models.DateTimeField(null=True)
     work_days = models.CharField(max_length=7, default="1111110", help_text="MTWTFSS: 1 for work, 0 for off")
     vacation_start = models.DateField(null=True, blank=True, help_text="Start vacation")
     vacation_end = models.DateField(null=True, blank=True, help_text="End vacation, back work!")
@@ -151,7 +151,7 @@ class Khach(models.Model):
     history = HistoricalRecords()
     
     class Meta:
-        unique_together = ('full_name','phone',)
+        unique_together = ('full_name','phone',)#put email here for production, increase secure for chat
         ordering = ['full_name','-day_comes']
 
     def __str__(self) -> str:
@@ -224,9 +224,9 @@ class Service(models.Model):
     class Category(models.TextChoices):
         nail = "Nail Enhancement"
         mani = "Manicure"
-        fix = "Fix"
-        wax = "Wax"
         pedi = "Pedicure"
+        wax = "Wax"
+        fix = "Fix"
     service = models.CharField(max_length=30)
     price = models.FloatField()
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
@@ -281,9 +281,8 @@ class Chat(models.Model):
     
     def get_detail_url(self):
         return reverse('ledger:user_chat_detail', kwargs={'pk': self.pk})
-    
-        
-            
+
+ 
 class Like(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="likes")
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats", null=True)
@@ -297,3 +296,13 @@ class Like(models.Model):
             return f"{self.client} liked chat {self.chat.id}"
         return f"{self.owner} liked chat {self.chat.id}"
     
+class Supply(models.Model):
+    title = models.CharField(max_length=42, validators=[MinLengthValidator(2)])
+    quantity = models.PositiveIntegerField(default=1)
+    info = models.CharField(max_length=250, null=True)
+    price = models.FloatField(max_length=10, null=True)
+    is_wanted = models.BooleanField(default=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="supplies")
+    
+    def __str__(self):
+        return self.title

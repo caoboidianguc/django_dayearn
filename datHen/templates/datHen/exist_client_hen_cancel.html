@@ -5,25 +5,27 @@
 
 {% endblock nutChinh %}
 
-{% block headding %}
+{% block heading %}
     <h1 class='title'>Reschedule your appoinment or <span class="text-danger" >Cancel</span>:</h1>
     <div>
         {% if khach %}
-        {% for mot in khach.all %}
-        <p><label class="form-label text-success">Hi {{ mot.full_name }} would you like to</label></p>
-        <div class="d-inline-flex gap-2">
-            
-            <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
-        {% if mot.do_cancel %}
-                <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
-            {% endif %}
-            <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
+            {% for mot in khach.all %}
+                <p><label class="form-label text-success">Hi {{ mot.full_name }} would you like to</label></p>
+                <div class="d-inline-flex gap-2">
+                
+                <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
+                    {% if mot.do_cancel %}
+                        <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
+                    {% endif %}
+                <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
         
     </div>
-         {% endfor %}
+            {% endfor %}
+            {% else %}
+            <div class="fs-5 text-info">Please fill out the form:</div>
         {% endif %}
     </div>
-{% endblock headding %}
+{% endblock heading %}
 
 
 {% block content %}
@@ -36,7 +38,7 @@
                     {{ formDatHen | crispy }}
                     </div>
                 </table>
-                <input type='submit' value=' Find' class="btn btn-info w-25" role="button">
+                <input type='submit' value='Find' class="btn btn-info w-25" role="button">
                 <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
             </div>
         </form>
