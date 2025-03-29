@@ -35,10 +35,13 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{% url 'ledger:all_employee' %}">All Employee</a>
+                            <a class="nav-link" href="{% url 'ledger:all_supplies' %}">Supply</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'ledger:services' %}">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{% url 'ledger:all_employee' %}">All Employee</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'ledger:user_chat_room' %}">Chat Room</a>
