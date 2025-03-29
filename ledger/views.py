@@ -172,22 +172,22 @@ class ChatLikeView(View):
         
 @require_POST
 def chatDetailLike(request, chat_id):
-        client_id = request.session.get('client_id')
-        if not client_id:
-            return JsonResponse({'error': "client not found"}, status=400)
-        client = get_object_or_404(Khach, id=client_id)
-        chat = get_object_or_404(Chat, id= chat_id)
-        like, create = Like.objects.get_or_create(chat=chat, client=client)
-        if not create:
-            like.delete()
-            liked = False
-        else:
-            liked = True
-        total_likes = chat.total_likes
-        return JsonResponse({
-            'liked' : liked,
-            'total_likes': total_likes
-        })
+    client_id = request.session.get('client_id')
+    if not client_id:
+        return JsonResponse({'error': "client not found"}, status=400)
+    client = get_object_or_404(Khach, id=client_id)
+    chat = get_object_or_404(Chat, id= chat_id)
+    like, create = Like.objects.get_or_create(chat=chat, client=client)
+    if not create:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+    total_likes = chat.total_likes
+    return JsonResponse({
+        'liked' : liked,
+        'total_likes': total_likes
+    })
         
 class ChatUserLikeView(LoginRequiredMixin, View):
     def post(sefl, request, chat_id):
@@ -446,3 +446,15 @@ class SupplyCreateView(LoginRequiredMixin, CreateView):
 class AllSupply(LoginRequiredMixin, ListView):
     model = Supply
     template_name = "ledger/all_supplies.html"
+    ordering = ['-is_wanted']
+
+
+@require_POST
+def supplyWanted(request, supply_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'you need to login'}, status=401)
+    supply = get_object_or_404(Supply, id=supply_id)
+    supply.is_wanted = not supply.is_wanted
+    supply.save()
+    return JsonResponse({'success': True, 'is_wanted': supply.is_wanted}, status=200)
+    

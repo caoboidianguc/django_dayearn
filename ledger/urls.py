@@ -32,5 +32,7 @@ urlpatterns = [
 
 urlpatterns += [
     path('ledger/supply/create/', views.SupplyCreateView.as_view(), name='supply_create'),
-    path('ledger/supply/all/', views.AllSupply.as_view(), name='all_supply'),
+    path('ledger/supply/all/', views.AllSupply.as_view(), name='all_supplies'),
+    path('ledger/supply/<int:supply_id>/wanted/', views.supplyWanted, name="supply_is_wanted"),
+    
 ]

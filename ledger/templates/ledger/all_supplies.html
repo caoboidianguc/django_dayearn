@@ -7,18 +7,85 @@
     <h1>All Supplies</h1>
 {% endblock heading %}
 
+{% block nutPhu %}
+<a href="{% url 'ledger:supply_create' %}" class="btn btn-primary" role="button">Add Supply</a>
+{% endblock nutPhu %}
+    
 
 {% block content %}
     {% if supply_list %}
     <ul>
         {% for item in supply_list %}
             <li>
-                <div class="fs-3">{{ item.title |title }}</div>
-                <span class="text-secondary">{{ item.info }}</span>
+                <button class="item {% if item.is_wanted %}fs-2 text-success{% endif %}" 
+                        data-url="{% url 'ledger:supply_is_wanted' item.id %}"
+                        data-item-id="{{ item.id }}">
+                    {{ item.title |title }} <span class='add-cart'>{% if item.is_wanted %}<i class="bi bi-bag-check"></i>{% endif %}</span>
+                    <span class="fs-6 text-secondary">{{ item.info }}</span>
+                </button>
+                
             </li>
         {% endfor %}
     </ul>
     {% else %}
     <p>There are no supplies for now.</p>
     {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0 ; i < cookies.length; i++ ) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length +1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length +1 ));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        
+        $(document).ready(function(){
+            $('.item').on('click', function() {
+                const button = $(this);
+                const itemId = button.attr('data-item-id');
+                const supplyUrl = button.data('url');
+                $.ajax({
+                    url: supplyUrl,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    success: function(data) {
+                        if (data.success) {
+                            if (data.is_wanted) {
+                                button.addClass('fs-2 text-success');
+                                button.find('.add-cart').html('<i class="bi bi-bag-check"></i>');
+                            } else {
+                                button.removeClass('fs-2 text-success');
+                                button.find('.add-cart').html('');
+                            }
+                        }
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            alert(xhr.responseJSON.error);
+                        } else {
+                            alert("Can't turn priority");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <style>
+        .item {
+            border: none;
+            background: none;
+        }
+    </style>
 {% endblock content %}
+
+

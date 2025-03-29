@@ -65,7 +65,7 @@
                     console.log('Error', jqXHR.responseText, textStatus, errorThrown);
                     alert("Can't delete this post" + textStatus);
                 }
-            })
+            });
         });
     });
 
