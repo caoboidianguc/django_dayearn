@@ -1,1 +1,1 @@
-# django_dayearn
+pip install -r requirements.txt

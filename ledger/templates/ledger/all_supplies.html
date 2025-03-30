@@ -3,27 +3,33 @@
 {% load crispy_forms_filters %}
 
 
-{% block heading %}
-    <h1>All Supplies</h1>
-{% endblock heading %}
-
 {% block nutPhu %}
 <a href="{% url 'ledger:supply_create' %}" class="btn btn-primary" role="button">Add Supply</a>
 {% endblock nutPhu %}
-    
+  
+{% block heading %}
+    <h1> All Supplies
+        <button class="edit-supply">
+            <i class="bi bi-pencil fs-4"></i>
+        </button>
+    </h1>
+{% endblock heading %}
+  
 
 {% block content %}
     {% if supply_list %}
     <ul>
         {% for item in supply_list %}
             <li>
-                <button class="item {% if item.is_wanted %}fs-2 text-success{% endif %}" 
-                        data-url="{% url 'ledger:supply_is_wanted' item.id %}"
-                        data-item-id="{{ item.id }}">
-                    {{ item.title |title }} <span class='add-cart'>{% if item.is_wanted %}<i class="bi bi-bag-check"></i>{% endif %}</span>
+                <button class="nut-item {% if item.is_wanted %}fs-2 text-success{% endif %}" 
+                        data-url="{% url 'ledger:supply_is_wanted' item.id %}">
+                    {{ item.title |title }} {{ item.quantity }}
+                    <span class='add-cart'>{% if item.is_wanted %}<i class="bi bi-bag-check"></i>{% endif %}</span>
                     <span class="fs-6 text-secondary">{{ item.info }}</span>
                 </button>
-                
+                <button class="delete-item fs-3" data-url="{% url 'ledger:supply_delete' item.id %}">
+                    <i class="bi bi-trash3"></i>
+                </button>
             </li>
         {% endfor %}
     </ul>
@@ -50,7 +56,7 @@
         const csrftoken = getCookie('csrftoken');
         
         $(document).ready(function(){
-            $('.item').on('click', function() {
+            $('.nut-item').on('click', function() {
                 const button = $(this);
                 const itemId = button.attr('data-item-id');
                 const supplyUrl = button.data('url');
@@ -78,10 +84,59 @@
                     }
                 });
             });
+
+            let showDelete = false;
+            
+            if (!showDelete){
+                $('.delete-item').hide()
+            }
+            $('.edit-supply').on('click', function() {
+                showDelete = !showDelete;
+                
+                if (showDelete) {
+                    $('.delete-item').show();
+                    $(this).find('i').addClass('text-danger');
+                } else {
+                    $('.delete-item').hide();
+                    $(this).find('i').removeClass('text-danger');
+                }
+            });
+
+            $('.delete-item').on('click', function() {
+                const nutXoa = $(this);
+                const urlSupply = nutXoa.data('url');
+                $.ajax({
+                    url: urlSupply,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    success: function(data) {
+                        if (data.success) {
+                            nutXoa.closest('li').remove();
+                            alert('Item removed from data');
+                        }
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        alert("Can't remove item yet.")
+                    }
+                });
+            });
+
         });
+        
     </script>
     <style>
-        .item {
+        .nut-item {
+            border: none;
+            background: none;
+        }
+        .bi.bi-trash3 {
+            color: red;
+        }
+        .delete-item {
+            border: none;
+            background: none;
+        }
+        .edit-supply {
             border: none;
             background: none;
         }
