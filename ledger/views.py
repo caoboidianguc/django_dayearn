@@ -458,3 +458,9 @@ def supplyWanted(request, supply_id):
     supply.save()
     return JsonResponse({'success': True, 'is_wanted': supply.is_wanted}, status=200)
     
+def supplyDelete(request, pk):
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'You need to login first'}, status=401)
+    supply = get_object_or_404(Supply, id=pk)
+    supply.delete()
+    return JsonResponse({'success': True}, status=200)

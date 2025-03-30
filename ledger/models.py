@@ -302,7 +302,9 @@ class Supply(models.Model):
     info = models.CharField(max_length=250, null=True)
     price = models.FloatField(max_length=10, null=True)
     is_wanted = models.BooleanField(default=True)
+    date = models.DateField(auto_now_add=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="supplies")
-    
+    class Meta:
+        unique_together = ('title',)
     def __str__(self):
         return self.title
