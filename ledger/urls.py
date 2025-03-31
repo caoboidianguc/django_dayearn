@@ -7,6 +7,8 @@ from django.conf.urls.static import static
 app_name = 'ledger'
 urlpatterns = [
     path('', views.CustomerVisit.as_view(), name="index"),
+    path('ledger/privacy_policy/', views.PrivacyPolicy.as_view(), name="privacy"),
+    path('ledger/contact/', views.Contact.as_view(), name="contact"),
     path('ledger/', views.AllEmployee.as_view(), name="all_employee"),
     path('ledger/add_employee/', views.EmpCreate.as_view(), name="add_employee"),
     path('ledger/register/', views.TaoTaiKhoan.as_view(), name="register"),

@@ -125,3 +125,13 @@ class SupplyForm(forms.ModelForm):
         fields = ['title','quantity','info']
     info = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Detail for item'}),
                            required=False)
+    
+class ContactForm(forms.Form):
+    name = forms.CharField(min_length=3,max_length=25, strip=True)
+    email = forms.EmailField()
+    message = forms.CharField(min_length=10, max_length=350,widget=forms.Textarea(
+                        attrs={'placeholder': 'Message',
+                               'rows': 4,
+                               'cols': 50}),)
+    
+    
