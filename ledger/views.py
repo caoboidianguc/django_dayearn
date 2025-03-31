@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
 from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, 
-                    VacationForm, ChatForm, KhachWalkin, SupplyForm)
+                    VacationForm, ChatForm, KhachWalkin, SupplyForm, ContactForm)
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
 from datetime import timedelta, datetime
@@ -16,8 +16,36 @@ import requests
 import os
 from django.db.models import Prefetch
 from django.views.decorators.http import require_POST
+from datHen.views import tenSpa
+from django.core.mail import EmailMessage
 
-
+class PrivacyPolicy(View):
+    template = "privacy.html"
+    def get(self, request):
+        contactEmail = "hoadambutxinh@gmail.com"
+        context = {'spaName': tenSpa, "email": contactEmail}
+        return render(request, self.template, context)
+    
+class Contact(View):
+    receiveEmail = "jubivu@icloud.com"
+    fromEmail = "hoadambutxinh@gmail.com"
+    template = "contact.html"
+    def get(self, request):
+        form = ContactForm()
+        context = {'form': form}
+        return render(request, self.template, context)
+    def post(self, request):
+        form = ContactForm(request.POST)
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, self.template, context)
+        name = form.cleaned_data['name']
+        email = form.cleaned_data['email']
+        message = form.cleaned_data['message']
+        EmailMessage('Contact Form Submission', f'Name: {name}\nEmail: {email}\nMessage: {message}', self.fromEmail,to=[self.receiveEmail],reply_to=[email]).send()
+        messages.success(request, 'Your message has been sent successfully!')
+        return redirect('ledger:contact')
+        
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
     def get(self,request):

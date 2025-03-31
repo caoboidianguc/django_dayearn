@@ -16,9 +16,10 @@ chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
 cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/" #adjust link for production
 
-def saveKhachVisit(client, date, services):
+
+def saveKhachVisit(client, date, services, tech):
     try:
-        khachvisit = KhachVisit(client=client, date=date)
+        khachvisit = KhachVisit(client=client, date=date, technician=tech)
         khachvisit.save()
         khachvisit.services.set(services)
         khachvisit.total_spent = sum(dv.price for dv in services)
@@ -26,9 +27,9 @@ def saveKhachVisit(client, date, services):
     except ValueError as e:
         print(f"Error saving KhachVisit: {e}")
         return
-def cancelKhachVisit(client, date):
+def cancelKhachVisit(client, date, tech):
     try:
-        visit = KhachVisit.objects.filter(client=client, date=date)
+        visit = KhachVisit.objects.filter(client=client, date=date, technician=tech)
         visit.delete()
     except ValueError as e:
         print(f"Error retrived visit: {e}")
@@ -181,7 +182,7 @@ class ExistThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
-        saveKhachVisit(khac, ngay, services)
+        saveKhachVisit(khac, ngay, services, tech)
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
@@ -295,7 +296,7 @@ class ThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
-        saveKhachVisit(khac, ngay, services)
+        saveKhachVisit(khac, ngay, services, tech)
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
@@ -326,7 +327,7 @@ class CancelViewConfirm(View):
         client.services.clear()
         client.status = Khach.Status.cancel
         client.save()
-        cancelKhachVisit(client=client, date=client.day_comes)
+        cancelKhachVisit(client=client, date=client.day_comes, technician=client.technician)
         tinNhan = f"{tenSpa}\nYour appointment was canceled.\nOriginal details:\nDate: {client.day_comes}\nTime: {client.time_at}\nTechnician: {client.technician}"
         EmailMessage(chuDe, tinNhan, to=[client.email]).send()
         messages.success(request, "Your services have been canceled successfully.")
@@ -353,10 +354,11 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         form.save_m2m()
         ngay = timezone.now().today().date()
         khach = self.get_object()
-        saveKhachVisit(khach, ngay, services)
+        tech = form.cleaned_data['technician']
+        saveKhachVisit(khach, ngay, services, tech)
         return super().form_valid(form)
     
     def get_success_url(self):
         return self.success_url
 
-    
+  
