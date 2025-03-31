@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
-
+{% load humanize %}
 
 {% block nutPhu %}
 <a href="{% url 'ledger:supply_create' %}" class="btn btn-primary" role="button">Add Supply</a>
@@ -23,8 +23,12 @@
             <li>
                 <button class="nut-item {% if item.is_wanted %}fs-2 text-success{% endif %}" 
                         data-url="{% url 'ledger:supply_is_wanted' item.id %}">
-                    {{ item.title |title }} {{ item.quantity }}
-                    <span class='add-cart'>{% if item.is_wanted %}<i class="bi bi-bag-check"></i>{% endif %}</span>
+                    {{ item.title |title }} 
+                        {% if item.is_wanted %}
+                            <span class='add-cart'>{{ item.quantity }} <i class="bi bi-bag-check"></i></span>
+                        {% else %}
+                        <span class="item-time">- {{ item.date | naturaltime }} </span>
+                        {% endif %}
                     <span class="fs-6 text-secondary">{{ item.info }}</span>
                 </button>
                 <button class="delete-item fs-3" data-url="{% url 'ledger:supply_delete' item.id %}">
@@ -69,6 +73,7 @@
                             if (data.is_wanted) {
                                 button.addClass('fs-2 text-success');
                                 button.find('.add-cart').html('<i class="bi bi-bag-check"></i>');
+                                button.find('.item-time').remove();
                             } else {
                                 button.removeClass('fs-2 text-success');
                                 button.find('.add-cart').html('');

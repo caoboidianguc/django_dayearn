@@ -97,6 +97,10 @@
 {% block footer %}
 
     >> Discover your beauty with us.
+    <a class="nav-link" href="{% url 'ledger:privacy' %}">
+        Privacy Policy</a>
+        <a class="nav-link" href="{% url 'ledger:contact' %}">
+            Contact us</a>
     <br>
     {% if latest_image_urls %}
     <div class="image-container" style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
