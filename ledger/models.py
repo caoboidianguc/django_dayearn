@@ -54,14 +54,16 @@ class Technician(models.Model):
         return allClients
     
     def get_today_clients(self):
-        hnay = self.get_clients().filter(day_comes=datetime.date.today()).exclude(status=Khach.Status.cancel)
+        hnay = self.get_khachVisit().filter(day_comes=datetime.date.today()) #.exclude(status=Khach.Status.cancel)
         return hnay.order_by('time_at')
-
+    
+    def get_khachVisit(self):
+        return self.khachvisits.all()
                 
     def get_available_with(self, ngay, thoigian):
         start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
         end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
-        clients = self.get_clients().filter(day_comes=ngay)
+        clients = self.get_khachVisit().filter(day_comes=ngay)
         xongs = [client for client in clients]
         timeCal = start
         
@@ -165,29 +167,31 @@ class Khach(models.Model):
         else:
             return so
     def do_cancel(self):
-        if self.day_comes >= datetime.datetime.today().date(): return True
+        visit = self.khachvisits.all()
+        if visit: return True
         else: return False
-    def get_services(self):
-        services = []
-        for dv in self.services.all():
-            services.append(dv)
-        return services
+        
+    # def get_services(self):
+    #     services = []
+    #     for dv in self.services.all():
+    #         services.append(dv)
+    #     return services
     
-    def get_time_done(sefl):
-        tong = 0
-        for service in sefl.services.all():
-            tong += service.time_perform.total_seconds()
-        if tong > 0:
-            tong = tong/60
-            return tong
-        return tong
+    # def get_time_done(sefl):
+    #     tong = 0
+    #     for service in sefl.services.all():
+    #         tong += service.time_perform.total_seconds()
+    #     if tong > 0:
+    #         tong = tong/60
+    #         return tong
+    #     return tong
     
-    def get_done_at(self):
-        gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
-        return datetime.time(hour=gio.hour, minute=gio.minute)
-    def start_at(self):
-        them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
-        return datetime.time(hour=them.hour, minute=them.minute)
+    # def get_done_at(self):
+    #     gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
+    #     return datetime.time(hour=gio.hour, minute=gio.minute)
+    # def start_at(self):
+    #     them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
+    #     return datetime.time(hour=them.hour, minute=them.minute)
     
     def get_chat_url(self):
         return reverse("ledger:chat_room", kwargs={'pk':self.pk})
@@ -213,13 +217,47 @@ class Khach(models.Model):
         return self.liked_chats.all()
     
 class KhachVisit(models.Model):
-    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="donekhachvisits", null=True)
+    class Status(models.TextChoices):
+        online = "Confirmed"
+        anyone = "Anyone"
+        cancel = "Cancel"
+    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="khachvisits", null=True)
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="khachvisits")
-    date = models.DateField()
-    services = models.ManyToManyField('Service')
+    services = models.ManyToManyField("Service", blank=True)
+    status = models.CharField(choices=Status.choices, max_length=20, default=Status.online, help_text="Choose anyone as an alternate!")
+    day_comes = models.DateField()
+    time_at = models.TimeField()
     total_spent = models.DecimalField(max_digits=7, decimal_places=2, editable=False, null=True)
     def __str__(self) -> str:
-        return self.khach.full_name
+        return self.client.full_name
+    
+    def get_visit_detail_url(self):
+        return reverse("datHen:visit_detail", kwargs={'pk':self.pk})
+    
+    def get_cancel_url(self):
+        return reverse("datHen:cancel_khachvisit", kwargs={'pk':self.pk})
+    
+    def get_time_done(sefl):
+        tong = 0
+        for service in sefl.services.all():
+            tong += service.time_perform.total_seconds()
+        if tong > 0:
+            tong = tong/60
+            return tong
+        return tong
+    
+    def get_services(self):
+        services = []
+        for dv in self.services.all():
+            services.append(dv)
+        return services
+    
+    def get_done_at(self):
+        gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
+        return datetime.time(hour=gio.hour, minute=gio.minute)
+    def start_at(self):
+        them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
+        return datetime.time(hour=them.hour, minute=them.minute)
    
 class Service(models.Model):
     class Category(models.TextChoices):

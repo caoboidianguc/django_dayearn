@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat, Like, Supply
+from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from django.views import View
@@ -16,7 +16,7 @@ import requests
 import os
 from django.db.models import Prefetch
 from django.views.decorators.http import require_POST
-from datHen.views import tenSpa
+from datHen.views import tenSpa, saveKhachVisit
 from django.core.mail import EmailMessage
 
 class PrivacyPolicy(View):
@@ -42,9 +42,9 @@ class Contact(View):
         name = form.cleaned_data['name']
         email = form.cleaned_data['email']
         message = form.cleaned_data['message']
-        EmailMessage('Contact Form Submission', f'Name: {name}\nEmail: {email}\nMessage: {message}', self.fromEmail,to=[self.receiveEmail],reply_to=[email]).send()
+        EmailMessage('Contact Form Submission', f'Name: {name}\nEmail: {email}\nMessage: {message}', email, to=[self.receiveEmail],reply_to=[email]).send()
         messages.success(request, 'Your message has been sent successfully!')
-        return redirect('ledger:contact')
+        return redirect('ledger:index')
         
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
@@ -433,25 +433,29 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
         phone = form.cleaned_data['phone']
         dv = form.cleaned_data['services']
         existing_client = form.cleaned_data.get('existing_client')
+        ngay = timezone.now().today().date()
+        thoigian = timezone.now().time()
         if existing_client:
             khach = existing_client
-            khach.day_comes = timezone.now().today().date()
-            khach.time_at = timezone.now().time()
+            khach.day_comes = ngay
+            khach.time_at = thoigian
             khach.status = Khach.Status.anyone
             khach.technician = Technician.objects.get(owner=self.request.user, name="anyOne")
             khach.save()
+            
         else:
             khach, _ = Khach.objects.get_or_create(
                 full_name=full_name,
                 phone=phone,
                 defaults={
-                    'day_comes': timezone.now().today().date(),
-                    'time_at': timezone.now().time(),
+                    'day_comes': ngay,
+                    'time_at': thoigian,
                     'technician': Technician.objects.get(owner=self.request.user, name="anyOne"),
                 }
             )
         khach.services.set(dv)    
         form.instance = khach
+        saveKhachVisit(khach, ngay,thoigian,dv, khach.technician, KhachVisit.Status.anyone)
         messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
         return super().form_valid(form)
 

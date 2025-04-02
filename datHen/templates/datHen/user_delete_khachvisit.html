@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block nutChinh %}
+{% endblock nutChinh %}
+
+{% block nutPhu %}
+{% endblock nutPhu %}
+
+{% block heading %}
+    <h1 class='title'>You're about to cancel your Appoinment?</h1>
+    <div>
+        Please review the information below before confirming the cancellation.
+    </div>
+{% endblock heading %}
+
+
+{% block content %}
+<div>
+    {% if visit %}
+    <h5>Name: {{ visit }} </h5><span>{{ visit.client.phone_formatted }}</span>
+    <div>
+        Last Appoinment:
+        <span class="fs-4">{{ visit.day_comes }}</span> at <span class="fs-5 text-danger">{{ visit.time_at }}</span>
+    </div>
+    <div>
+        {% for service in visit.services.all %}
+        <li> {{ service.service }} </a></li>
+        {% endfor %}
+    </div>
+    
+    {% endif %}
+</div>
+<br>
+<form action='' method='post'>
+    {% csrf_token %}
+    <div class="table-responsive">
+        
+        <input type='submit' value='Confirm' class="btn btn-primary w-25" role="button">
+        <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
+    </div>
+</form>
+    
+{% endblock content %}
+
+
+{% block footer %}
+    <strong>Contact Us somewhere</strong>
+{% endblock footer %}
+ 
