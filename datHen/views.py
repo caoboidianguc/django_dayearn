@@ -2,10 +2,10 @@ from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Khach, Technician, Service, KhachVisit
 from django.views.generic import View
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .forms import (UserExistClientForm, ExistClientForm, DateForm, ThirdForm, 
-                    ThirdFormExist, ServicesChoiceForm, KhachDetailForm)
+                    ThirdFormExist, ServicesChoiceForm, KhachDetailForm, VisitForm)
 from datetime import timedelta, date, datetime
 from django.contrib import messages
 from django.core.mail import EmailMessage
@@ -17,9 +17,9 @@ tenSpa = "Elegant Nails & Spa"
 cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/" #adjust link for production
 
 
-def saveKhachVisit(client, date, services, tech):
+def saveKhachVisit(client, date, time, services, tech, status):
     try:
-        khachvisit = KhachVisit(client=client, date=date, technician=tech)
+        khachvisit = KhachVisit(client=client, day_comes=date, time_at=time,technician=tech, status=status)
         khachvisit.save()
         khachvisit.services.set(services)
         khachvisit.total_spent = sum(dv.price for dv in services)
@@ -29,7 +29,7 @@ def saveKhachVisit(client, date, services, tech):
         return
 def cancelKhachVisit(client, date, tech):
     try:
-        visit = KhachVisit.objects.filter(client=client, date=date, technician=tech)
+        visit = KhachVisit.objects.filter(client=client, day_comes=date, technician=tech)
         visit.delete()
     except ValueError as e:
         print(f"Error retrived visit: {e}")
@@ -56,7 +56,7 @@ class DatHenView(LoginRequiredMixin,View):
             'next_day' : next_day,
         }
         for tech in all_tech:
-            tech.clients = tech.get_clients().filter(day_comes=selected_date).order_by('time_at')
+            tech.clients = tech.get_khachVisit().filter(day_comes=selected_date).order_by('time_at')
         return render(request, self.template_name, context)
 
 
@@ -115,7 +115,7 @@ class ChoiceServicesExistView(View):
     
 class ExistThirdStep(View):
     template = 'datHen/exist_third_step.html'
-    hnay = date.today().strftime("%Y-%m-%d")
+    
     def get_success_url(self):
         if self.request.user.is_authenticated:
             return reverse_lazy('datHen:listHen')
@@ -123,6 +123,7 @@ class ExistThirdStep(View):
     def get(self,request):
         client_id = request.session['client_id']
         pk = request.session['tech_id']
+        hnay = date.today().strftime("%Y-%m-%d")
         tech = get_object_or_404(Technician, id=pk)
         client = get_object_or_404(Khach, id=client_id)
         ngay = request.session['date']
@@ -133,7 +134,7 @@ class ExistThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngay == self.hnay:
+        if ngay == hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
         elif ngayDate.weekday() == 6 or tech.is_on_vacation(check_date=ngayDate):
@@ -174,7 +175,6 @@ class ExistThirdStep(View):
                 'available': available,
                 'ngay': ngayDate}
             return render(request, self.template, cont)
-        
         khac = form.save(commit=False)
         khac.day_comes = ngay
         khac.technician = tech
@@ -182,7 +182,7 @@ class ExistThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
-        saveKhachVisit(khac, ngay, services, tech)
+        saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
@@ -194,9 +194,10 @@ class ExistThirdStep(View):
 
 class FirstStep(View):
     template = 'datHen/first_step.html'
-    tech = Technician.objects.all()
+    #need to filter user
     def get(self,request):
-        cont = {'tech': self.tech}
+        tech = Technician.objects.all()
+        cont = {'tech': tech}
         return render(request, self.template, cont)
 
 
@@ -227,13 +228,14 @@ class ChoiceServicesView(View):
 
 class ThirdStep(View):
     template = 'datHen/third_step.html'
-    hnay = date.today().strftime("%Y-%m-%d")
+    
     def get_success_url(self):
         if self.request.user.is_authenticated:
             return reverse_lazy('datHen:listHen')
         return reverse_lazy('ledger:index')
     def get(self,request):
         pk = request.session['id']
+        hnay = date.today().strftime("%Y-%m-%d")
         tech = get_object_or_404(Technician, id=pk)
         ngay = request.session['date']
         gioHienTai = datetime.now() + timedelta(minutes=30)
@@ -244,7 +246,7 @@ class ThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngay == self.hnay:
+        if ngay == hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
         elif ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
@@ -296,7 +298,7 @@ class ThirdStep(View):
         khac.save()
         khac.services.set(services)
         form.save_m2m()
-        saveKhachVisit(khac, ngay, services, tech)
+        saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
@@ -327,11 +329,21 @@ class CancelViewConfirm(View):
         client.services.clear()
         client.status = Khach.Status.cancel
         client.save()
-        cancelKhachVisit(client=client, date=client.day_comes, technician=client.technician)
+        cancelKhachVisit(client=client, date=client.day_comes, tech=client.technician)
         tinNhan = f"{tenSpa}\nYour appointment was canceled.\nOriginal details:\nDate: {client.day_comes}\nTime: {client.time_at}\nTechnician: {client.technician}"
         EmailMessage(chuDe, tinNhan, to=[client.email]).send()
         messages.success(request, "Your services have been canceled successfully.")
         return redirect(self.get_success_url())
+    
+class CancelKhachVisit(DeleteView):
+    model = KhachVisit
+    template_name = "datHen/user_delete_khachvisit.html"
+    success_url = reverse_lazy('datHen:listHen')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['visit'] = self.object
+        return context
     
 class ClientDetailView(LoginRequiredMixin, UpdateView):
     template_name = 'datHen/client_detail.html'
@@ -355,10 +367,22 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         ngay = timezone.now().today().date()
         khach = self.get_object()
         tech = form.cleaned_data['technician']
-        saveKhachVisit(khach, ngay, services, tech)
+        time = timezone.now()
+        saveKhachVisit(khach, ngay, time, services, tech, KhachVisit.Status.online)
         return super().form_valid(form)
     
     def get_success_url(self):
         return self.success_url
 
-  
+class VisitDetailView(LoginRequiredMixin, UpdateView):
+    model = KhachVisit
+    template_name = 'datHen/visit_detail.html'
+    success_url = reverse_lazy('datHen:listHen')
+    form_class = VisitForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['visit'] = self.object
+        return context
+    
+    
