@@ -14,8 +14,9 @@ urlpatterns = [
     path('third_step_exist/', views.ExistThirdStep.as_view(), name='third_step_exist' ),
     path('services_choice/', views.ChoiceServicesView.as_view(), name='service_choice' ),
     path('services_choice_exist/', views.ChoiceServicesExistView.as_view(), name='service_choice_exist' ),
-    path("cancel_confirm/<int:pk>/", views.CancelViewConfirm.as_view(), name='cancel_confirm' ),
+    path("cancel_confirm/<int:pk>/", views.CancelKhachVisit.as_view(), name='cancel_khachvisit' ),
+    path("client/cancel_confirm/<int:pk>/", views.CancelViewConfirm.as_view(), name='cancel_confirm' ),
     path("client_detail/<int:pk>/", views.ClientDetailView.as_view(), name='client_detail' ),
-    
+    path("client/visit_detail/<int:pk>/", views.VisitDetailView.as_view(), name='visit_detail'),
 ]
 
