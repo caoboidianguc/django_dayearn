@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% load static %}
+
+{% block nutChinh %}
+{% endblock nutChinh %}
+
+{% block heading %}
+    <h1 class='title'>Schedule</h1>
+{% endblock heading %}
+
+{% block content %}
+
+    <form method="post">
+        <div class="row g3">
+        {% csrf_token %}
+        <div class="table-responsive">
+        
+            <div class="form-group col-md-4 mb-3">
+              {{ form.full_name | as_crispy_field }}
+            </div>
+
+            <div class="form-group col-md-4 mb-3">
+              {{ form.phone | as_crispy_field }}
+            </div>
+            <div class="col-md-4 mb-3">                
+                {{ form.time_at | as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-3">
+              {{ form.day_comes | as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-3">
+                {{ form.services | as_crispy_field }}
+              </div>
+            <div class="form-group col-md-4 mb-3">
+                {{ form.technician | as_crispy_field }}
+              </div>
+            <div class="form-group col-md-4 mb-3">
+              {{ form.status | as_crispy_field }}
+            </div>
+
+            <button class="btn btn-primary w-25" type='submit'> Book </button>
+            <button type='submit' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
+          
+      </div>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#id_phone').on('input', function(){
+            var phone = $(this).val();
+            $.ajax({
+                url: "{% url 'datHen:schedule_get_client' %}",
+                data: {
+                    'phone': phone
+                },
+                dataType: 'json',
+                success: function(data){
+                    if (data.length === 1) {
+                        $('#id_full_name').val(data[0].full_name);
+                    } else if (data.length > 1) {
+                        $('#id_full_name').val('multiple clients found');
+                    } else {
+                        $('#id_full_name').val('not found');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+    });
+</script>
+{% endblock content %}
+
+{% block footer %}
+{% endblock footer %}
+

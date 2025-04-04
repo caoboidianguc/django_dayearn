@@ -18,5 +18,8 @@ urlpatterns = [
     path("client/cancel_confirm/<int:pk>/", views.CancelViewConfirm.as_view(), name='cancel_confirm' ),
     path("client_detail/<int:pk>/", views.ClientDetailView.as_view(), name='client_detail' ),
     path("client/visit_detail/<int:pk>/", views.VisitDetailView.as_view(), name='visit_detail'),
+    # path("user/scheduler/", views.ScheduleViewUser.as_view(), name='schedule_user'),
+    # path("user/scheduler/get_client/", views.schedule_get_client, name='schedule_get_client'),
+    
 ]
 

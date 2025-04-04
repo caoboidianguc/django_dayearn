@@ -22,7 +22,8 @@ class DatHenFrom(forms.ModelForm):
             choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
         ]
     day_comes = forms.DateField(
-        widget=ChonNgay(attrs={'min': date.today()})
+        widget=ChonNgay(attrs={'min': date.today()}),
+        label="Please Pick a date"
         )
   
     time_at = forms.TimeField(
@@ -31,11 +32,6 @@ class DatHenFrom(forms.ModelForm):
             "type":"time",
             })
         )    
-    email = forms.CharField(
-        label="",
-        required=False,
-        widget=forms.widgets.EmailInput(attrs={'placeholder':'Email Optional'}))
-    
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),
                         label="")
@@ -56,7 +52,7 @@ class DatHenFrom(forms.ModelForm):
     
     class Meta:
         model = Khach
-        fields = ['technician', 'services', 'full_name', 'phone', 'email', 'day_comes', 'time_at', 'status']
+        fields = ['technician', 'services', 'full_name', 'phone', 'day_comes', 'time_at', 'status']
         
 class UserExistClientForm(forms.ModelForm):
     class Meta:
@@ -157,8 +153,7 @@ class ServicesChoiceForm(forms.Form):
 class KhachDetailForm(forms.ModelForm):
     class Meta:
         model = Khach
-        fields = ['services','technician','tag','desc']
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
+        fields = ['tag','desc','email','full_name','phone']
    
 class VisitForm(forms.ModelForm):
     class Meta:

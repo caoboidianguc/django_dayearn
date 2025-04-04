@@ -1,5 +1,4 @@
-from collections.abc import MutableMapping
-from typing import Any
+
 from django.db import models
 from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
@@ -167,32 +166,11 @@ class Khach(models.Model):
         else:
             return so
     def do_cancel(self):
-        visit = self.khachvisits.all()
-        if visit: return True
-        else: return False
+        return self.khachvisits.filter(day_comes__gte=datetime.date.today()).exists()
         
-    # def get_services(self):
-    #     services = []
-    #     for dv in self.services.all():
-    #         services.append(dv)
-    #     return services
-    
-    # def get_time_done(sefl):
-    #     tong = 0
-    #     for service in sefl.services.all():
-    #         tong += service.time_perform.total_seconds()
-    #     if tong > 0:
-    #         tong = tong/60
-    #         return tong
-    #     return tong
-    
-    # def get_done_at(self):
-    #     gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
-    #     return datetime.time(hour=gio.hour, minute=gio.minute)
-    # def start_at(self):
-    #     them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
-    #     return datetime.time(hour=them.hour, minute=them.minute)
-    
+    def can_post_chat(self):
+        return self.khachvisits.filter(day_comes__lt=datetime.date.today()).exists()
+        
     def get_chat_url(self):
         return reverse("ledger:chat_room", kwargs={'pk':self.pk})
     
