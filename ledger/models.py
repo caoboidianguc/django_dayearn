@@ -277,7 +277,7 @@ class Chat(models.Model):
     def __str__(self):
         if len(self.text) < 200 : return self.text
         return self.text[:200] + ' ...'
-    
+
     @property
     def nickName(self):
         if self.client:

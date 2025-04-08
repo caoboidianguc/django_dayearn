@@ -5,21 +5,22 @@
 
 {% block nutChinh %}
         <div class="d-flex flex-row">
-            <div class="nav-item">
+            <!-- <div class="nav-item">
                 <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
-            </div>
-            {% comment %} <div class="nav-item">
-                <a class="nav-link" href="{% url 'datHen:schedule_user' %}"><span>Schedule</span></a>
-            </div> {% endcomment %}
+            </div> 
             <div class="nav-item">
                 <a class="nav-link" href="{% url 'datHen:user_find_client' %}"><span>Been here</span></a>
+            </div>-->
+            <div class="nav-item">
+                <a class="nav-link" href="{% url 'datHen:schedule_user' %}"><span>Schedule</span></a>
             </div>
+            
         </div>
 {% endblock nutChinh %}
 {% block time %}
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-        <span class="fs-4 text-secondary">{{ selected_date|date:'F d' }}</span> 
-  </div>
+        {{ form.date | as_crispy_field }}
+    </div>
 {% endblock time %}
 {% block nutPhu %}
     <div class="date-navigation">
@@ -38,6 +39,15 @@
     document.addEventListener('DOMContentLoaded', function () {
         const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
         const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+
+        const dateInput = document.getElementById('id_date');
+      if (dateInput) {
+        dateInput.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('date', this.value);
+            window.location.href = url.toString();
+        });
+      }
       });
       
   </script>
@@ -98,7 +108,7 @@
     
 </div>
 
-        
+
 {% endblock content %}
 
 
