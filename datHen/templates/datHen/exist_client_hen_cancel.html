@@ -7,6 +7,18 @@
 
 {% block heading %}
     <h1 class='title'>Reschedule your appoinment or <span class="text-danger" >Cancel</span>:</h1>
+    
+{% endblock heading %}
+
+
+{% block content %}
+{% if submitted and not khach %}
+    <div class="text-danger fs-5">
+        No Client found with the provided name and phone.<br>
+        Please go <a href="{% url 'datHen:first_step' %}" class="btn btn-primary" role="button" >Here</a>
+    </div><br>
+    {% endif %}
+        
     <div>
         {% if khach %}
             {% for mot in khach.all %}
@@ -14,36 +26,32 @@
                 <div class="d-inline-flex gap-2">
                 
                 <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
-                    {% if mot.do_cancel %}
-                        <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
-                    {% endif %}
+                {% if mot.do_cancel %}
+                    <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
+                {% endif %}
+                {% if mot.can_post_chat %}
                 <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
-        
+                {% endif %}
     </div>
             {% endfor %}
             {% else %}
             <div class="fs-5 text-info">Please fill out the form:</div>
+            <form action='' method='get'>
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-primary">
+                        <div class="form-group col-md-4">
+                        {{ formDatHen | crispy }}
+                        </div>
+                    </table>
+                    <input type='submit' value='Find' class="btn btn-info w-25" role="button">
+                    <input type='submit' onclick="window.location='{% url 'ledger:index' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
+                </div>
+            </form>
         {% endif %}
-    </div>
-{% endblock heading %}
+    </div>    
 
 
-{% block content %}
-    {% if not khach %}
-        <form action='' method='get'>
-            {% csrf_token %}
-            <div class="table-responsive">
-                <table class="table table-primary">
-                    <div class="form-group col-md-4">
-                    {{ formDatHen | crispy }}
-                    </div>
-                </table>
-                <input type='submit' value='Find' class="btn btn-info w-25" role="button">
-                <input type='submit' onclick="window.location='{% url 'datHen:listHen' %}'; return false; " value='Cancel' class="btn btn-muted" role="button">
-            </div>
-        </form>
-
-    {% endif %}
 {% endblock content %}
 
 

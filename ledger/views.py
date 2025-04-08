@@ -478,7 +478,7 @@ class SupplyCreateView(LoginRequiredMixin, CreateView):
 class AllSupply(LoginRequiredMixin, ListView):
     model = Supply
     template_name = "ledger/all_supplies.html"
-    ordering = ['-is_wanted']
+    ordering = ['-is_wanted', '-date']
 
 
 @require_POST

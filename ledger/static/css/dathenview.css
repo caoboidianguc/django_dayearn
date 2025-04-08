@@ -32,3 +32,11 @@ div.container_tech {
     white-space: nowrap;
 }
 
+div #id_date {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: inherit;
+    text-align: center;
+    overflow: auto;
+    white-space: nowrap;
+}

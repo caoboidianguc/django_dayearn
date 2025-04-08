@@ -4,13 +4,15 @@ from ledger.models import Khach, Technician, Service, KhachVisit
 from django.views.generic import View
 from django.views.generic.edit import UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .forms import (UserExistClientForm, ExistClientForm, DateForm, ThirdForm, 
-                    ThirdFormExist, ServicesChoiceForm, KhachDetailForm, VisitForm)
+from .forms import (UserExistClientForm, ExistClientForm, DateForm, ThirdForm, DatHenForm,
+                    ThirdFormExist, ServicesChoiceForm, KhachDetailForm, VisitForm, DatePickerInput)
 from datetime import timedelta, date, datetime
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
+from django.http import JsonResponse
+
 
 chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
@@ -46,6 +48,7 @@ class DatHenView(LoginRequiredMixin,View):
                 selected_date = timezone.now().date()
         else:
             selected_date = timezone.now().date()
+        form = DatePickerInput(initial={'date': selected_date})
         prev_day = selected_date - timedelta(days=1)
         next_day = selected_date + timedelta(days=1)
         all_tech = Technician.objects.filter(owner=request.user)
@@ -54,6 +57,7 @@ class DatHenView(LoginRequiredMixin,View):
             'selected_date': selected_date,
             'prev_day' : prev_day,
             'next_day' : next_day,
+            'form': form,
         }
         for tech in all_tech:
             tech.clients = tech.get_khachVisit().filter(day_comes=selected_date).order_by('time_at')
@@ -72,11 +76,15 @@ class UserFindClient(LoginRequiredMixin,View):
 class FindClient(View):
     template = 'datHen/exist_client_hen_cancel.html'
     def get(self, request):
-        name = str(request.GET.get("full_name")).upper().strip()
-        phone = request.GET.get('phone')
+        submitted = False
         form = ExistClientForm()
-        khach = Khach.objects.filter(full_name=name, phone=phone)
-        cont = {'formDatHen': form, 'khach': khach}
+        khach = None
+        if "full_name" in request.GET and "phone" in request.GET:
+            submitted = True
+            name = str(request.GET.get("full_name")).upper().strip()
+            phone = request.GET.get('phone')
+            khach = Khach.objects.filter(full_name=name, phone=phone)
+        cont = {'formDatHen': form, 'khach': khach, 'submitted': submitted}
         return render(request, self.template, cont)
     
 class ExistPickTech(View):
@@ -186,7 +194,7 @@ class ExistThirdStep(View):
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
-        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
+        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
         if tech.email != None:
             EmailMessage(chuDe, thongbao, to=[tech.email]).send()
                     
@@ -302,7 +310,7 @@ class ThirdStep(View):
         tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
-        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at}"
+        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
         if tech.email != None:
             EmailMessage(chuDe, thongbao, to=[tech.email]).send()
                     
@@ -335,7 +343,7 @@ class CancelViewConfirm(View):
         messages.success(request, "Your services have been canceled successfully.")
         return redirect(self.get_success_url())
     
-class CancelKhachVisit(DeleteView):
+class CancelKhachVisit(LoginRequiredMixin, DeleteView):
     model = KhachVisit
     template_name = "datHen/user_delete_khachvisit.html"
     success_url = reverse_lazy('datHen:listHen')
@@ -357,19 +365,19 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['client'] = self.get_object()
         return context
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        services = form.cleaned_data['services']
-        totalPoint = sum(dv.price for dv in services)
-        self.object.points = totalPoint
-        self.object.save()
-        form.save_m2m()
-        ngay = timezone.now().today().date()
-        khach = self.get_object()
-        tech = form.cleaned_data['technician']
-        time = timezone.now()
-        saveKhachVisit(khach, ngay, time, services, tech, KhachVisit.Status.online)
-        return super().form_valid(form)
+    # def form_valid(self, form):
+        # self.object = form.save(commit=False)
+        # services = form.cleaned_data['services']
+        # totalPoint = sum(dv.price for dv in services)
+        # self.object.points = totalPoint
+        # self.object.save()
+        # form.save_m2m()
+        # ngay = timezone.now().today().date()
+        # khach = self.get_object()
+        # tech = form.cleaned_data['technician']
+        # time = timezone.now()
+        # saveKhachVisit(khach, ngay, time, services, tech, KhachVisit.Status.online)
+        # return super().form_valid(form)
     
     def get_success_url(self):
         return self.success_url
@@ -384,5 +392,54 @@ class VisitDetailView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['visit'] = self.object
         return context
+
+def schedule_get_client(request):
+    phone = request.GET.get('phone')
+    client_list = Khach.objects.filter(phone=phone)
+    data = [{'full_name': client.full_name, 'phone': str(client.phone)} for client in client_list]
+    return JsonResponse(data, safe=False)
     
     
+class ScheduleViewUser(LoginRequiredMixin, View):
+    template = "datHen/schedule_user.html"
+    success_url = reverse_lazy('datHen:listHen')
+    def get(self,request):
+        form = DatHenForm()
+        context = {
+            'form': form
+        }
+        return render(request, self.template, context)
+    def post(self, request):
+        form = DatHenForm(request.POST)
+        if not form.is_valid():
+            context = {
+                'form': form
+            }
+            return render(request, self.template, context)
+        full_name = form.cleaned_data['full_name'].upper().strip()
+        phone = form.cleaned_data['phone']
+        services = form.cleaned_data['services']
+        tech = form.cleaned_data['technician']
+        day_comes = form.cleaned_data['day_comes']
+        time_at = form.cleaned_data['time_at']
+        status = form.cleaned_data['status']
+        existing_client = form.cleaned_data.get('existing_client')
+        
+        if existing_client:
+            client = existing_client
+            client.day_comes = day_comes
+            client.technician = tech
+            client.time_at = time_at
+            client.status = status
+            client.save()
+            
+        else:
+            client, _ = Khach.objects.get_or_create(full_name=full_name, phone=phone,
+                                                    defaults={'day_comes': day_comes, 'technician': tech,
+                                                              'time_at': time_at,
+                                                              'status': status})
+        client.services.set(services)
+        form.instance = client
+        saveKhachVisit(client, day_comes, time_at, services, tech, status)
+        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+        return redirect(self.success_url)

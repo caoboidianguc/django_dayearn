@@ -160,12 +160,12 @@ LOGIN_REDIRECT_URL = "ledger:index"
 
 LOGOUT_REDIRECT_URL = "ledger:index"
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'datHen.custom_email_backend.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'hoadambutxinh@gmail.com'
 EMAIL_HOST_PASSWORD = 'seztdjfrcdbcykvp'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BOWER_INSTALLED_APPS = (

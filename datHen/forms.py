@@ -13,16 +13,23 @@ class ChonNgay(forms.widgets.DateInput):
     input_type = 'date'
     input_formats= "%Y-%m-%d"
     
+class DatePickerInput(forms.Form):
+    date = forms.DateField(
+        widget=ChonNgay(),
+        label=""
+        )
+
 #date format is yyyy-mm-dd
 # time is 24h
-class DatHenFrom(forms.ModelForm):
+class DatHenForm(forms.ModelForm):
     def __init__(self, *args,**kwargs):
         super().__init__(*args, **kwargs)
         self.fields['status'].choices = [
             choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
         ]
     day_comes = forms.DateField(
-        widget=ChonNgay(attrs={'min': date.today()})
+        widget=ChonNgay(attrs={'min': date.today()}),
+        label="Please Pick a date"
         )
   
     time_at = forms.TimeField(
@@ -31,13 +38,8 @@ class DatHenFrom(forms.ModelForm):
             "type":"time",
             })
         )    
-    email = forms.CharField(
-        label="",
-        required=False,
-        widget=forms.widgets.EmailInput(attrs={'placeholder':'Email Optional'}))
-    
     phone = PhoneNumberField(widget=forms.TextInput(
-                        attrs={'placeholder': 'Phone Number'}),
+                        attrs={'placeholder': 'Search by Phone Number'}),
                         label="")
     
     services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
@@ -50,13 +52,25 @@ class DatHenFrom(forms.ModelForm):
         }
     ))
 
-    def clean_full_name(self):
+    def clean(self):
+        cleaned_data = super().clean()
         full_name = self.cleaned_data.get('full_name')
-        return full_name.upper() if full_name else ''
+        phone = self.cleaned_data.get('phone')
+        if full_name and phone:
+            existing_client = Khach.objects.filter(full_name=full_name, phone=phone).first()
+            if existing_client:
+                cleaned_data['existing_client'] = existing_client
+            else:
+                cleaned_data['existing_client'] = None
+        return cleaned_data
+    def validate_unique(self):
+        if self.cleaned_data.get('existing_client'):
+            return
+        return super().validate_unique()
     
     class Meta:
         model = Khach
-        fields = ['technician', 'services', 'full_name', 'phone', 'email', 'day_comes', 'time_at', 'status']
+        fields = ['technician', 'services', 'full_name', 'phone', 'day_comes', 'time_at', 'status']
         
 class UserExistClientForm(forms.ModelForm):
     class Meta:
@@ -157,8 +171,7 @@ class ServicesChoiceForm(forms.Form):
 class KhachDetailForm(forms.ModelForm):
     class Meta:
         model = Khach
-        fields = ['services','technician','tag','desc']
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
+        fields = ['tag','desc','email','full_name','phone']
    
 class VisitForm(forms.ModelForm):
     class Meta:
