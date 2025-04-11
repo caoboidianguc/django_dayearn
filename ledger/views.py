@@ -455,7 +455,8 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
             )
         khach.services.set(dv)    
         form.instance = khach
-        saveKhachVisit(khach, ngay,thoigian,dv, khach.technician, KhachVisit.Status.anyone)
+        if not khach.future_visit:
+            saveKhachVisit(khach, ngay,thoigian,dv, khach.technician, KhachVisit.Status.anyone)
         messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
         return super().form_valid(form)
 
