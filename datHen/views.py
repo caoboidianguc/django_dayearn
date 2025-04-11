@@ -60,6 +60,7 @@ class DatHenView(LoginRequiredMixin,View):
             'form': form,
         }
         for tech in all_tech:
+            tech.on_vacation = tech.is_on_vacation(check_date=selected_date)
             tech.clients = tech.get_khachVisit().filter(day_comes=selected_date).order_by('time_at')
         return render(request, self.template_name, context)
 
@@ -205,7 +206,7 @@ class FirstStep(View):
     #need to filter user
     def get(self,request):
         tech = Technician.objects.all()
-        cont = {'tech': tech}
+        cont = {'allTech': tech}
         return render(request, self.template, cont)
 
 
@@ -442,4 +443,7 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         form.instance = client
         saveKhachVisit(client, day_comes, time_at, services, tech, status)
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
+        if tech.email != None:
+            EmailMessage(chuDe, thongbao, to=[tech.email]).send()
         return redirect(self.success_url)
