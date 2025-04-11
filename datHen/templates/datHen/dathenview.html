@@ -5,17 +5,11 @@
 
 {% block nutChinh %}
         <div class="d-flex flex-row">
-            <!-- <div class="nav-item">
-                <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
-            </div> 
-            <div class="nav-item">
-                <a class="nav-link" href="{% url 'datHen:user_find_client' %}"><span>Been here</span></a>
-            </div>-->
             <div class="nav-item">
                 <a class="nav-link" href="{% url 'datHen:schedule_user' %}"><span>Schedule</span></a>
             </div>
-            
         </div>
+
 {% endblock nutChinh %}
 {% block time %}
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -67,11 +61,11 @@
 <div class="container_tech">
     {% for tech in allTech %}
     <div class="col-md-2 align-text-top" id="tech">
-        <span class="fs-3" >
-            <a href="{% url 'ledger:vacation' tech.id %}" class="btn btn-primary" role="button" > {{ tech.name | title }}
+        <span class="fs-3">
+            <a href="{% url 'ledger:vacation' tech.id %}" class="btn {% if tech.on_vacation %}btn-secondary{% else %}btn-primary{% endif %}" role="button" > {{ tech.name | title }}
                 <span class="text-info fs-5">
                     {{ tech.get_services_today }}
-                </span>
+                </span>{% if tech.on_vacation %}Off{% endif %}
             </a>
         </span>
             {% for khach in tech.clients %}

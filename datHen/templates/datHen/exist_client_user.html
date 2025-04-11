@@ -21,7 +21,7 @@
         <div class="d-inline-flex gap-2">
             
             <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
-            {% if mot.do_cancel %}
+            {% if mot.future_visit %}
             <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
             {% endif %}
     </div>

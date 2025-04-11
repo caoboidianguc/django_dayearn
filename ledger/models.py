@@ -33,7 +33,10 @@ class Technician(models.Model):
         if self.vacation_start and self.vacation_end:
             return self.vacation_start <= check_date <= self.vacation_end
         return False
-    
+    def still_vacation(self):
+        if self.vacation_end:
+            return self.vacation_end > timezone.now().date()
+        return False
     class Meta:
         unique_together = ('name','phone',)
         ordering = ['name']
@@ -165,7 +168,7 @@ class Khach(models.Model):
             return so
         else:
             return so
-    def do_cancel(self):
+    def future_visit(self):
         return self.khachvisits.filter(day_comes__gte=datetime.date.today()).exists()
         
     def can_post_chat(self):
