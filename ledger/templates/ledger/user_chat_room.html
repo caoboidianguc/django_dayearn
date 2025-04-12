@@ -27,6 +27,7 @@
         <span class="reply-count">
             <i class="bi bi-chat"></i> {{ talk.get_reply_count }}
         </span>
+        <span class="view-count"> <i class="bi bi-bar-chart"></i> {{ talk.view_count }}</span>
             {% if talk.owner == user %}
             @Manager
             {% else %}

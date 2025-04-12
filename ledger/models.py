@@ -277,6 +277,8 @@ class Chat(models.Model):
     reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats", null=True, blank=True)
+    view_count = models.IntegerField(default=0)
+    
     def __str__(self):
         if len(self.text) < 200 : return self.text
         return self.text[:200] + ' ...'
