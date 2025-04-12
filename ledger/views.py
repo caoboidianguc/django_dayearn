@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 import requests
 import os
-from django.db.models import Prefetch
+from django.db.models import Prefetch, F
 from django.views.decorators.http import require_POST
 from datHen.views import tenSpa, saveKhachVisit
 from django.core.mail import EmailMessage
@@ -186,6 +186,8 @@ class ChatLikeView(View):
             return JsonResponse({'error': "client not found"}, status=400)
         client = get_object_or_404(Khach, id=client_id)
         chat = get_object_or_404(Chat, id= chat_id)
+        chat.view_count = F('view_count') + 1
+        chat.save(update_fields=['view_count'])
         like, create = Like.objects.get_or_create(chat=chat, client=client)
         if not create:
             like.delete()
@@ -205,6 +207,8 @@ def chatDetailLike(request, chat_id):
         return JsonResponse({'error': "client not found"}, status=400)
     client = get_object_or_404(Khach, id=client_id)
     chat = get_object_or_404(Chat, id= chat_id)
+    chat.view_count = F('view_count') + 1
+    chat.save(update_fields=['view_count'])
     like, create = Like.objects.get_or_create(chat=chat, client=client)
     if not create:
         like.delete()
@@ -221,6 +225,8 @@ class ChatUserLikeView(LoginRequiredMixin, View):
     def post(sefl, request, chat_id):
         chu_trang = request.user
         chat = get_object_or_404(Chat, id= chat_id)
+        chat.view_count = F('view_count') + 1
+        chat.save(update_fields=['view_count'])
         like, create = Like.objects.get_or_create(chat=chat, owner=chu_trang)
         if not create:
             like.delete()
@@ -257,6 +263,8 @@ class ChatDetailView(View):
         khach_id = request.session['client_id']
         khach_moi = get_object_or_404(Khach, id=khach_id)
         chat = get_object_or_404(Chat, id=pk)
+        chat.view_count = F('view_count') + 1
+        chat.save(update_fields=['view_count'])
         form = ChatForm(request.POST)
         replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
         if form.is_valid():
@@ -341,6 +349,8 @@ class UserChatDetailView(LoginRequiredMixin, View):
     
     def post(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
+        chat.view_count = F('view_count') + 1
+        chat.save(update_fields=['view_count'])
         form = ChatForm(request.POST)
         replies = Chat.objects.filter(reply_to=chat).order_by('created_at')
         if form.is_valid():
