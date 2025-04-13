@@ -5,6 +5,12 @@
 
 {% block nutChinh %}
         <div class="d-flex flex-row">
+            <!-- <div class="nav-item">
+                 <a class="nav-link" href="{% url 'datHen:first_step' %}"><span>New Client</span></a>
+             </div> 
+             <div class="nav-item">
+                 <a class="nav-link" href="{% url 'datHen:user_find_client' %}"><span>Been here</span></a>
+             </div> -->
             <div class="nav-item">
                 <a class="nav-link" href="{% url 'datHen:schedule_user' %}"><span>Schedule</span></a>
             </div>
@@ -91,6 +97,7 @@
                                     <li>{{ dichvu | title }} </li>
                                 {% endfor %}
                             {% endif %} 
+                            <h6>Done: <span class="fs-5 text-danger">{{ khach.get_done_at }}</span></h6>
                         </div>
                     </a>
                 </div>
