@@ -25,13 +25,13 @@
                 <p><label class="form-label text-success">Hi {{ mot.full_name }} would you like to</label></p>
                 <div class="d-inline-flex gap-2">
                 
-                <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >Reschedule</a>
+                <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >New Schedule</a>
                 {% if mot.future_visit %}
                     <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
                 {% endif %}
-                {% if mot.can_post_chat %}
+                
                 <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
-                {% endif %}
+                
     </div>
             {% endfor %}
             {% else %}

@@ -54,7 +54,7 @@
     </div>
     <hr>
    {% endfor %}
-
+   {% if client.can_post_chat %}
     <form method="post">
         {% csrf_token %}
         <div class="form-floating col-md-3 align-items-center">
@@ -67,7 +67,9 @@
         <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:chat_room' khach_id %}'; return false; ">Back</button>
     </div>
     </form>  
-
+    {% else %}
+    <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:chat_room' khach_id %}'; return false; ">Back</button>
+{% endif %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'js/chat.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/chat.css' %}">

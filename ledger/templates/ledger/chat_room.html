@@ -42,7 +42,7 @@
     </div>
     {% endfor %}
   
-
+{% if client.can_post_chat %}
     <form action="{% url 'ledger:chat_create' client.id %}" method="post">
         {% csrf_token %}
         <div class="form-floating col-md-3 align-items-center">
@@ -56,7 +56,10 @@
         <button type="submit" class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
     
     </form>  
-
+    {% else %}
+    <div class="fs-4 text-info">Please return tomorrow to post your feedback after receiving our services.
+    </div>
+{% endif %}
    <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}

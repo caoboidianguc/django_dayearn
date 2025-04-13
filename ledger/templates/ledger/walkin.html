@@ -76,6 +76,36 @@
                             {% endif %}
                         </div>
                     {% endfor %}
+
+                    <h3>Wax</h3>
+                    {% for dichvu in form.services.field.queryset %}
+                        <div class="list">
+                            {% if dichvu.category == "Wax" %}
+                                <div class="service-item">
+                                    <input type="checkbox" 
+                                           name="services" 
+                                           id="{{ dichvu.id }}" 
+                                           value="{{ dichvu.id }}">
+                                    {{ dichvu|title }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <h3>Nail Fix</h3>
+                    {% for dichvu in form.services.field.queryset %}
+                        <div class="list">
+                            {% if dichvu.category == "Fix" %}
+                                <div class="service-item">
+                                    <input type="checkbox" 
+                                           name="services" 
+                                           id="{{ dichvu.id }}" 
+                                           value="{{ dichvu.id }}">
+                                    {{ dichvu|title }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
