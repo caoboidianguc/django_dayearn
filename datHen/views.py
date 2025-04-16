@@ -365,6 +365,7 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['client'] = self.get_object()
+        context['today'] = timezone.now().today().date()
         return context
     # def form_valid(self, form):
         # self.object = form.save(commit=False)
