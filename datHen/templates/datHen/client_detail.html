@@ -15,31 +15,48 @@
     <div class="client-info fs-4">
         <p>{{ client.phone_formatted }}</p>
         <p>{{ client.email }}</p>
-        <p>Latest visit: {{ client.day_comes | naturalday }}
-            {% if client.status == 'Cancel' %}
-                <span class="fs-5 text-danger"> but Canceled</span>
-            {% endif %}
-        </p>
         <p>Total points: {{ client.points }}</p>
     </div>
 </div>
-<h2>Update detail</h2>
 
     <form method="post">
         <div class="row g3">
         {% csrf_token %}
-        <div class="col mb-2">
-            {{ form.services | as_crispy_field }}            
+            <div class="col mb-2">
+                {{ form.full_name | as_crispy_field }}  
+                <br>
+                {{ form.phone | as_crispy_field }}
+                <br>
+                {{ form.tag | as_crispy_field }}
+                <br>
+                {{ form.desc | as_crispy_field }}
+                        
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <h3>Visits</h3>
+                {% for visit in client.khachvisits.all %}
+                    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                        {% if visit.day_comes > today %}
+                            <span class="text-success fs-4"> Next visit: </span>
+                        {% else %}
+                            <span class="fs-4"> Came: </span>
+                        {% endif %}
+                        <div>Tech : {{ visit.technician | title }}</div>
+                        {{ visit.day_comes }} at {{ visit.time_at }}
+                        
+                        {% for ser in visit.services.all %}
+                            <div>
+                                {{ ser | title }}
+                            </div>
+                            {% endfor %}
+                                
+                    </div>
+                        
+                {% endfor %}
+                
+            </div>
         </div>
-
-        <div class="col-md-6 mb-3">
-            {{ form.technician | as_crispy_field }}
-            <br>
-            {{ form.tag | as_crispy_field }}
-            <br>
-            {{ form.desc | as_crispy_field }}
-        </div>
-    </div>
         <div class="mt-3">
             <input type="submit" value="Submit" class="btn btn-primary w-25" role="button">
             <input type="button" onclick="window.location='{% url 'datHen:listHen' %}';" value="Cancel" class="btn btn-muted" role="button">

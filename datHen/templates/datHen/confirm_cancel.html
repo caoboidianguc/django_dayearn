@@ -28,8 +28,12 @@
         {{ client.day_comes }} at <strong>{{ client.time_at }}</strong>
     </div>
     <div>
+        With: <strong>{{ client.technician }}</strong>
+    </div>
+    <div>
+        Services:
         {% for service in client.services.all %}
-        <li> {{ service.service }} </a></li>
+        <li> {{ service.service }}</li>
         {% endfor %}
     </div>
     
