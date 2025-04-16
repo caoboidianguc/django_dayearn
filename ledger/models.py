@@ -51,8 +51,7 @@ class Technician(models.Model):
         
         
     def get_clients(self):
-        # now = datetime.datetime.now()
-        allClients = self.khachs.all() #filter(day_comes__gte=now)
+        allClients = self.khachs.all()
         return allClients
     
     def get_today_clients(self):
@@ -141,7 +140,7 @@ class Khach(models.Model):
         cancel = "Cancel"
     full_name = models.CharField(max_length=25, validators=[MinLengthValidator(5)])
     phone = PhoneNumberField()
-    email = models.EmailField(max_length=40, null=True, blank=True, help_text="Enter your email for booking confirmations.")
+    email = models.EmailField(max_length=50, null=True, blank=True, help_text="Enter your email for booking confirmations.")
     technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, related_name='khachs')
     points = models.PositiveIntegerField(default=0)
     first_comes = models.DateTimeField(editable=False,auto_now_add=True)
@@ -168,9 +167,13 @@ class Khach(models.Model):
             return so
         else:
             return so
+    @property
     def future_visit(self):
         return self.khachvisits.filter(day_comes__gte=datetime.date.today()).exists()
-        
+    @property
+    def today_visit(self):
+        return self.khachvisits.filter(day_comes=datetime.date.today()).exists()
+    
     def can_post_chat(self):
         return self.khachvisits.filter(day_comes__lt=datetime.date.today()).exists()
         
@@ -209,6 +212,10 @@ class KhachVisit(models.Model):
     day_comes = models.DateField()
     time_at = models.TimeField()
     total_spent = models.DecimalField(max_digits=7, decimal_places=2, editable=False, null=True)
+    
+    class Meta:
+        ordering = ['-day_comes']
+        
     def __str__(self) -> str:
         return self.client.full_name
     
@@ -254,7 +261,6 @@ class Service(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.CharField(choices=Category.choices, max_length=20, default=Category.nail, help_text="Choose one of the categories.")
 
-
     def __str__(self) -> str:
         return self.service
     def save(self, *kwag, **kwargs):
@@ -272,7 +278,7 @@ class Service(models.Model):
 
 class Chat(models.Model):
     isNew = models.BooleanField(default=True)
-    text = models.TextField(validators=[MinLengthValidator(1, "What's your message.")])
+    text = models.TextField(validators=[MinLengthValidator(1, "What's your message.")], max_length=800)
     created_at = models.DateTimeField(auto_now_add=True)
     reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
