@@ -29,10 +29,12 @@ def saveKhachVisit(client, date, time, services, tech, status):
     except ValueError as e:
         print(f"Error saving KhachVisit: {e}")
         return
-def cancelKhachVisit(client, date, tech):
+    
+def cancelKhachVisit(client):
     try:
-        visit = KhachVisit.objects.filter(client=client, day_comes=date, technician=tech)
-        visit.delete()
+        visit = KhachVisit.objects.filter(client=client)
+        for item in visit:
+            item.delete()
     except ValueError as e:
         print(f"Error retrived visit: {e}")
         return
@@ -338,7 +340,7 @@ class CancelViewConfirm(View):
         client.services.clear()
         client.status = Khach.Status.cancel
         client.save()
-        cancelKhachVisit(client=client, date=client.day_comes, tech=client.technician)
+        cancelKhachVisit(client=client)
         tinNhan = f"{tenSpa}\nYour appointment was canceled.\nOriginal details:\nDate: {client.day_comes}\nTime: {client.time_at}\nTechnician: {client.technician}"
         EmailMessage(chuDe, tinNhan, to=[client.email]).send()
         messages.success(request, "Your services have been canceled successfully.")
