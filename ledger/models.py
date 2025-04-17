@@ -167,9 +167,16 @@ class Khach(models.Model):
             return so
         else:
             return so
+    def get_future_visit(self):
+        today = datetime.date.today()
+        return self.khachvisits.filter(
+            models.Q(day_comes=today, time_at__gt=timezone.now().time()) | models.Q(day_comes__gt=today))
     @property
     def future_visit(self):
-        return self.khachvisits.filter(day_comes__gte=datetime.date.today()).exists()
+        today = datetime.date.today()
+        return self.khachvisits.filter(
+            models.Q(day_comes=today, time_at__gt=timezone.now().time()) | models.Q(day_comes__gt=today)).exists()
+        
     @property
     def today_visit(self):
         return self.khachvisits.filter(day_comes=datetime.date.today()).exists()
