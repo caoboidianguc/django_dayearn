@@ -5,6 +5,13 @@
 
 {% block heading %}
     <h1>Add Service</h1>
+    {% if messages %}
+        {% for tin in messages %}
+            <div class="fs-3 text-success text-center">
+                {{ tin }}
+            </div>
+        {% endfor %}
+    {% endif %}
 {% endblock heading %}
 
 
@@ -17,7 +24,7 @@
     </div>
 
     <input type="submit" value="Add " class="btn btn-primary w-25">
-    <input type="submit" onclick="window.location='{% url 'ledger:services' %}'; return false; " value="Cancel" class="btn btn-secondary">
+    <input type="submit" onclick="window.location='{% url 'ledger:add_service' %}'; return false; " value="Cancel" class="btn btn-secondary">
 </form>  
 </div>
 {% endblock content %}
