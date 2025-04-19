@@ -16,8 +16,12 @@ from django.http import JsonResponse
 
 chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
-cancelAppointment = "https://quangvu.pythonanywhere.com/dathen/get_client/" #adjust link for production
 
+def cancel_visit(request, id):
+    url = reverse_lazy('datHen:cancel_confirm', kwargs={'pk': id})
+    link = request.build_absolute_uri(url)
+    button = f'<a href="{link}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Cancel Appointment</a>'
+    return button
 
 def saveKhachVisit(client, date, time, services, tech, status):
     try:
@@ -194,9 +198,24 @@ class ExistThirdStep(View):
         khac.services.set(services)
         form.save_m2m()
         saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
-        tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
+        tinNhan = f"""
+                    <html>
+                    <body>
+                        <p>Thank you for booking with {tenSpa}!</p>
+                        <p>Your appointment is set for:</p>
+                        <ul>
+                            <li><strong>Date:</strong> {form.instance.day_comes}</li>
+                            <li><strong>Time:</strong> {form.instance.time_at}</li>
+                            <li><strong>Technician:</strong> {form.instance.technician}</li>
+                        </ul>
+                        <p>Need to change anything? {cancel_visit(request, khac.id)}</p>
+                    </body>
+                    </html>
+                    """
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
+        email = EmailMessage(chuDe, tinNhan, to=[form.instance.email])
+        email.content_subtype = 'html'
+        email.send()
         thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
         if tech.email != None:
             EmailMessage(chuDe, thongbao, to=[tech.email]).send()
@@ -310,9 +329,25 @@ class ThirdStep(View):
         khac.services.set(services)
         form.save_m2m()
         saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
-        tinNhan = f"Thank you for booking with {tenSpa}! \nYour appointment is set for: \nDate: {form.instance.day_comes} \nTime: {form.instance.time_at} \nTechnician: {form.instance.technician} \nNeed to change anything? click here {cancelAppointment}"
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        EmailMessage(chuDe, tinNhan, to=[form.instance.email]).send()
+        tinNhan = f"""
+                    <html>
+                    <body>
+                        <p>Thank you for booking with {tenSpa}!</p>
+                        <p>Your appointment is set for:</p>
+                        <ul>
+                            <li><strong>Date:</strong> {form.instance.day_comes}</li>
+                            <li><strong>Time:</strong> {form.instance.time_at}</li>
+                            <li><strong>Technician:</strong> {form.instance.technician}</li>
+                        </ul>
+                        <p>Need to change anything? {cancel_visit(request, khac.id)}</p>
+                    </body>
+                    </html>
+                    """
+        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+        email = EmailMessage(chuDe, tinNhan, to=[form.instance.email])
+        email.content_subtype = 'html'
+        email.send()
         thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
         if tech.email != None:
             EmailMessage(chuDe, thongbao, to=[tech.email]).send()

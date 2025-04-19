@@ -131,7 +131,7 @@ class TaoTaiKhoan(View):
 
 class AddService(LoginRequiredMixin, View):
     template = "ledger/service_form.html"
-    success_url = reverse_lazy("ledger:services")
+    success_url = reverse_lazy("ledger:add_service")
     def get(self, request):
         form = ServiceForm()
         context = {'form': form}
@@ -146,6 +146,7 @@ class AddService(LoginRequiredMixin, View):
         ser.owner = self.request.user
         ser.save()
         form.save_m2m
+        messages.success(request, f"{form.instance.service} was added successfully!")
         return redirect(self.success_url)
        
 
