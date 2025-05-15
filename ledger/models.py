@@ -243,7 +243,8 @@ class KhachVisit(models.Model):
     
     def get_services(self):
         services = []
-        for dv in self.services.all():
+        #filter out services with price > 35
+        for dv in self.services.filter(price__gt=35):
             services.append(dv)
         return services
     
