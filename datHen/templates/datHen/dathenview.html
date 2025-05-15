@@ -77,7 +77,7 @@
                     <a tabindex="0" class="btn btn-lg" role="button" data-bs-trigger="focus" data-bs-toggle="popover" data-bs-title="{{ khach.client.phone_formatted }}" data-bs-html="true" data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appoinment</a><p>Tag: {{ khach.client.tag | default:"" }}</p><a href="{{ khach.get_visit_detail_url }}" class="btn btn-primary" role="button" >Detail</a><p>{{ khach.client.desc | default:""}}</p></div>'>
                         <div class="card-body">
                             <h5 class="card-title text-info">{{ khach }}</h5>
-                            <h6 class="card-subtitle mb-2 text-body-secondary">At: <span class="fs-5">{{ khach.time_at }}</span></h6>
+                            <h6 class="card-subtitle mb-2 text-body-secondary">Start: <span class="fs-5">{{ khach.time_at }}</span></h6>
                             <p class="card-text">
                                 <span class="badge {% if khach.status == "Anyone" %} bg-warning 
                                 {% elif khach.status == 'Cancel' %} bg-danger
@@ -113,6 +113,6 @@
 
 
 {% block footer %}
-    <strong>Contact Us somewhere</strong>
+    
 {% endblock footer %}
  
