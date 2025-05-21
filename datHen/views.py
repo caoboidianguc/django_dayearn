@@ -462,6 +462,7 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         day_comes = form.cleaned_data['day_comes']
         time_at = form.cleaned_data['time_at']
         status = form.cleaned_data['status']
+        total_point = sum([service.price for service in services])
         existing_client = form.cleaned_data.get('existing_client')
         
         if existing_client:
@@ -478,6 +479,8 @@ class ScheduleViewUser(LoginRequiredMixin, View):
                                                               'time_at': time_at,
                                                               'status': status})
         client.services.set(services)
+        client.points = total_point
+        client.save()
         form.instance = client
         saveKhachVisit(client, day_comes, time_at, services, tech, status)
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
@@ -485,3 +488,4 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         if tech.email != None:
             EmailMessage(chuDe, thongbao, to=[tech.email]).send()
         return redirect(self.success_url)
+

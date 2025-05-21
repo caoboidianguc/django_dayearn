@@ -243,7 +243,7 @@ class KhachVisit(models.Model):
     
     def get_services(self):
         services = []
-        for dv in self.services.all():
+        for dv in self.services.filter(price__gt=35):
             services.append(dv)
         return services
     
@@ -276,7 +276,7 @@ class Service(models.Model):
         return super().save(*kwag, **kwargs)
     class Meta:
         unique_together = ('service','price')
-        ordering = ['price']
+        ordering = ['category']
     def get_url(self):
         return reverse("ledger:service_detail", kwargs={'pk':self.pk})
     def time_in_minute(self):
