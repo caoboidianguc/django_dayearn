@@ -344,7 +344,6 @@ class ThirdStep(View):
                     </body>
                     </html>
                     """
-        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         email = EmailMessage(chuDe, tinNhan, to=[form.instance.email])
         email.content_subtype = 'html'
         email.send()
