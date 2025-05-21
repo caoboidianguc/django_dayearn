@@ -25,9 +25,9 @@
                         data-url="{% url 'ledger:supply_is_wanted' item.id %}">
                     {{ item.title |title }} 
                         {% if item.is_wanted %}
-                            <span class='add-cart'>{{ item.quantity }} <i class="bi bi-bag-check"></i></span>
+                            <span class='add-cart'>- {{ item.quantity }} <i class="bi bi-bag-check"></i></span>
                         {% else %}
-                        <span class="item-time">- {{ item.date | naturaltime }} </span>
+                        <span class="item-time"> - {{ item.date | naturaltime }} </span>
                         {% endif %}
                     <span class="fs-6 text-secondary">{{ item.info }}</span>
                 </button>

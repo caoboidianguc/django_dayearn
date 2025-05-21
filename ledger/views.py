@@ -408,12 +408,6 @@ class CustomerVisit(View):
             for post in data.get('data', []):
                 if 'full_picture' in post:
                     latest_image_urls.append(post['full_picture'])
-                # if 'attachments' in post and post['attachments']['data']:
-                #     for attachment in post['attachments']['data']:
-                #         if 'media' in attachment:
-                #             for media in attachment['media']:
-                #                 if isinstance(media, dict) and 'image' in media and isinstance(media['image'], dict):
-                #                     latest_image_urls.append(media['image']['src'])
             latest_image_urls = latest_image_urls[:5]
                         
             context = {
@@ -424,7 +418,7 @@ class CustomerVisit(View):
                 'latest_image_urls': latest_image_urls,
             }
         else:
-            print(f"Failed to fetch data: {response.status_code}")
+            print(f"Failed to fetch data: {response.status_code}, Response: {response.text}")
             context = {
                 'nails': self.nail,
                 'feets': self.feet,
