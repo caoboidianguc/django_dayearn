@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit
+from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, UpdateView, CreateView, DeleteView
+from django.views.generic import ListView, UpdateView, CreateView, TemplateView
 from django.views import View
 from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, 
                     VacationForm, ChatForm, KhachWalkin, SupplyForm, ContactForm)
@@ -18,6 +18,9 @@ from django.db.models import Prefetch, F
 from django.views.decorators.http import require_POST
 from datHen.views import tenSpa, saveKhachVisit
 from django.core.mail import EmailMessage
+import stripe
+
+stripe.api_key = os.environ.get('stripe_secret_key')
 
 class PrivacyPolicy(View):
     template = "privacy.html"
@@ -145,6 +148,18 @@ class AddService(LoginRequiredMixin, View):
         ser = form.save(commit=False)
         ser.owner = self.request.user
         ser.save()
+        #stripe product and service.stripe_product_id
+        product = stripe.Product.create(name=ser.service)
+        ser.stripe_product_id = product.id
+        ser.save()
+        
+        stripe_price = stripe.Price.create(
+            product=ser.stripe_product_id,
+            unit_amount=int(ser.price * 100), # convert to cents
+            currency='usd',
+        )
+        price = Price(service=ser, price=ser.price, stripe_price_id=stripe_price.id)
+        price.save()
         form.save_m2m
         messages.success(request, f"{form.instance.service} was added successfully!")
         return redirect(self.success_url)
@@ -246,6 +261,7 @@ class ChatDetailView(View):
     template = "ledger/chat_detail.html"
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
+        Chat.objects.filter(id=pk).update(view_count=F('view_count') + 1)
         khach_id = request.session['client_id']
         khach = get_object_or_404(Khach, id=khach_id)
         replies = Chat.objects.filter(reply_to=chat).order_by('created_at').select_related("client").prefetch_related(
@@ -334,6 +350,7 @@ class UserChatDetailView(LoginRequiredMixin, View):
     template = "ledger/user_chat_detail.html"
     def get(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
+        Chat.objects.filter(id=pk).update(view_count=F('view_count') + 1)
         chu_tai_khoan = request.user
         if chat.isNew:
             chat.isNew = False
@@ -502,3 +519,4 @@ def supplyDelete(request, pk):
     supply = get_object_or_404(Supply, id=pk)
     supply.delete()
     return JsonResponse({'success': True}, status=200)
+

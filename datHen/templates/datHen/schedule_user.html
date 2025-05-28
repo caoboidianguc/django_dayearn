@@ -40,7 +40,18 @@
         </div>
         <div class="col-md-6">
             <div class="form-group mb-3">
-                {{ form.services | as_crispy_field }}
+                {% regroup form.services.field.queryset by category as category_list %}
+                    {% for category in category_list %}
+                        <div class="list">
+                            <p class="fs-4 text-primary">{{ category.grouper }}</p>
+                            {% for dichvu in category.list %}
+                                <p class="service-item">
+                                        <input type="checkbox" name="services" id="{{ dichvu.id }}" value="{{ dichvu.id }}">
+                                        {{ dichvu|title }}
+                                    </p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
             </div>
         </div>
         <div class="col-12">

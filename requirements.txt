@@ -16,4 +16,4 @@ bleach
 django_bower
 requests
 certifi
-
+stripe

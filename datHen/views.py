@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 
 
+
 chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
 
@@ -208,7 +209,8 @@ class ExistThirdStep(View):
                             <li><strong>Time:</strong> {form.instance.time_at}</li>
                             <li><strong>Technician:</strong> {form.instance.technician}</li>
                         </ul>
-                        <p>Need to change anything? {cancel_visit(request, khac.id)}</p>
+                        <p>Need to change anything? </p>
+                        <p>{cancel_visit(request, khac.id)}</p>
                     </body>
                     </html>
                     """
@@ -340,7 +342,8 @@ class ThirdStep(View):
                             <li><strong>Time:</strong> {form.instance.time_at}</li>
                             <li><strong>Technician:</strong> {form.instance.technician}</li>
                         </ul>
-                        <p>Need to change anything? {cancel_visit(request, khac.id)}</p>
+                        <p>Need to change anything? </p>
+                        <p>{cancel_visit(request, khac.id)}</p>
                     </body>
                     </html>
                     """
@@ -403,20 +406,7 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
         context['client'] = self.get_object()
         context['today'] = timezone.now().today().date()
         return context
-    # def form_valid(self, form):
-        # self.object = form.save(commit=False)
-        # services = form.cleaned_data['services']
-        # totalPoint = sum(dv.price for dv in services)
-        # self.object.points = totalPoint
-        # self.object.save()
-        # form.save_m2m()
-        # ngay = timezone.now().today().date()
-        # khach = self.get_object()
-        # tech = form.cleaned_data['technician']
-        # time = timezone.now()
-        # saveKhachVisit(khach, ngay, time, services, tech, KhachVisit.Status.online)
-        # return super().form_valid(form)
-    
+        
     def get_success_url(self):
         return self.success_url
 
@@ -487,3 +477,4 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         if tech.email != None:
             EmailMessage(chuDe, thongbao, to=[tech.email]).send()
         return redirect(self.success_url)
+
