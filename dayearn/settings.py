@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-81w87l+rc-3sv!!^dk=6cl)9@7pscwf*25+zhd(+43j3q_ttos
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'dayearn.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', ]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'datHen.apps.DathenConfig',
+    'payment.apps.PaymentConfig',
     
 ]
 
@@ -74,7 +75,7 @@ ROOT_URLCONF = 'dayearn.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
