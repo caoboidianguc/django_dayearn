@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+{% load static %}
+
+{% block heading %}
+    <title>Payment Services</title>
+{% endblock heading %}
+
+{% block content %}
+<style>
+    #ser_form .form-check {
+        border-bottom: 1px solid #ddd;
+        padding: 10px 0;
+    }
+    #ser_form .form-check:hover {
+        background-color: #f8f9fa;
+    }
+    #ser_form .form-check:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1>Our Services</h1>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'payment:multi_checkout_session' %}" method="post" id="ser_form">
+                        {% csrf_token %}
+                        {% for service in services %}
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="service_ids" value="{{ service.id }}">
+                                <label class="form-check-label">{{ service.service|title }} - {{ service.price }}</label>
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary mt-3">Proceed to Checkout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('ser_form').addEventListener('submit', function(event) {
+            var checkboxes = document.querySelectorAll('input[name="service_ids"]:checked');
+            if (checkboxes.length === 0) {
+                alert("Please choose at least one service.");
+                event.preventDefault();
+            }
+        });
+    });
+
+    $(document).ready(function() {
+            $('.form-check input[type="checkbox"]').on('change', function() {
+                var $serviceItem = $(this).closest('.form-check');
+                if ($(this).is(':checked')) {
+                    $serviceItem.addClass('fs-4 text-success');
+                } else {
+                    $serviceItem.removeClass('fs-4 text-success');
+                }
+            });
+        });
+</script>
+{% endblock content %}
+{% block footer %}
+
+{% endblock footer %}
+

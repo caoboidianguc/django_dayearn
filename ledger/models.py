@@ -5,7 +5,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 import datetime
 from datetime import timedelta
 from simple_history.models import HistoricalRecords
@@ -263,11 +263,12 @@ class Service(models.Model):
         wax = "Wax"
         fix = "Fix"
     service = models.CharField(max_length=30)
-    price = models.FloatField()
+    price = models.FloatField(validators=[MinValueValidator(0.0)])
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
     description = models.CharField(max_length=800, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.CharField(choices=Category.choices, max_length=20, default=Category.nail, help_text="Choose one of the categories.")
+    stripe_product_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self) -> str:
         return self.service
@@ -277,7 +278,7 @@ class Service(models.Model):
         return super().save(*kwag, **kwargs)
     class Meta:
         unique_together = ('service','price')
-        ordering = ['price']
+        ordering = ['category']
     def get_url(self):
         return reverse("ledger:service_detail", kwargs={'pk':self.pk})
     def time_in_minute(self):
@@ -344,3 +345,17 @@ class Supply(models.Model):
         unique_together = ('title',)
     def __str__(self):
         return self.title
+
+class Price(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="prices")
+    price = models.FloatField(validators=[MinValueValidator(0.0)])
+    date = models.DateTimeField(auto_now_add=True)
+    stripe_price_id = models.CharField(max_length=100, null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('service', 'price')
+    
+    def __str__(self):
+        return f"{self.service} - {self.price}"
+    
+    
