@@ -17,6 +17,7 @@ from django.http import JsonResponse
 
 chuDe = "Elegant Nails & Spa Confirm schedule"
 tenSpa = "Elegant Nails & Spa"
+address = "4605 Forest Dr #5, Columbia, SC 29206"
 
 def cancel_visit(request, id):
     url = reverse_lazy('datHen:cancel_confirm', kwargs={'pk': id})
@@ -212,6 +213,9 @@ class ExistThirdStep(View):
                         <p>Need to change anything? </p>
                         <p>{cancel_visit(request, khac.id)}</p>
                     </body>
+                    <footer>
+                        <p>Address: {address}</p>
+                    </footer>
                     </html>
                     """
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
@@ -345,6 +349,9 @@ class ThirdStep(View):
                         <p>Need to change anything? </p>
                         <p>{cancel_visit(request, khac.id)}</p>
                     </body>
+                    <footer>
+                        <p>Address: {address}</p>
+                    </footer>
                     </html>
                     """
         email = EmailMessage(chuDe, tinNhan, to=[form.instance.email])

@@ -9,5 +9,5 @@ urlpatterns = [
     path('all_services_checkout/', views.ServicesPaymentView.as_view(), name='services_for_checkout'),
     path('create_checkout_session/<pk>/', views.CreateCheckoutSessionView.as_view(), name='checkout_session'),
     path('multiple_checkout_session/', views.CreateMultipleCheckoutSessionView.as_view(), name='multi_checkout_session'),
-
+    path('webhooks/stripe/', views.stripe_webhook, name='stripe-webhook'),
 ]
