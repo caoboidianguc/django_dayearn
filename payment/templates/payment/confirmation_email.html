@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+{% load static %}
+
+{% block nutChinh %}
+
+{% endblock nutChinh %}
+
+{% block heading %}
+    <title>Confirmation</title>
+{% endblock heading %}
+
+{% block content %}
+<p>Dear {{ client_name }},</p>
+<p>Thank you for your purchase!</p>
+<p>Here are the details of your order:</p>
+<ul>
+{% for service in services %}
+    <li>{{ service.description }}: ${{ service.total_price }}</li>
+{% endfor %}
+</ul>
+<p>Total: ${{ total_amount }} {{ currency }}</p>
+<p>We appreciate your business!</p>
+
+
+{% endblock content %}
+

@@ -69,6 +69,9 @@
                             <button class="btn btn-outline-info" type="submit">Logout</button>
                         </form>
                     {% else %}
+                        
+                        <a class="btn btn-outline-primary" href="{% url 'payment:services_for_checkout' %}">Check-out</a>
+                        
                         <a class="btn btn-outline-info" href="{% url 'login' %}">Login</a>
                     {% endif %}
                 </div>
@@ -116,7 +119,11 @@
         {% block footer %}
         {% endblock footer %}
         </div>
-        <a class="btn btn-outline-info mt-2" href="https://www.facebook.com/quang.hu.10" role="button">
+        
+        <a class="btn btn-outline-info" href="https://www.google.com/maps/place/Aria+Nail+Spa/@34.02038,-80.9710602,17z/data=!3m1!4b1!4m6!3m5!1s0x88f8af45f0cb8575:0x1776d13ae287cb50!8m2!3d34.02038!4d-80.9710602!16s%2Fg%2F11fvpz2t29?entry=ttu&g_ep=EgoyMDI1MDUyNi4wIKXMDSoASAFQAw%3D%3D" role="button">
+            Address: 4605 Forest Dr #5, Columbia, SC 29206.
+        </a>
+        <a class="btn btn-outline-info" href="https://www.facebook.com/quang.hu.10" role="button">
             Follow us on
             <img src="{% static 'ledger/images/Facebook.png' %}" alt="Facebook logo" width="20" height="20" class="me-1">
         </a>

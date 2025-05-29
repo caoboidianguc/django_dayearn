@@ -1,11 +1,15 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, ListView
 from django.views import View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.urls import reverse_lazy
 import stripe, os
 from ledger.models import Service, Price
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from ledger.views import contactEmail
 
 stripe.api_key = os.environ.get('stripe_secret_key')
 
@@ -77,3 +81,59 @@ class CreateMultipleCheckoutSessionView(View):
             return redirect(session.url, code=303)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+
+
+# https://docs.stripe.com/checkout/fulfillment?lang=python
+def fulfill_checkout(session):
+    session_data = stripe.checkout.Session.retrieve(session['id'], expand=['line_items'])
+    client_email = session_data['customer_details']['email']
+    client_name = session_data['customer_details']['name']
+    line_items = session_data['line_items']['data']
+    total_amount = session_data['amount_total'] / 100  # Convert cents to dollars
+    currency = session_data['currency']
+    services = []
+    for item in line_items:
+        description = item['description']
+        total_amount = item['amount_total'] / 100
+        services.append({
+            'description': description,
+            'total_price': total_amount,
+        })
+    context = {
+        'client_email': client_email,
+        'client_name': client_name,
+        'services': services,
+        'total_amount': total_amount,
+        'currency': currency,
+    }
+    body = render_to_string('payment/confirmation_email.html', context)
+    email = EmailMessage(
+        subject='Payment Confirmation',
+        body=body,
+        from_email=contactEmail,
+        to=[client_email],
+    )
+    email.content_subtype = 'html'
+    email.send()
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ.get('endpoint_secret')
+        )
+    except ValueError as e:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)
+
+    if (event['type'] == 'checkout.session.completed'
+        or event['type'] == 'checkout.session.async_payment_succeeded'):
+        session = event['data']['object']
+        fulfill_checkout(session)
+    return HttpResponse(status=200)
+

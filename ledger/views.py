@@ -21,17 +21,16 @@ from django.core.mail import EmailMessage
 import stripe
 
 stripe.api_key = os.environ.get('stripe_secret_key')
+contactEmail = "hoadambutxinh@gmail.com"
 
 class PrivacyPolicy(View):
     template = "privacy.html"
     def get(self, request):
-        contactEmail = "hoadambutxinh@gmail.com"
         context = {'spaName': tenSpa, "email": contactEmail}
         return render(request, self.template, context)
     
 class Contact(View):
     receiveEmail = "jubivu@icloud.com"
-    fromEmail = "hoadambutxinh@gmail.com"
     template = "contact.html"
     def get(self, request):
         form = ContactForm()
