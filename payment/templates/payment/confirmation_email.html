@@ -12,17 +12,15 @@
 {% endblock heading %}
 
 {% block content %}
-<p>Dear {{ client_name }},</p>
-<p>Thank you for your purchase!</p>
-<p>Here are the details of your order:</p>
-<ul>
-{% for service in services %}
-    <li>{{ service.description }}: ${{ service.total_price }}</li>
-{% endfor %}
-</ul>
-<p>Total: ${{ total_amount }} {{ currency }}</p>
-<p>We appreciate your business!</p>
-
-
+    <p>Dear {{ client_name }},</p>
+    <p>Thank you for your purchase!</p>
+    <p>We’ve received your payment for the following services:</p>
+    <ul>
+    {% for service in services %}
+        <li>{{ service.description }}: ${{ service.total_price }}</li>
+    {% endfor %}
+    </ul>
+    <p>Total Amount: {{ total_amount }} {{ currency }}</p>
+    <p>Payment completed on: <span class="fs-4">{{ payment_time }}</span></p>
+    <p>If you have any questions, feel free to contact us.</p>
 {% endblock content %}
-

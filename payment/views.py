@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from ledger.views import contactEmail
+from django.utils import timezone
 
 stripe.api_key = os.environ.get('stripe_secret_key')
 
@@ -89,7 +90,7 @@ def fulfill_checkout(session):
     client_email = session_data['customer_details']['email']
     client_name = session_data['customer_details']['name']
     line_items = session_data['line_items']['data']
-    total_amount = session_data['amount_total'] / 100  # Convert cents to dollars
+    total = session_data['amount_total'] / 100  # Convert cents to dollars
     currency = session_data['currency']
     services = []
     for item in line_items:
@@ -99,12 +100,17 @@ def fulfill_checkout(session):
             'description': description,
             'total_price': total_amount,
         })
+
+
+    payment_time_local = timezone.localtime(timezone.now())
+    payment_time_str = payment_time_local.strftime("%B %d, %Y, at %I:%M %p %Z")
     context = {
         'client_email': client_email,
         'client_name': client_name,
         'services': services,
-        'total_amount': total_amount,
+        'total_amount': total,
         'currency': currency,
+        'payment_time': payment_time_str,
     }
     body = render_to_string('payment/confirmation_email.html', context)
     email = EmailMessage(
@@ -116,6 +122,7 @@ def fulfill_checkout(session):
     email.content_subtype = 'html'
     email.send()
 
+# stripe listen --forward-to localhost:8000/payment/webhooks/stripe/
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
