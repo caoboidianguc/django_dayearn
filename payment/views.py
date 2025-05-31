@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, ListView
 from django.views import View
+<<<<<<< HEAD
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+=======
+from django.http import JsonResponse, HttpResponse
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 from django.urls import reverse_lazy
 import stripe, os
 from ledger.models import Service, Price
@@ -10,12 +14,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from ledger.views import contactEmail
+<<<<<<< HEAD
 from django.utils import timezone
+=======
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 
 stripe.api_key = os.environ.get('stripe_secret_key')
 
 class ServicesPaymentView(TemplateView):
     template_name = 'payment/services_payment.html'
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['services'] = Service.objects.all
@@ -23,6 +34,7 @@ class ServicesPaymentView(TemplateView):
     
 class SuccessCheckoutView(TemplateView):
     template_name = 'payment/success_checkout.html'
+<<<<<<< HEAD
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get('session_id')
@@ -49,6 +61,8 @@ class SuccessCheckoutView(TemplateView):
         except Exception:
             context['error'] = "An error occurred while retrieving the session details."
         return context
+=======
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     
 class CancelCheckoutView(TemplateView):
     template_name = 'payment/cancel_checkout.html'
@@ -101,9 +115,14 @@ class CreateMultipleCheckoutSessionView(View):
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
+<<<<<<< HEAD
                 success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse_lazy('payment:cancel_checkout')),
                 
+=======
+                success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')),
+                cancel_url=request.build_absolute_uri(reverse_lazy('payment:cancel_checkout')),
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
             )
             return redirect(session.url, code=303)
         except Exception as e:
@@ -116,7 +135,11 @@ def fulfill_checkout(session):
     client_email = session_data['customer_details']['email']
     client_name = session_data['customer_details']['name']
     line_items = session_data['line_items']['data']
+<<<<<<< HEAD
     total = session_data['amount_total'] / 100  # Convert cents to dollars
+=======
+    total_amount = session_data['amount_total'] / 100  # Convert cents to dollars
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     currency = session_data['currency']
     services = []
     for item in line_items:
@@ -126,17 +149,25 @@ def fulfill_checkout(session):
             'description': description,
             'total_price': total_amount,
         })
+<<<<<<< HEAD
 
 
     payment_time_local = timezone.localtime(timezone.now())
     payment_time_str = payment_time_local.strftime("%B %d, %Y, at %I:%M %p %Z")
+=======
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     context = {
         'client_email': client_email,
         'client_name': client_name,
         'services': services,
+<<<<<<< HEAD
         'total_amount': total,
         'currency': currency,
         'payment_time': payment_time_str,
+=======
+        'total_amount': total_amount,
+        'currency': currency,
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     }
     body = render_to_string('payment/confirmation_email.html', context)
     email = EmailMessage(
@@ -148,7 +179,10 @@ def fulfill_checkout(session):
     email.content_subtype = 'html'
     email.send()
 
+<<<<<<< HEAD
 # stripe listen --forward-to localhost:8000/payment/webhooks/stripe/
+=======
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
