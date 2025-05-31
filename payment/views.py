@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, ListView
 from django.views import View
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.urls import reverse_lazy
 import stripe, os
 from ledger.models import Service, Price
@@ -16,7 +16,6 @@ stripe.api_key = os.environ.get('stripe_secret_key')
 
 class ServicesPaymentView(TemplateView):
     template_name = 'payment/services_payment.html'
-    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['services'] = Service.objects.all
@@ -24,6 +23,32 @@ class ServicesPaymentView(TemplateView):
     
 class SuccessCheckoutView(TemplateView):
     template_name = 'payment/success_checkout.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        session_id = self.request.GET.get('session_id')
+        try:
+                session = stripe.checkout.Session.retrieve(session_id, expand=['line_items'])
+                client_name = session['customer_details']['name']
+                line_items = session['line_items']['data']
+                total = 0
+                # print("line_items", line_items)
+                services = []
+                for item in line_items:
+                    description = item['description']
+                    total_amount = item['amount_total'] / 100
+                    total += total_amount
+                    services.append({
+                        'description': description,
+                        'total_price': total_amount,
+                    })
+                context['today'] = timezone.now().strftime("%B %d, %Y")
+                context['client_name'] = client_name
+                context['services'] = services
+                context['total'] = total
+                
+        except Exception:
+            context['error'] = "An error occurred while retrieving the session details."
+        return context
     
 class CancelCheckoutView(TemplateView):
     template_name = 'payment/cancel_checkout.html'
@@ -76,8 +101,9 @@ class CreateMultipleCheckoutSessionView(View):
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')),
+                success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse_lazy('payment:cancel_checkout')),
+                
             )
             return redirect(session.url, code=303)
         except Exception as e:
