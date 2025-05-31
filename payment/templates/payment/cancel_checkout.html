@@ -12,9 +12,29 @@
 {% endblock heading %}
 
 {% block content %}
+<<<<<<< HEAD
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-3">Checkout Canceled</h1>
+            <p class="lead text-muted">
+                It looks like you’ve canceled your checkout. No charges have been made.
+            </p>
+            <p>
+                Ready to try again or explore more services? Let’s get you back on track!
+            </p>
+            <a href="{% url 'ledger:index' %}" class="btn btn-primary btn-lg mt-3">
+                Return to Home
+            </a>
+            
+        </div>
+    </div>
+</div>
+=======
 <h1>Checkout canceled!</h1>
 
 
+>>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 {% endblock content %}
 
 {% block footer %}

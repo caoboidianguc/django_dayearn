@@ -261,7 +261,7 @@ class Service(models.Model):
         mani = "Manicure"
         pedi = "Pedicure"
         wax = "Wax"
-        fix = "Fix"
+        yfix = "YFix"
     service = models.CharField(max_length=30)
     price = models.FloatField(validators=[MinValueValidator(0.0)])
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
