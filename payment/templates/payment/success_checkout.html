@@ -3,7 +3,6 @@
 {% load crispy_forms_filters %}
 {% load static %}
 
-<<<<<<< HEAD
 
 {% block heading %}
     <title>Order Successful - DayEarn</title>
@@ -13,8 +12,9 @@
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
-            <h1 class="display-4 fw-bold mb-4">Thank You, {{ client_name }}!</h1>
+            <h1 class="display-4 fw-bold mb-4">Thank You, {{ client_name |title}}!</h1>
             <p class="text-success fs-4">Date: {{ today }}</p>
+            <p> with Technician: <span class="fs-5">{{ tech.name | title }}</span class="fs-5"></p>
             {% if services %}
                 <p class="lead mb-3">You have successfully purchased the following services:</p>
                 <div class="card shadow-sm p-4 mb-4">
@@ -40,22 +40,8 @@
         </div>
     </div>
 </div>
-=======
-{% block nutChinh %}
-
-{% endblock nutChinh %}
-
-{% block heading %}
-    <title>Thank you for your order!</title>
-{% endblock heading %}
-
-{% block content %}
-
-<h1>Thank you for your order!</h1>
-<p>Your order has been successfully placed.</p>
 
 
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 {% endblock content %}
 
 {% block footer %}

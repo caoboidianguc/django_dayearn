@@ -6,7 +6,6 @@
 {% block heading %}
     <title>Payment Services</title>
 {% endblock heading %}
-
 {% block content %}
 <style>
     #ser_form .form-check {
@@ -19,6 +18,17 @@
     #ser_form .form-check:last-child {
         border-bottom: none;
     }
+    .technician-card {
+        cursor: pointer;
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    .technician-card.selected {
+        border-color: #007bff;
+        background-color: #e9f7ff;
+    }
 </style>
 
 <div class="container">
@@ -27,23 +37,35 @@
             <div class="card">
                 <div class="card-header">
                     <h1>Our Services</h1>
-<<<<<<< HEAD
                     <p class="lead text-muted fs-5">Important Note: please make full use of our 
-                        services during your visit before proceeding to checkout. 
-                        Thank you!
+                        services during your visit before proceeding to checkout. Thank you!
                     </p>
-=======
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
                 </div>
                 <div class="card-body">
                     <form action="{% url 'payment:multi_checkout_session' %}" method="post" id="ser_form">
                         {% csrf_token %}
+                        
+                        <h3>Select a Technician</h3>
+                        <div class="row">
+                            {% for tech in techs %}
+                                <div class="col-md-4">
+                                    <div class="technician-card" data-tech-id="{{ tech.id }}">
+                                        <h5>{{ tech.name |title }}</h5>
+                                        
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="technician_id" id="technician_id">
+
+                        <h3 class="mt-4">Select Services</h3>
                         {% for service in services %}
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" name="service_ids" value="{{ service.id }}">
                                 <label class="form-check-label">{{ service.service|title }} - {{ service.price }}</label>
                             </div>
                         {% endfor %}
+                        
                         <button type="submit" class="btn btn-primary mt-3">Proceed to Checkout</button>
                     </form>
                 </div>
@@ -56,9 +78,24 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        var technicianCards = document.querySelectorAll('.technician-card');
+        technicianCards.forEach(function(card) {
+            card.addEventListener('click', function() {
+                technicianCards.forEach(function(c) {
+                    c.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                document.getElementById('technician_id').value = this.getAttribute('data-tech-id');
+            });
+        });
+
         document.getElementById('ser_form').addEventListener('submit', function(event) {
+            var technicianId = document.getElementById('technician_id').value;
             var checkboxes = document.querySelectorAll('input[name="service_ids"]:checked');
-            if (checkboxes.length === 0) {
+            if (!technicianId) {
+                alert("Please select a technician.");
+                event.preventDefault();
+            } else if (checkboxes.length === 0) {
                 alert("Please choose at least one service.");
                 event.preventDefault();
             }
@@ -66,17 +103,18 @@
     });
 
     $(document).ready(function() {
-            $('.form-check input[type="checkbox"]').on('change', function() {
-                var $serviceItem = $(this).closest('.form-check');
-                if ($(this).is(':checked')) {
-                    $serviceItem.addClass('fs-4 text-success');
-                } else {
-                    $serviceItem.removeClass('fs-4 text-success');
-                }
-            });
+        $('.form-check input[type="checkbox"]').on('change', function() {
+            var $serviceItem = $(this).closest('.form-check');
+            if ($(this).is(':checked')) {
+                $serviceItem.addClass('fs-4 text-success');
+            } else {
+                $serviceItem.removeClass('fs-4 text-success');
+            }
         });
+    });
 </script>
 {% endblock content %}
+
 {% block footer %}
 
 {% endblock footer %}
