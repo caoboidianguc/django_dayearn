@@ -1,49 +1,51 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, ListView
 from django.views import View
-<<<<<<< HEAD
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
-=======
 from django.http import JsonResponse, HttpResponse
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 from django.urls import reverse_lazy
 import stripe, os
-from ledger.models import Service, Price
+from ledger.models import Service, Technician
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from ledger.views import contactEmail
-<<<<<<< HEAD
+from datetime import datetime
 from django.utils import timezone
-=======
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 
 stripe.api_key = os.environ.get('stripe_secret_key')
 
 class ServicesPaymentView(TemplateView):
-    template_name = 'payment/services_payment.html'
-<<<<<<< HEAD
-=======
-    
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
+    template_name = 'payment/services_payment.html' 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['services'] = Service.objects.all
+        context['techs'] = Technician.objects.exclude(name='anyOne')
         return context
     
 class SuccessCheckoutView(TemplateView):
     template_name = 'payment/success_checkout.html'
-<<<<<<< HEAD
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get('session_id')
         try:
-                session = stripe.checkout.Session.retrieve(session_id, expand=['line_items'])
+                session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
                 client_name = session['customer_details']['name']
                 line_items = session['line_items']['data']
+                tech = session.metadata.get('technician_id', 'Unknown')
                 total = 0
-                # print("line_items", line_items)
+                payment_intent = session.get('payment_intent', {})
+                charges = payment_intent.get('charges', {}).get('data', [])
+                
+                if session['payment_status'] == 'paid' and charges:
+                    charge = charges[0]
+                    payment_date = datetime.fromtimestamp(charge.get('created', 0))
+                    context['today'] = payment_date.strftime("%B %d, %Y")
+                else:
+                    payment_date = datetime.fromtimestamp(session.get('created', 0))
+                    context['today'] = payment_date.strftime("%B %d, %Y")
+                
                 services = []
                 for item in line_items:
                     description = item['description']
@@ -53,17 +55,16 @@ class SuccessCheckoutView(TemplateView):
                         'description': description,
                         'total_price': total_amount,
                     })
-                context['today'] = timezone.now().strftime("%B %d, %Y")
                 context['client_name'] = client_name
                 context['services'] = services
                 context['total'] = total
+                context['tech'] = Technician.objects.get(id=tech)
                 
-        except Exception:
-            context['error'] = "An error occurred while retrieving the session details."
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            context['error'] = "An unexpected error occurred."
         return context
-=======
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
-    
+  
 class CancelCheckoutView(TemplateView):
     template_name = 'payment/cancel_checkout.html'
     
@@ -95,7 +96,7 @@ class CreateMultipleCheckoutSessionView(View):
     def post(self, request, *args, **kwargs):
         service_ids = request.POST.getlist('service_ids')
         services = Service.objects.filter(id__in=service_ids)
-        
+        tech_id = request.POST.get('technician_id')
         try:
             line_items = []
             for service in services:
@@ -115,14 +116,13 @@ class CreateMultipleCheckoutSessionView(View):
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-<<<<<<< HEAD
                 success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse_lazy('payment:cancel_checkout')),
+                # automatic_tax={'enabled': True},
+                metadata={
+                    'technician_id': tech_id,
+                }
                 
-=======
-                success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')),
-                cancel_url=request.build_absolute_uri(reverse_lazy('payment:cancel_checkout')),
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
             )
             return redirect(session.url, code=303)
         except Exception as e:
@@ -135,12 +135,10 @@ def fulfill_checkout(session):
     client_email = session_data['customer_details']['email']
     client_name = session_data['customer_details']['name']
     line_items = session_data['line_items']['data']
-<<<<<<< HEAD
     total = session_data['amount_total'] / 100  # Convert cents to dollars
-=======
     total_amount = session_data['amount_total'] / 100  # Convert cents to dollars
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     currency = session_data['currency']
+    # tax = session_data.get('total_details', {}).get('amount_tax', 0) / 100  # Convert cents to dollars
     services = []
     for item in line_items:
         description = item['description']
@@ -149,25 +147,20 @@ def fulfill_checkout(session):
             'description': description,
             'total_price': total_amount,
         })
-<<<<<<< HEAD
 
 
     payment_time_local = timezone.localtime(timezone.now())
     payment_time_str = payment_time_local.strftime("%B %d, %Y, at %I:%M %p %Z")
-=======
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     context = {
         'client_email': client_email,
         'client_name': client_name,
         'services': services,
-<<<<<<< HEAD
         'total_amount': total,
         'currency': currency,
         'payment_time': payment_time_str,
-=======
+        # 'tax': tax,
         'total_amount': total_amount,
         'currency': currency,
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
     }
     body = render_to_string('payment/confirmation_email.html', context)
     email = EmailMessage(
@@ -179,10 +172,7 @@ def fulfill_checkout(session):
     email.content_subtype = 'html'
     email.send()
 
-<<<<<<< HEAD
 # stripe listen --forward-to localhost:8000/payment/webhooks/stripe/
-=======
->>>>>>> 3b25b3a70936b685ebe6177538867d5d61eef80a
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body

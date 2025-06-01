@@ -101,7 +101,7 @@ class ExistPickTech(View):
     
     def get(self, request, pk):
         request.session['client_id'] = ""
-        tech = Technician.objects.all()
+        tech = Technician.objects.exclude(name="anyOne")
         cont = {'allTech': tech}
         request.session['client_id'] = pk
         return render(request, self.template, cont)
@@ -232,7 +232,7 @@ class FirstStep(View):
     template = 'datHen/first_step.html'
     #need to filter user
     def get(self,request):
-        tech = Technician.objects.all()
+        tech = Technician.objects.exclude(name="anyOne")
         cont = {'allTech': tech}
         return render(request, self.template, cont)
 
