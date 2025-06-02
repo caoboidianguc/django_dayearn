@@ -33,7 +33,7 @@ class SuccessCheckoutView(TemplateView):
                 session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
                 client_name = session['customer_details']['name']
                 line_items = session['line_items']['data']
-                tech = session.metadata.get('technician_id', 'Unknown')
+                tech_id = session.metadata.get('technician_id', 'Unknown')
                 total = 0
                 payment_intent = session.get('payment_intent', {})
                 charges = payment_intent.get('charges', {}).get('data', [])
@@ -58,7 +58,7 @@ class SuccessCheckoutView(TemplateView):
                 context['client_name'] = client_name
                 context['services'] = services
                 context['total'] = total
-                context['tech'] = Technician.objects.get(id=tech)
+                context['tech'] = Technician.objects.get(id=tech_id)
                 
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -138,6 +138,8 @@ def fulfill_checkout(session):
     total = session_data['amount_total'] / 100  # Convert cents to dollars
     total_amount = session_data['amount_total'] / 100  # Convert cents to dollars
     currency = session_data['currency']
+    tech_id = session_data['metadata'].get('technician_id', 'Unknown')
+    tech = Technician.objects.get(id=tech_id) if tech_id != 'Unknown' else None
     # tax = session_data.get('total_details', {}).get('amount_tax', 0) / 100  # Convert cents to dollars
     services = []
     for item in line_items:
@@ -161,6 +163,7 @@ def fulfill_checkout(session):
         # 'tax': tax,
         'total_amount': total_amount,
         'currency': currency,
+        'tech': tech,
     }
     body = render_to_string('payment/confirmation_email.html', context)
     email = EmailMessage(

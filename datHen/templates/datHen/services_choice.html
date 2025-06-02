@@ -29,9 +29,8 @@
                             <label class="form-check-label">
                                 <input type="checkbox" name="dichvu" value="{{ choice.id }}" class="form-check-input">
                                 <span class="checkmark"></span>
-                                <strong>{{ choice | title }}</strong> - 
-                                    <span class="text-secondary">{{ choice.description }} </span>
-                                
+                                {{ choice | title }}
+                                   
                             </label>
                         </div>
                         </p>{% endif %}
@@ -44,10 +43,8 @@
                                 <label class="form-check-label">
                                     <input type="checkbox" name="dichvu" value="{{ choice.id }}" class="form-check-input">
                                     <span class="checkmark"></span>
-                                    <strong>{{ choice | title }}</strong> - 
-                                        <span class="text-secondary">{{ choice.description }} </span>
+                                    {{ choice | title }}
                                     
-                                        
                                 </label>
                             </div>
                             </p>{% endif %}
@@ -61,10 +58,8 @@
                                 <label class="form-check-label">
                                     <input type="checkbox" name="dichvu" value="{{ choice.id }}" class="form-check-input">
                                     <span class="checkmark"></span>
-                                    <strong>{{ choice | title }}</strong> - 
-                                        <span class="text-secondary">{{ choice.description }} </span>
-                                    
-                                        
+                                    {{ choice | title }}
+                                       
                                 </label>
                             </div>
                             </p>
@@ -88,6 +83,18 @@
                     alert("Please choose at least one service.");
                     event.preventDefault();
                 }
+            });
+        });
+
+        $(document).ready(function() {
+            $('.form-check input[type="checkbox"]').on('change', function() {
+                var $dichvu = $(this).closest('.form-check');
+                if ($(this).is(':checked')) {
+                    $dichvu.addClass('fs-4 text-success');
+                } else {
+                    $dichvu.removeClass('fs-4 text-success');
+                }
+            
             });
         });
     </script>
