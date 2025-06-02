@@ -14,7 +14,7 @@
         <div class="col-md-8 text-center">
             <h1 class="display-4 fw-bold mb-4">Thank You, {{ client_name |title}}!</h1>
             <p class="text-success fs-4">Date: {{ today }}</p>
-            <p> with Technician: <span class="fs-5">{{ tech.name | title }}</span class="fs-5"></p>
+            <p> with technician: <span class="fs-5">{{ tech.name | title }}</span class="fs-5"></p>
             {% if services %}
                 <p class="lead mb-3">You have successfully purchased the following services:</p>
                 <div class="card shadow-sm p-4 mb-4">
@@ -27,6 +27,7 @@
                         {% endfor %}
                     </ul>
                     <p class="mt-4 mb-0 fw-bold fs-4">Total Amount: <span class="text-success">${{ total }}</span></p>
+                    <p class="text-danger">Please show receipt at checkout. </p>
                 </div>
             {% else %}
                 <p class="lead">Thank you for your purchase!</p>
