@@ -28,7 +28,27 @@ class Technician(models.Model):
     vacation_end = models.DateField(null=True, blank=True, help_text="End vacation, back work!")
     date_go_work = models.DateField(null=True, blank=True)
     history = HistoricalRecords()
+    hire_date = models.DateField(auto_now_add=True, help_text="Date when the technician was hired")
+    experience = models.PositiveIntegerField(default=0, help_text="Years of experience in the field")
+    bio = models.TextField(max_length=500, null=True, blank=True, help_text="Short bio about the technician")
     
+    @property
+    def get_experience(self):
+        if not self.hire_date:
+            return self.experience
+        if self.hire_date > today:
+            return self.experience
+        total = self.experience
+        today = timezone.now().date()
+        gain = today.year - self.hire_date.year
+        if (today.month, today.day) < (self.hire_date.month, self.hire_date.day):
+            gain -= 1
+        total = self.experience + gain
+        
+        return max(total, 0)
+        
+        
+
     def is_on_vacation(self, check_date):
         if self.vacation_start and self.vacation_end:
             return self.vacation_start <= check_date <= self.vacation_end
