@@ -51,7 +51,7 @@ class Contact(View):
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
     def get(self,request):
-        employee = Technician.objects.filter(owner=request.user).order_by("time_come_in")
+        employee = Technician.objects.filter(owner=request.user).exclude(name="anyOne").order_by("time_come_in")
         sort_tech = sorted(list(employee), 
                            key= lambda tech: tech.get_services_today(),reverse=False
                            )
