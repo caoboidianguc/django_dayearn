@@ -130,13 +130,14 @@ class CreateMultipleCheckoutSessionView(View):
 
 
 # https://docs.stripe.com/checkout/fulfillment?lang=python
+
 def fulfill_checkout(session):
     session_data = stripe.checkout.Session.retrieve(session['id'], expand=['line_items'])
-    client_email = session_data['customer_details']['email']
+    client_email = session_data['customer_details'].get('email')
     client_name = session_data['customer_details']['name']
     line_items = session_data['line_items']['data']
     total = session_data['amount_total'] / 100  # Convert cents to dollars
-    total_amount = session_data['amount_total'] / 100  # Convert cents to dollars
+    total = session_data['amount_total'] / 100  # Convert cents to dollars
     currency = session_data['currency']
     tech_id = session_data['metadata'].get('technician_id', 'Unknown')
     tech = Technician.objects.get(id=tech_id) if tech_id != 'Unknown' else None
@@ -161,7 +162,7 @@ def fulfill_checkout(session):
         'currency': currency,
         'payment_time': payment_time_str,
         # 'tax': tax,
-        'total_amount': total_amount,
+        'total_amount': total,
         'currency': currency,
         'tech': tech,
     }
@@ -176,6 +177,7 @@ def fulfill_checkout(session):
     email.send()
 
 # stripe listen --forward-to localhost:8000/payment/webhooks/stripe/
+# checkout.session.completed asigned from dashboard stripe
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
@@ -191,9 +193,7 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError as e:
         return HttpResponse(status=400)
 
-    if (event['type'] == 'checkout.session.completed'
-        or event['type'] == 'checkout.session.async_payment_succeeded'):
+    if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         fulfill_checkout(session)
     return HttpResponse(status=200)
-

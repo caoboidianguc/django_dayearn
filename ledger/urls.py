@@ -37,5 +37,5 @@ urlpatterns += [
     path('ledger/supply/all/', views.AllSupply.as_view(), name='all_supplies'),
     path('ledger/supply/<int:supply_id>/wanted/', views.supplyWanted, name="supply_is_wanted"),
     path('ledger/supply/<int:pk>/delete/', views.supplyDelete, name='supply_delete'),
-    
+    path('ledger/employee/<int:pk>/', views.EmployeeBio.as_view(), name='employee_bio'),
 ]

@@ -29,3 +29,24 @@
 .cursive-text {
     font-family: 'cursive', sans-serif;
 }
+
+.overflow-auto {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+    
+}
+
+.card {
+    display: inline-block;
+    width: 18rem;
+}
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+.px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}

@@ -34,12 +34,13 @@ class Technician(models.Model):
     
     @property
     def get_experience(self):
+        today = timezone.now().date()
         if not self.hire_date:
             return self.experience
         if self.hire_date > today:
             return self.experience
         total = self.experience
-        today = timezone.now().date()
+        
         gain = today.year - self.hire_date.year
         if (today.month, today.day) < (self.hire_date.month, self.hire_date.day):
             gain -= 1
