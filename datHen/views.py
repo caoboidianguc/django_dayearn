@@ -59,7 +59,7 @@ class DatHenView(LoginRequiredMixin,View):
         form = DatePickerInput(initial={'date': selected_date})
         prev_day = selected_date - timedelta(days=1)
         next_day = selected_date + timedelta(days=1)
-        all_tech = Technician.objects.filter(owner=request.user)
+        all_tech = Technician.objects.filter(owner=request.user).order_by('time_come_in')
         context = {
             'allTech' : all_tech,
             'selected_date': selected_date,

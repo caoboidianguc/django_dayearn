@@ -32,6 +32,25 @@
         <p class="lead text-bottom">Experience the pinnacle of nail care and beauty treatments at Elegant Nails & Spa</p>
     </div>
 </div>
+<div class="container my-5">
+    <h2 class="text-center mb-3">Our Staff</h2>
+    <div class="d-flex flex-nowrap overflow-auto">
+        {% for tech in allTech %}
+        <div class="col-md-3 mb-4 px-2">
+            <a class="nav-link" href="{% url 'ledger:employee_bio' tech.id %}">
+            <div class="card h-100" style="width: 18rem;">
+                <img src="{{ tech.picture.url }}" class="card-img-top" alt="{{ tech.name }}" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ tech.name | title }}</h5>
+                    <p class="card-text"><small class="text-muted">Experience: {{ tech.get_experience }} years</small></p>
+                    <p class="card-text flex-grow-1"><small class="text-muted">Expertise: {{ tech.bio }}</small></p>
+                </div>
+            </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
 <div class="container my-5">
     <h2 class="text-center mb-3">Our Services</h2>
@@ -42,10 +61,8 @@
             {% for nail in nails %}
             <ul class="list-unstyled text-md-center">
                 <li>{{ nail.service | title }}</li>
+                
                 {% endfor %}
-                <li>Gel Nails</li>
-                <li>Acrylic Nails</li>
-                <li>Nail Art</li>
             </ul>
             
         </div>
@@ -56,9 +73,6 @@
             <ul class="list-unstyled text-md-center">
                 <li>{{ feet.service | title}}</li>
                 {% endfor %}
-                <li>Foot Spa</li>
-                <li>Callus Treatment</li>
-                <li>Foot Massage</li>
             </ul>
             
         </div>
@@ -69,8 +83,6 @@
             <ul class="list-unstyled text-md-center">
                 <li>{{ tay.service | title }}</li>
                 {% endfor %}
-                <li>Manicure</li>
-                <li>Hand Massage</li>
             </ul>
             
         </div>
@@ -81,10 +93,6 @@
             <ul class="list-unstyled text-md-center">
                 <li>{{ wax.service | title }}</li>
                 {% endfor %}
-                <li>Facial Waxing</li>
-                <li>Body Waxing</li>
-                <li>hand Wax</li>
-                <li>Leg Waxing</li>
             </ul>
             
         </div>

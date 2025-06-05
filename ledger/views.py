@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, UpdateView, CreateView, TemplateView
+from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DetailView
 from django.views import View
 from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, 
                     VacationForm, ChatForm, KhachWalkin, SupplyForm, ContactForm)
@@ -415,6 +415,7 @@ class CustomerVisit(View):
     mani = allService.filter(category="Manicure")
     feet = allService.filter(category="Pedicure")
     wax = allService.filter(category="Wax")
+    allTech = Technician.objects.all().exclude(name="anyOne")
 
     def get(self, request):
         response = requests.get(self.url)
@@ -431,6 +432,7 @@ class CustomerVisit(View):
                 'feets': self.feet,
                 'waxs': self.wax,
                 'mani': self.mani,
+                'allTech': self.allTech,
                 'latest_image_urls': latest_image_urls,
             }
         else:
@@ -440,6 +442,7 @@ class CustomerVisit(View):
                 'feets': self.feet,
                 'waxs': self.wax,
                 'mani': self.mani,
+                'allTech': self.allTech,
                 'latest_image_urls': [],
             }
         return render(request, self.template, context)
@@ -519,3 +522,12 @@ def supplyDelete(request, pk):
     supply.delete()
     return JsonResponse({'success': True}, status=200)
 
+class EmployeeBio(DetailView):
+    template = "ledger/employee_bio.html"
+    
+    def get(self, request, pk):
+        employee = get_object_or_404(Technician, id=pk)
+        context = {'employee': employee}
+        return render(request, self.template, context)
+    
+    
