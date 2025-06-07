@@ -25,7 +25,7 @@ class TechForm(forms.ModelForm):
                         required=False)
     class Meta:
         model = Technician
-        fields = ["name","phone", "email","start_work_at","end_work","experience","picture"]
+        fields = ["name","phone", "email","start_work_at","end_work","experience","bio","picture"]
     picture = forms.ImageField(
         widget=forms.FileInput(),
         label="Upload Picture",
