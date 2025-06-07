@@ -31,6 +31,7 @@ class Technician(models.Model):
     hire_date = models.DateField(auto_now_add=True, help_text="Date when the technician was hired")
     experience = models.PositiveIntegerField(default=0, help_text="Years of experience in the field")
     bio = models.TextField(max_length=500, null=True, blank=True, help_text="Short bio about the technician")
+    view_count = models.IntegerField(default=0)
     
     @property
     def get_experience(self):
@@ -47,8 +48,17 @@ class Technician(models.Model):
         total = self.experience + gain
         
         return max(total, 0)
-        
-        
+    
+    @property
+    def total_likes(self):
+        return self.liked_technicians.count()
+    
+    @property
+    def get_bio(self):
+        if len(self.bio) > 50:
+            return self.bio[:50] + '...'
+        else:
+            return self.bio
 
     def is_on_vacation(self, check_date):
         if self.vacation_start and self.vacation_end:
@@ -172,6 +182,7 @@ class Khach(models.Model):
     time_at = models.TimeField()
     tag = models.CharField(max_length=20, null=True, blank=True)
     birthday = models.DateField(null=True, blank=True)
+    upset_button = models.BooleanField(default=False)
     history = HistoricalRecords()
     
     class Meta:
@@ -180,6 +191,11 @@ class Khach(models.Model):
 
     def __str__(self) -> str:
         return self.full_name
+    
+    def show_upset_button(self):
+        if self.today_visit:
+            return True
+        return False
     
     def phone_formatted(self):
         so = str(self.phone)
@@ -346,8 +362,10 @@ class Like(models.Model):
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats", null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="owner_likes", null=True)
+    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="liked_technicians", null=True, blank=True)
+    
     class Meta:
-        unique_together = [('chat', 'client'), ('chat','owner'),]
+        unique_together = [('chat', 'client'), ('chat','owner'), ('client', 'technician')]
         
     def __str__(self):
         if self.client:

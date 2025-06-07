@@ -214,7 +214,7 @@ class ChatLikeView(View):
             'liked' : liked,
             'total_likes': total_likes
         })
-        
+
 @require_POST
 def chatDetailLike(request, chat_id):
     client_id = request.session.get('client_id')
@@ -344,7 +344,7 @@ class UserChatCreateView(LoginRequiredMixin, View):
         chat = Chat(text=request.POST['text'], owner=request.user)
         chat.save()
         return redirect(reverse('ledger:user_chat_room'))
-    
+
 class UserChatDetailView(LoginRequiredMixin, View):
     template = "ledger/user_chat_detail.html"
     def get(self, request, pk):
@@ -527,6 +527,7 @@ class EmployeeBio(DetailView):
     
     def get(self, request, pk):
         employee = get_object_or_404(Technician, id=pk)
+        Technician.objects.filter(id=pk).update(view_count=F('view_count') + 1)
         context = {'employee': employee}
         return render(request, self.template, context)
     
