@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price
+from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price, Complimentary
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DetailView
 from django.views import View
@@ -419,6 +419,7 @@ class CustomerVisit(View):
 
     def get(self, request):
         response = requests.get(self.url)
+        complimentaries = Complimentary.objects.filter(is_available=True).order_by('category')
         if response.status_code == 200:
             data = response.json()
             latest_image_urls = []
@@ -433,6 +434,7 @@ class CustomerVisit(View):
                 'waxs': self.wax,
                 'mani': self.mani,
                 'allTech': self.allTech,
+                'complimentaries': complimentaries,
                 'latest_image_urls': latest_image_urls,
             }
         else:
@@ -443,6 +445,7 @@ class CustomerVisit(View):
                 'waxs': self.wax,
                 'mani': self.mani,
                 'allTech': self.allTech,
+                'complimentaries': complimentaries,
                 'latest_image_urls': [],
             }
         return render(request, self.template, context)

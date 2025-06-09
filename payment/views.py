@@ -152,8 +152,7 @@ def fulfill_checkout(session):
         })
 
 
-    payment_time_local = timezone.localtime(timezone.now())
-    payment_time_str = payment_time_local.strftime("%B %d, %Y, at %I:%M %p %Z")
+    payment_time_str = timezone.now().strftime("%B %d, %Y, at %I:%M %p %Z")
     context = {
         'client_email': client_email,
         'client_name': client_name,

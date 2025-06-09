@@ -397,4 +397,19 @@ class Price(models.Model):
     def __str__(self):
         return f"{self.service} - {self.price}"
     
-    
+class Complimentary(models.Model):
+    class Category(models.TextChoices):
+        drink = "Drink"
+        snack = "Snack"
+        gift = "Gift"
+    title = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
+    description = models.TextField(max_length=500, null=True, blank=True)
+    photo = models.ImageField(upload_to='complimentaries/', null=True, blank=True, help_text="Upload a photo for the complimentary item.")
+    is_available = models.BooleanField(default=True, help_text="Is this complimentary available for clients?")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="complimentaries")
+    category = models.CharField(choices=Category.choices, max_length=20, default=Category.drink, help_text="Choose a category for the complimentary item.")
+    def __str__(self):
+        return self.title
+    class Meta:
+        unique_together = ('title', 'category')
+

@@ -1,12 +1,21 @@
 from django import forms
-from .models import Technician, Khach, Service, Chat, TechWorkDay, Supply
+from .models import Technician, Khach, Service, Chat, TechWorkDay, Supply, Complimentary
 from django.contrib.auth.forms import UserCreationForm
 from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
 from django.utils import timezone
 
 
-
+class ComplimentaryForm(forms.ModelForm):
+    class Meta:
+        model = Complimentary
+        fields = ['title', 'description','photo',"category"]
+    photo = forms.ImageField(
+        widget=forms.FileInput(),
+        label="Upload Picture",
+        required=False
+    )
+    
 class TechForm(forms.ModelForm):
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),

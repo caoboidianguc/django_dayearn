@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Technician, Khach, Service, Chat, Like, TechWorkDay,
-                     KhachVisit, Supply)
+                     KhachVisit, Supply, Complimentary)
 from simple_history.admin import SimpleHistoryAdmin
 
 admin.site.register(Technician, SimpleHistoryAdmin)
@@ -11,4 +11,4 @@ admin.site.register(Khach, SimpleHistoryAdmin)
 admin.site.register(TechWorkDay)
 admin.site.register(KhachVisit)
 admin.site.register(Supply)
-
+admin.site.register(Complimentary)

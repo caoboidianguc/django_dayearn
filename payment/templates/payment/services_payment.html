@@ -18,22 +18,34 @@
     #ser_form .form-check:last-child {
         border-bottom: none;
     }
+    .card {
+        width: 100%;
+        max-width: 100%;
+    }
     .technician-card {
         cursor: pointer;
         border: 1px solid #ddd;
         padding: 15px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         border-radius: 5px;
+        align-items: center;
+        display: flex;
+        text-align: center;
+    }
+    .technician-card h5 {
+        margin: 0;
+        white-space: normal;
     }
     .technician-card.selected {
         border-color: #007bff;
         background-color: #e9f7ff;
     }
+
 </style>
 
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
                     <h1>Our Services</h1>
@@ -46,9 +58,9 @@
                         {% csrf_token %}
                         
                         <h3>Select a Technician</h3>
-                        <div class="row">
+                        <div class="row justify-content-center">
                             {% for tech in techs %}
-                                <div class="col-md-4">
+                                <div class="col-12 col-md-4">
                                     <div class="technician-card" data-tech-id="{{ tech.id }}">
                                         <h5>{{ tech.name |title }}</h5>
                                         

@@ -1,5 +1,5 @@
 from django.urls import path, re_path, include
-from ledger import views
+from ledger import views, complimentary
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -38,4 +38,9 @@ urlpatterns += [
     path('ledger/supply/<int:supply_id>/wanted/', views.supplyWanted, name="supply_is_wanted"),
     path('ledger/supply/<int:pk>/delete/', views.supplyDelete, name='supply_delete'),
     path('ledger/employee/<int:pk>/', views.EmployeeBio.as_view(), name='employee_bio'),
+    
+    path('ledger/complimentaries/', complimentary.ComplimentaryListView.as_view(), name='complimentary_list' ),
+    path('ledger/add/complimentary/', complimentary.ComplimentaryCreateView.as_view(), name='add_complimentary' ),
+    path('ledger/complimentary/<int:pk>/offer/', complimentary.complimentary_is_available, name='complimentary_available' ),
+    
 ]
