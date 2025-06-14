@@ -23,42 +23,65 @@ class ServicesPaymentView(TemplateView):
         context['services'] = Service.objects.all
         context['techs'] = Technician.objects.exclude(name='anyOne')
         return context
-    
+
 class SuccessCheckoutView(TemplateView):
     template_name = 'payment/success_checkout.html'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get('session_id')
         try:
-                session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
-                client_name = session['customer_details']['name']
-                line_items = session['line_items']['data']
-                tech_id = session.metadata.get('technician_id', 'Unknown')
-                total = 0
-                payment_intent = session.get('payment_intent', {})
-                charges = payment_intent.get('charges', {}).get('data', [])
-                
-                if session['payment_status'] == 'paid' and charges:
-                    charge = charges[0]
-                    payment_date = datetime.fromtimestamp(charge.get('created', 0))
-                    context['today'] = payment_date.strftime("%B %d, %Y")
-                else:
-                    payment_date = datetime.fromtimestamp(session.get('created', 0))
-                    context['today'] = payment_date.strftime("%B %d, %Y")
-                
-                services = []
-                for item in line_items:
-                    description = item['description']
-                    total_amount = item['amount_total'] / 100
-                    total += total_amount
-                    services.append({
-                        'description': description,
-                        'total_price': total_amount,
-                    })
-                context['client_name'] = client_name
-                context['services'] = services
-                context['total'] = total
-                context['tech'] = Technician.objects.get(id=tech_id)
+            
+            session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
+            client_name = session['customer_details']['name']
+            client_email = session['customer_details']['email']
+            line_items = session['line_items']['data']
+            tech_id = session.metadata.get('technician_id', 'Unknown')
+            total = 0
+            payment_intent = session.get('payment_intent', {})
+            charges = payment_intent.get('charges', {}).get('data', [])
+            
+            if session['payment_status'] == 'paid' and charges:
+                charge = charges[0]
+                payment_date = datetime.fromtimestamp(charge.get('created', 0))
+                context['today'] = payment_date.strftime("%B %d, %Y")
+            else:
+                payment_date = datetime.fromtimestamp(session.get('created', 0))
+                context['today'] = payment_date.strftime("%B %d, %Y")
+            
+            services = []
+            for item in line_items:
+                description = item['description']
+                total_amount = item['amount_total'] / 100
+                total += total_amount
+                services.append({
+                    'description': description,
+                    'total_price': total_amount,
+                })
+            context['client_name'] = client_name
+            context['services'] = services
+            context['total'] = total
+            context['tech'] = Technician.objects.get(id=tech_id)
+            payment_time_str = timezone.now().strftime("%B %d, %Y, at %I:%M %p %Z")
+            email_body = {
+                'client_email': client_email,
+                'client_name': client_name,
+                'services': services,
+                'total_amount': total,
+                'currency': session['currency'],
+                'payment_time': payment_time_str,
+                # 'tax': tax,
+                'total_amount': total,
+                'tech': Technician.objects.get(id=tech_id),
+            }
+            body = render_to_string('payment/confirmation_email.html', email_body)
+            email = EmailMessage(
+                subject='Payment Confirmation',
+                body=body,
+                from_email=contactEmail,
+                to=[client_email],
+            )
+            email.content_subtype = 'html'
+            email.send()
                 
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -68,29 +91,6 @@ class SuccessCheckoutView(TemplateView):
 class CancelCheckoutView(TemplateView):
     template_name = 'payment/cancel_checkout.html'
     
-class CreateCheckoutSessionView(View):
-    def post(self, request, *args, **kwargs):
-        service = Service.objects.get(id=self.kwargs['pk'])
-        try:
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[
-                    {
-                        'price_data': {
-                            'currency': 'usd',
-                            'product': service.stripe_product_id,
-                            'unit_amount': int(service.price * 100),  # Convert to cents
-                        },
-                        'quantity': 1,
-                    },
-                ],
-                mode='payment',
-                success_url=request.build_absolute_uri(reverse_lazy('payment:success_checkout')),
-                cancel_url=request.build_absolute_uri(reverse_lazy('payment:cancel_checkout')),
-            )
-            return redirect(session.url, code=303)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
         
 class CreateMultipleCheckoutSessionView(View):
     def post(self, request, *args, **kwargs):
@@ -162,7 +162,6 @@ def fulfill_checkout(session):
         'payment_time': payment_time_str,
         # 'tax': tax,
         'total_amount': total,
-        'currency': currency,
         'tech': tech,
     }
     body = render_to_string('payment/confirmation_email.html', context)

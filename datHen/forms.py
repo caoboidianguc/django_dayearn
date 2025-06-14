@@ -176,5 +176,5 @@ class KhachDetailForm(forms.ModelForm):
 class VisitForm(forms.ModelForm):
     class Meta:
         model = KhachVisit
-        fields = ['technician', 'services', ]
+        fields = ['technician', 'services', 'status']
     services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())

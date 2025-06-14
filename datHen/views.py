@@ -66,6 +66,7 @@ class DatHenView(LoginRequiredMixin,View):
             'prev_day' : prev_day,
             'next_day' : next_day,
             'form': form,
+            'now': timezone.now().time(),
         }
         for tech in all_tech:
             tech.on_vacation = tech.is_on_vacation(check_date=selected_date)

@@ -25,7 +25,7 @@
 {% endblock heading %}
 
 {% block content %}
-<div class="hero" style="background-image: url('{% static 'ledger/images/elegant.jpg' %}'); background-size: cover; background-position: center; padding: 150px 0;">
+<div class="hero" style="background-image: url('{% static 'ledger/images/elegant.jpg' %}'); background-size: cover; background-position: center; padding: 150px 0; border-radius: 15px;">
     <div class="container text-center text-white">
         
         <h1 class="display-4 text-bottom">Your Journey to Beauty Begins Here</h1>
@@ -35,7 +35,13 @@
 <!-- Complimentary Section -->
 {% if complimentaries %}
 <div class="container my-5">
-    <h2 class="text-center mb-3">Today's Complimentary</h2>
+    <h2 class="text-center mb-3 p-2 bg-light rounded-5" style="border-radius: 15px;">
+        Today's Complimentary 
+        <span class='fs-5 fst-italic text-primary' style="transition: color 0.3s;">{{ today|date:'F-d'}}
+
+        </span>
+    </h2>
+    
     <div class="d-flex flex-nowrap overflow-auto">
         {% for item in complimentaries %}
         <div class="col-md-3 mb-4 px-2">
@@ -43,7 +49,7 @@
                 <img src="{{ item.photo.url }}" class="card-img-top" alt="{{ item.title }}" style="height: 200px; object-fit: cover;">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">{{ item.title | title }}</h5>
-                    
+                    <span> {{ item.description }} </span>
                 </div>
             </div>
             </a>
