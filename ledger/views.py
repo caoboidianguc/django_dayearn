@@ -420,6 +420,7 @@ class CustomerVisit(View):
     def get(self, request):
         response = requests.get(self.url)
         complimentaries = Complimentary.objects.filter(is_available=True).order_by('category')
+        today = timezone.now().date()
         if response.status_code == 200:
             data = response.json()
             latest_image_urls = []
@@ -435,6 +436,7 @@ class CustomerVisit(View):
                 'mani': self.mani,
                 'allTech': self.allTech,
                 'complimentaries': complimentaries,
+                'today': today,
                 'latest_image_urls': latest_image_urls,
             }
         else:
@@ -446,6 +448,7 @@ class CustomerVisit(View):
                 'mani': self.mani,
                 'allTech': self.allTech,
                 'complimentaries': complimentaries,
+                'today': today,
                 'latest_image_urls': [],
             }
         return render(request, self.template, context)

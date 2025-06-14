@@ -86,12 +86,13 @@ class Technician(models.Model):
         return allClients
     
     def get_today_clients(self):
-        hnay = self.get_khachVisit().filter(day_comes=datetime.date.today()) #.exclude(status=Khach.Status.cancel)
+        hnay = self.get_khachVisit().filter(day_comes=datetime.date.today())
         return hnay.order_by('time_at')
     
     def get_khachVisit(self):
-        return self.khachvisits.all()
-                
+        return self.khachvisits.all()#.exclude(status=KhachVisit.Status.cancel)
+    
+            
     def get_available_with(self, ngay, thoigian):
         start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
         end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
@@ -413,3 +414,42 @@ class Complimentary(models.Model):
     class Meta:
         unique_together = ('title', 'category')
 
+class OpiColor(models.Model):
+    name = models.CharField(max_length=42, validators=[MinLengthValidator(2)])
+    hex_code = models.CharField(max_length=7, help_text="Hex code for the color (e.g., #FF5733)")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="opi_colors")
+    
+    class Meta:
+        unique_together = ('name', 'hex_code')
+    
+    def __str__(self):
+        return self.name
+    
+class ClientFavorite(models.Model):
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="favorites")
+    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, null=True, blank=True, related_name="favorite_clients")
+    created_at = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="client_favorites", null=True)
+    color = models.ForeignKey(OpiColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="favorite_clients", help_text="Optional color for the favorite.")
+    note = models.TextField(max_length=250, null=True, blank=True, help_text="Optional note for the favorite.")
+
+    class Meta:
+        unique_together = ('client', 'technician')
+
+    def __str__(self):
+        return f"{self.client.full_name} favorited {self.technician.name}"
+    
+    
+# for fun button but later
+class UpSetButton(models.Model):
+    class Mood(models.TextChoices):
+        smile = "Smile"
+        upset = "Upset"
+        angry = "Angry"
+        frustrated = "Frustrated"
+    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="upset_buttons")
+    created_at = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="upset_buttons", null=True)
+    mood = models.CharField(max_length=20, choices=Mood.choices, default=Mood.smile, help_text="Mood of the client when they pressed the button.")
+    def __str__(self):
+        return f"Upset button for {self.client.full_name}"

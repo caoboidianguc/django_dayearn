@@ -40,11 +40,13 @@
 .card {
     display: inline-block;
     width: 18rem;
+    border-radius: 15px;
 }
 .card-img-top {
     height: 200px;
     object-fit: cover;
     width: 100%;
+    border-radius: 15px;
 }
 .card-text {
     word-wrap: break-word;
