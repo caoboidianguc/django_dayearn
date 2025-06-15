@@ -26,10 +26,13 @@
                 <div class="d-inline-flex gap-2">
                 
                 <a href="{{ mot.get_absolute_url  }}" class="btn btn-primary" role="button" >New Schedule</a>
+                
                 {% if mot.future_visit %}
                     <a href="{{ mot.get_cancel_url }}" class="btn btn-danger" role="button" >Cancel Appointment</a>
                 {% endif %}
-                
+
+                <a href="{% url 'ledger:iam_here' mot.pk %}" class="btn btn-success" role="button" >I'm Here</a>
+
                 <a href="{{ mot.get_chat_url }}" class="btn btn-primary" role="button" >Leave Feedback</a>
                 
     </div>
