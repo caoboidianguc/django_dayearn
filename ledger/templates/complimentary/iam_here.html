@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+
+
+{% block heading %}
+    <h1>Wellcome {{ client.full_name }}</h1>
+    
+{% endblock heading %}
+
+{% block nutPhu %}
+    <a href="{% url 'ledger:client_favorite' client.pk %}" class="btn btn-primary">Add Favorite Item</a>
+{% endblock nutPhu %}
+
+{% block content %}
+<div>
+    <p>Thank you for choosing our services!</p>
+    <p>Note:</p>
+    <ul>
+        {% for favorite in favorates %}
+            <li>{{ favorite.color | title }} - {{ favorite.note }}</li>
+            <span class="text-muted"> {{ favorite.technician | title }}</span>
+        {% endfor %}
+    </ul>
+    
+    <ul>
+        {% for visit in client.get_today_visits %}
+            <li>Technician: {{ visit.technician | title }}</li>
+            <ul>
+                {% for service in visit.services.all %}
+                    <li>{{ service }} - {{ service.price }}</li>
+                {% endfor %}
+            </ul>
+        {% empty %}
+            <li>No services booked for today.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock content %}

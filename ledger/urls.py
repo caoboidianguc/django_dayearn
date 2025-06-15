@@ -42,5 +42,7 @@ urlpatterns += [
     path('ledger/complimentaries/', complimentary.ComplimentaryListView.as_view(), name='complimentary_list' ),
     path('ledger/add/complimentary/', complimentary.ComplimentaryCreateView.as_view(), name='add_complimentary' ),
     path('ledger/complimentary/<int:pk>/offer/', complimentary.complimentary_is_available, name='complimentary_available' ),
+    path('ledger/complimentary/<int:pk>/here/', complimentary.IamHereView.as_view(), name='iam_here' ),
+    path('ledger/complimentary/client/<int:pk>/favorite/', complimentary.ClientFavoriteView.as_view(), name='client_favorite' ),
     
 ]
