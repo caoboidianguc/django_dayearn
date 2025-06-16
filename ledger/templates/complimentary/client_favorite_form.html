@@ -11,7 +11,8 @@
 
 {% block content %}
 <div>
-<form action="" method="post">
+<form action="" method="post" class="p-4 bg-light rounded shadow-sm">
+    
     {% csrf_token %}
     <div class="form-group col-md-4">
     {{ form | crispy }}

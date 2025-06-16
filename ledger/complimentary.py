@@ -42,10 +42,10 @@ class IamHereView(View):
     
     def get(self, request, *args, **kwargs):
         client = get_object_or_404(Khach, pk=kwargs['pk'])
-        favorates = client.favorites.all()
+        favorites = client.favorites.all()
         context = {
             'client': client,
-            'favorates': favorates
+            'favorites': favorites
         }
         return render(request, self.template, context)
     

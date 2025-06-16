@@ -72,7 +72,7 @@
             </a>
         </span>
             {% for khach in tech.clients %}
-                <div class="card" style="width: 14rem; {% if khach.get_done_at < now %} opacity: 0.6; {% endif %}" id="client_{{ khach }}">
+                <div class="card" style="width: 14rem; {% if khach.get_done_at < now %} opacity: 0.65; {% endif %}" id="client_{{ khach }}">
                     <a tabindex="0" class="btn btn-lg" role="button" data-bs-trigger="focus" data-bs-toggle="popover" data-bs-title="{{ khach.client.phone_formatted }}" data-bs-html="true" data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button" >Remove Appoinment</a><p>Tag: {{ khach.client.tag | default:"" }}</p><a href="{{ khach.get_visit_detail_url }}" class="btn btn-primary" role="button" >Detail</a><p>{{ khach.client.desc | default:""}}</p></div>'>
                         <div class="card-body">
                             <h5 class="card-title text-info">{{ khach }}</h5>
@@ -92,11 +92,13 @@
                             </p>
                         
                             {% if khach.services %}
+                            <ul>
                                 {% for dichvu in khach.services.all %}
                                     <li>{{ dichvu | title }} </li>
                                 {% endfor %}
+                            </ul>
                             {% endif %} 
-                            <h6>Done: <span class="fs-5 text-danger">{{ khach.get_done_at }}</span></h6>
+                            <h6>Done at: <span class="fs-5 text-danger">{{ khach.get_done_at }}</span></h6>
                         </div>
                     </a>
                 </div>
