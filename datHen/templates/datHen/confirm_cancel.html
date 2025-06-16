@@ -45,7 +45,7 @@
                     <p><strong>Services:</strong></p>
                     <ul class="list-group list-group-flush">
                         {% for service in visit.services.all %}
-                        <li class="list-group-item">{{ service.service }}</li>
+                        <li class="list-group-item">{{ service.service | title }}</li>
                         {% endfor %}
                     </ul>
                 </div>

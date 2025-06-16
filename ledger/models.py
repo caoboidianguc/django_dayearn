@@ -431,7 +431,7 @@ class OpiColor(models.Model):
     
 class ClientFavorite(models.Model):
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="favorites")
-    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, null=True, blank=True, related_name="favorite_clients")
+    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, null=True, blank=True, related_name="favorite_clients",help_text="Optional note for the favorite technician.")
     created_at = models.DateTimeField(auto_now_add=True)
     color = models.ForeignKey(OpiColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="favorite_clients", help_text="Optional color for the favorite.")
     note = models.TextField(max_length=250, null=True, blank=True, help_text="Optional note for the favorite.")
@@ -447,9 +447,6 @@ class UpSetButton(models.Model):
         upset = "Upset"
         angry = "Angry"
         frustrated = "Frustrated"
-    client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="upset_buttons")
-    created_at = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="upset_buttons", null=True)
     mood = models.CharField(max_length=20, choices=Mood.choices, default=Mood.smile, help_text="Mood of the client when they pressed the button.")
     def __str__(self):
         return f"Upset button for {self.client.full_name}"
