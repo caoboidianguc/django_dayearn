@@ -121,8 +121,8 @@ class KhachWalkin(forms.ModelForm):
         if self.cleaned_data.get('existing_client'):
             return
         return super().validate_unique()
-    
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple(),
+
+    services = forms.ModelMultipleChoiceField(queryset=Service.objects.exclude(service='fee'), widget=forms.CheckboxSelectMultiple(),
                                               label='How can we help you today:',
                                               required=True,
                                               error_messages={'required':'Please choose at least one service.'},)

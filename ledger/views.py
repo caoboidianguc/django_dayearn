@@ -419,7 +419,7 @@ class CustomerVisit(View):
 
     def get(self, request):
         response = requests.get(self.url)
-        complimentaries = Complimentary.objects.filter(is_available=True).order_by('category')
+        complimentaries = Complimentary.objects.filter(is_available=True).exclude(category=Complimentary.Category.gift).order_by('category')
         today = timezone.now().date()
         if response.status_code == 200:
             data = response.json()
@@ -492,7 +492,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
 
 def services_info(request, category):
     template = "ledger/services_info.html"
-    allServices = Service.objects.filter(category=category)
+    allServices = Service.objects.filter(category=category).exclude(service='fee')
     return render(request, template, {'allServices': allServices, 'category': category})
     
 

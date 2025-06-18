@@ -55,10 +55,12 @@ class Technician(models.Model):
     
     @property
     def get_bio(self):
-        if len(self.bio) > 50:
-            return self.bio[:50] + '...'
-        else:
-            return self.bio
+        if self.bio:
+            if len(self.bio) > 50:
+                return self.bio[:50] + '...'
+            else:
+                return self.bio
+        return "Just a technician, no bio yet."
 
     def is_on_vacation(self, check_date):
         if self.vacation_start and self.vacation_end:
