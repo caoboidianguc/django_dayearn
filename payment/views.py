@@ -20,7 +20,7 @@ class ServicesPaymentView(TemplateView):
     template_name = 'payment/services_payment.html' 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['services'] = Service.objects.all
+        context['services'] = Service.objects.exclude(service='fee')
         context['techs'] = Technician.objects.exclude(name='anyOne')
         return context
 
@@ -36,6 +36,7 @@ class SuccessCheckoutView(TemplateView):
             client_email = session['customer_details']['email']
             line_items = session['line_items']['data']
             tech_id = session.metadata.get('technician_id', 'Unknown')
+            tech = Technician.objects.get(id=tech_id)
             total = 0
             payment_intent = session.get('payment_intent', {})
             charges = payment_intent.get('charges', {}).get('data', [])
@@ -60,7 +61,7 @@ class SuccessCheckoutView(TemplateView):
             context['client_name'] = client_name
             context['services'] = services
             context['total'] = total
-            context['tech'] = Technician.objects.get(id=tech_id)
+            context['tech'] = tech
             payment_time_str = timezone.now().strftime("%B %d, %Y, at %I:%M %p %Z")
             email_body = {
                 'client_email': client_email,
@@ -71,14 +72,14 @@ class SuccessCheckoutView(TemplateView):
                 'payment_time': payment_time_str,
                 # 'tax': tax,
                 'total_amount': total,
-                'tech': Technician.objects.get(id=tech_id),
+                'tech': tech,
             }
             body = render_to_string('payment/confirmation_email.html', email_body)
             email = EmailMessage(
                 subject='Payment Confirmation',
                 body=body,
                 from_email=contactEmail,
-                to=[client_email],
+                to=[client_email, tech.email] if tech.email else [client_email],
             )
             email.content_subtype = 'html'
             email.send()
@@ -111,7 +112,17 @@ class CreateMultipleCheckoutSessionView(View):
                     },
                     'quantity': 1,
                 })
-                
+            fee = Service.objects.get(service='fee')
+            fee_price = sum(service.price for service in services) * 0.04  # Assuming fee is 4% of total service price
+
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product': fee.stripe_product_id,
+                    'unit_amount': int(fee_price * 100),  # Convert to cents
+                },
+                'quantity': 1,
+            })
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
@@ -195,3 +206,4 @@ def stripe_webhook(request):
         session = event['data']['object']
         fulfill_checkout(session)
     return HttpResponse(status=200)
+

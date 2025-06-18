@@ -41,11 +41,13 @@ class IamHereView(View):
     template = 'complimentary/iam_here.html'
     
     def get(self, request, *args, **kwargs):
+        gift = Complimentary.objects.filter(category=Complimentary.Category.gift, is_available=True)
         client = get_object_or_404(Khach, pk=kwargs['pk'])
         favorites = client.favorites.all()
         context = {
             'client': client,
-            'favorites': favorites
+            'favorites': favorites,
+            'gift': gift,
         }
         return render(request, self.template, context)
     
