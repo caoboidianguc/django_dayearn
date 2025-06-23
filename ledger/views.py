@@ -16,17 +16,18 @@ import requests
 import os
 from django.db.models import Prefetch, F
 from django.views.decorators.http import require_POST
-from datHen.views import tenSpa, saveKhachVisit
 from django.core.mail import EmailMessage
 import stripe
+from . import utils
 
 stripe.api_key = os.environ.get('stripe_secret_key')
-contactEmail = "hoadambutxinh@gmail.com"
 
+
+            
 class PrivacyPolicy(View):
     template = "privacy.html"
     def get(self, request):
-        context = {'spaName': tenSpa, "email": contactEmail}
+        context = {'spaName': utils.tenSpa, "email": utils.contactEmail}
         return render(request, self.template, context)
     
 class Contact(View):
@@ -486,7 +487,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
         khach.services.set(dv)    
         form.instance = khach
         if not khach.today_visit:
-            saveKhachVisit(khach, ngay,thoigian,dv, khach.technician, KhachVisit.Status.anyone)
+            utils.saveKhachVisit(khach, ngay,thoigian,dv, khach.technician, KhachVisit.Status.anyone)
         messages.success(self.request, f"Welcom {form.instance.full_name} to our salon!")
         return super().form_valid(form)
 
