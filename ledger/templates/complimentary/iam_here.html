@@ -49,20 +49,25 @@
         <div class="card-body">
             {% if client.get_today_visits %}
                 <h3 class="fs-4 text-secondary">Your visit with:</h3>
-            {% for visit in client.get_today_visits %}
-                <div class="mb-3">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Technician:</strong> {{ visit.technician | title }}</li>
-                        {% for service in visit.services.all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ service | title }}
-                                <span class="badge bg-warning rounded-pill">{{ service.price }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            
-            {% endfor %}
+                    {% for visit in client.get_today_visits %}
+                        <form action="{% url 'payment:multi_checkout_session' %}" method="post">
+                            {% csrf_token %}
+                        <div class="mb-3">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><strong>Technician:</strong> {{ visit.technician | title }}</li>
+                                {% for service in visit.services.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ service | title }}
+                                        <input type="hidden" name="service_ids" value="{{ service.id }}">
+                                        <span class="badge bg-warning rounded-pill">{{ service.price }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <input type="hidden" name="technician_id" value="{{ visit.technician.id }}">
+                        <button type="submit" class="btn btn-primary mt-3">Proceed to Checkout</button>
+                        </form>
+                    {% endfor %}
             {% else %}
                 <div class="alert alert-warning text-center" role="alert">
                     No visits scheduled for today.
