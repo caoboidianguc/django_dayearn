@@ -27,7 +27,7 @@ stripe.api_key = os.environ.get('stripe_secret_key')
 class PrivacyPolicy(View):
     template = "privacy.html"
     def get(self, request):
-        context = {'spaName': utils.tenSpa, "email": utils.contactEmail}
+        context = {'spaName': utils.tenSpa, "email": utils.privacyEmail}
         return render(request, self.template, context)
     
 class Contact(View):
@@ -493,7 +493,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
 
 def services_info(request, category):
     template = "ledger/services_info.html"
-    allServices = Service.objects.filter(category=category).exclude(service='fee')
+    allServices = Service.objects.filter(category=category).exclude(service='tax')
     return render(request, template, {'allServices': allServices, 'category': category})
     
 

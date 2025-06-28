@@ -8,6 +8,7 @@ from crispy_forms.layout import Layout, Row, Field, Div, Column
 from django.core.exceptions import ValidationError
 
  
+service_queryset = Service.objects.exclude(service="tax")
 
 class ChonNgay(forms.widgets.DateInput):
     input_type = 'date'
@@ -42,7 +43,7 @@ class DatHenForm(forms.ModelForm):
                         attrs={'placeholder': 'Search by Phone Number'}),
                         label="")
     
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
+    services = forms.ModelMultipleChoiceField(queryset=service_queryset ,widget=forms.CheckboxSelectMultiple())
     
     full_name = forms.CharField(
         label="",
@@ -164,7 +165,7 @@ class ThirdFormExist(forms.ModelForm):
     
 
 class ServicesChoiceForm(forms.Form):
-    dichvu = forms.ModelMultipleChoiceField(queryset=Service.objects.all().order_by('category'), 
+    dichvu = forms.ModelMultipleChoiceField(queryset=service_queryset.order_by('category'), 
                                               widget=forms.CheckboxSelectMultiple,
                                               label = "")
     
@@ -177,4 +178,4 @@ class VisitForm(forms.ModelForm):
     class Meta:
         model = KhachVisit
         fields = ['technician', 'services', 'status']
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.all() ,widget=forms.CheckboxSelectMultiple())
+    services = forms.ModelMultipleChoiceField(queryset=service_queryset ,widget=forms.CheckboxSelectMultiple())
