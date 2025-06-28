@@ -3,7 +3,8 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 
-contactEmail = "hoadambutxinh@gmail.com"
+contactEmail = "Elegant Nails & Spa"
+privacyEmail = "jubivu@icloud.com"
 tenSpa = "Elegant Nails & Spa"
 chuDe = "Elegant Nails & Spa Confirm schedule"
 address = "4605 Forest Dr #5, Columbia, SC 29206"
@@ -43,6 +44,22 @@ def sendEmailConfirmation(request, client):
     )
     email.content_subtype = 'html'
     email.send()
+    
+def sendEmailCanceled(client):
+    email_body = {
+                'client': client,
+                
+            }
+    body = render_to_string('datHen/email_confirm_cancel.html', email_body)
+    email = EmailMessage(
+        subject='Appointment Cancellation',
+        body=body,
+        from_email=contactEmail,
+        to=[client.email],
+    )
+    email.content_subtype = 'html'
+    email.send()
+    # print("Email sent to client:", client.email)
 
 def cancel_visit(request, id):
     url = reverse_lazy('datHen:cancel_confirm', kwargs={'pk': id})

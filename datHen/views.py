@@ -313,12 +313,12 @@ class CancelViewConfirm(View):
         client = get_object_or_404(Khach, id=pk)
         total_point = sum([service.price for service in client.services.all()])
         client.points -= total_point
+        # send email to client here before clearing services
         client.services.clear()
         client.status = Khach.Status.cancel
         client.save()
+        utils.sendEmailCanceled(client=client)
         utils.cancelKhachVisit(client=client)
-        tinNhan = f"{utils.tenSpa}\nYour appointment was canceled.\nOriginal details:\nDate: {client.day_comes}\nTime: {client.time_at}\nTechnician: {client.technician}"
-        EmailMessage(utils.chuDe, tinNhan, to=[client.email]).send()
         messages.success(request, "Your services have been canceled successfully.")
         return redirect(self.get_success_url())
     

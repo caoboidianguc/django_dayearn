@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+{% load static %}
+
+
+{% block heading %}
+    <title>Appointment Cancel</title>
+{% endblock heading %}
+
+{% block content %}
+    <p>Dear {{ client.full_name |title }},</p>
+    <p>Your appointment with:</p>
+    <ul>
+        <li><strong>Date:</strong> {{ client.day_comes }}</li>
+        <li><strong>Time:</strong> {{ client.time_at }}</li>
+        <!-- there no service list because it show at confirm page-->
+        <li><strong>Technician:</strong> {{ client.technician |title }}</li>
+    </ul>
+    <p> has been successfully cancelled.</p>
+{% endblock content %}
+

@@ -2,11 +2,10 @@ from django.shortcuts import render
 from django.views.generic import TemplateView, ListView
 from django.views import View
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
-from django.http import JsonResponse, HttpResponse
 from django.urls import reverse_lazy
 import stripe, os
-from ledger.models import Service, Technician
-from django.shortcuts import render, redirect
+from ledger.models import Service, Technician, KhachVisit
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
@@ -20,7 +19,7 @@ class ServicesPaymentView(TemplateView):
     template_name = 'payment/services_payment.html' 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['services'] = Service.objects.exclude(service='fee')
+        context['services'] = Service.objects.exclude(service='tax')
         context['techs'] = Technician.objects.exclude(name='anyOne')
         return context
 
@@ -30,13 +29,17 @@ class SuccessCheckoutView(TemplateView):
         context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get('session_id')
         try:
-            
             session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
             client_name = session['customer_details']['name']
             client_email = session['customer_details']['email']
             line_items = session['line_items']['data']
-            tech_id = session.metadata.get('technician_id', 'Unknown')
+            tech_id = session.metadata.get('technician_id')
             tech = Technician.objects.get(id=tech_id)
+            visit_id = session.metadata.get('visit_id')
+            visit = get_object_or_404(KhachVisit, id=visit_id)
+            if not visit.isPaid:
+                visit.isPaid = True
+                visit.save()
             total = 0
             payment_intent = session.get('payment_intent', {})
             charges = payment_intent.get('charges', {}).get('data', [])
@@ -98,6 +101,7 @@ class CreateMultipleCheckoutSessionView(View):
         service_ids = request.POST.getlist('service_ids')
         services = Service.objects.filter(id__in=service_ids)
         tech_id = request.POST.get('technician_id')
+        visit_id = request.POST.get('client_visit_id')
         try:
             line_items = []
             for service in services:
@@ -112,14 +116,14 @@ class CreateMultipleCheckoutSessionView(View):
                     },
                     'quantity': 1,
                 })
-            fee = Service.objects.get(service='fee')
-            fee_price = sum(service.price for service in services) * 0.04  # Assuming fee is 4% of total service price
+            tax = Service.objects.get(service='tax')
+            tax_price = sum(service.price for service in services) * 0.035  # Assuming fee is 35% of total service price
 
             line_items.append({
                 'price_data': {
                     'currency': 'usd',
-                    'product': fee.stripe_product_id,
-                    'unit_amount': int(fee_price * 100),  # Convert to cents
+                    'product': tax.stripe_product_id,
+                    'unit_amount': int(tax_price * 100),  # Convert to cents
                 },
                 'quantity': 1,
             })
@@ -132,8 +136,8 @@ class CreateMultipleCheckoutSessionView(View):
                 # automatic_tax={'enabled': True},
                 metadata={
                     'technician_id': tech_id,
+                    'visit_id': visit_id,
                 }
-                
             )
             return redirect(session.url, code=303)
         except Exception as e:

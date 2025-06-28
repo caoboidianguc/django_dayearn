@@ -5,6 +5,7 @@ from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
 from django.utils import timezone
 
+service_queryset = Service.objects.exclude(service="tax")
 
 class ComplimentaryForm(forms.ModelForm):
     class Meta:
@@ -122,7 +123,7 @@ class KhachWalkin(forms.ModelForm):
             return
         return super().validate_unique()
 
-    services = forms.ModelMultipleChoiceField(queryset=Service.objects.exclude(service='fee'), widget=forms.CheckboxSelectMultiple(),
+    services = forms.ModelMultipleChoiceField(queryset=service_queryset, widget=forms.CheckboxSelectMultiple(),
                                               label='How can we help you today:',
                                               required=True,
                                               error_messages={'required':'Please choose at least one service.'},)

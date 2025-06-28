@@ -65,7 +65,17 @@
                             </ul>
                         </div>
                         <input type="hidden" name="technician_id" value="{{ visit.technician.id }}">
+                        
+                        <input type="hidden" name="client_visit_id" value="{{ visit.id }}">
+                        {% if not visit.isPaid %}
                         <button type="submit" class="btn btn-primary mt-3">Proceed to Checkout</button>
+                        {% else %}
+                        <li class="d-flex justify-content-between align-items-center">
+                        <span></span>
+                        <span class="text-success">Services with {{ visit.technician | title }} have been paid.</span>
+                        </li>
+                        {% endif %} 
+                        
                         </form>
                     {% endfor %}
             {% else %}
