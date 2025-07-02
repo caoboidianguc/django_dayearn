@@ -30,16 +30,17 @@ class SuccessCheckoutView(TemplateView):
         session_id = self.request.GET.get('session_id')
         try:
             session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
-            client_name = session['customer_details']['name']
-            client_email = session['customer_details']['email']
+            client_name = session['customer_details'].get('name', 'Unknown Client')
+            client_email = session['customer_details'].get('email', 'Unknown Email')
             line_items = session['line_items']['data']
             tech_id = session.metadata.get('technician_id')
             tech = Technician.objects.get(id=tech_id)
-            visit_id = session.metadata.get('visit_id')
-            visit = get_object_or_404(KhachVisit, id=visit_id)
-            if not visit.isPaid:
-                visit.isPaid = True
-                visit.save()
+            visit_id = session.metadata.get('visit_id', None)
+            if visit_id:
+                visit = get_object_or_404(KhachVisit, id=visit_id)
+                if not visit.isPaid:
+                    visit.isPaid = True
+                    visit.save()
             total = 0
             payment_intent = session.get('payment_intent', {})
             charges = payment_intent.get('charges', {}).get('data', [])
@@ -101,7 +102,7 @@ class CreateMultipleCheckoutSessionView(View):
         service_ids = request.POST.getlist('service_ids')
         services = Service.objects.filter(id__in=service_ids)
         tech_id = request.POST.get('technician_id')
-        visit_id = request.POST.get('client_visit_id')
+        visit_id = request.POST.get('client_visit_id', None)
         try:
             line_items = []
             for service in services:
@@ -155,7 +156,12 @@ def fulfill_checkout(session):
     total = session_data['amount_total'] / 100  # Convert cents to dollars
     currency = session_data['currency']
     tech_id = session_data['metadata'].get('technician_id', 'Unknown')
-    tech = Technician.objects.get(id=tech_id) if tech_id != 'Unknown' else None
+    tech = None
+    if tech_id and tech_id != 'Unknown' and tech_id.isdigit():
+        try:
+            tech = Technician.objects.get(id=tech_id)
+        except Technician.DoesNotExist:
+            tech = None
     # tax = session_data.get('total_details', {}).get('amount_tax', 0) / 100  # Convert cents to dollars
     services = []
     for item in line_items:
