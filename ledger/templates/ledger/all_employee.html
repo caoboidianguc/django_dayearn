@@ -17,7 +17,7 @@
     {% for employee in employees %}
     {% if employee.isWork %}
     <div class="cols-auto">
-      <button class="tech-button btn btn-ligh" style="border: 2px solid green" id="em_{{employee.id}}">
+      <button class="tech-button btn btn-light" style="border: 2px solid green" id="em_{{employee.id}}">
         <div class="card-body">
              <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
           <div class="card-subtitle align-content-center">{{ employee.time_come_in |time:"H:i A"}}</div>

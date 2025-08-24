@@ -117,8 +117,8 @@ class ExistThirdStep(View):
         ngay = request.session['date']
         gioHienTai = datetime.now() + timedelta(minutes=30)
         serChon = request.GET.getlist('dichvu')
-        request.session['dichvu'] = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=[int(service) for service in serChon])
+        serPick = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=serPick)
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
@@ -146,8 +146,8 @@ class ExistThirdStep(View):
         client = get_object_or_404(Khach, id=client_id)
         ngay = request.session['date']
         serChon = request.GET.getlist('dichvu')
-        request.session['dichvu'] = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=[int(service) for service in serChon])
+        serPick = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=serPick)
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
@@ -228,16 +228,16 @@ class ThirdStep(View):
         ngay = request.session['date']
         gioHienTai = datetime.now() + timedelta(minutes=30)
         serChon = request.GET.getlist('dichvu')
-        request.session['dichvu'] = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=[int(service) for service in serChon])
-        
+        serPick = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=serPick)
+
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         if ngay == hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        elif ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
+        elif ngayDate.weekday() or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -258,8 +258,8 @@ class ThirdStep(View):
         tech = get_object_or_404(Technician, id=pk)
         ngay = request.session['date']
         serChon = request.GET.getlist('dichvu')
-        request.session['dichvu'] = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=[int(service) for service in serChon])
+        serPick = [int(service) for service in serChon]
+        services = Service.objects.filter(id__in=serPick)
         available = []
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         total_point = sum([service.price for service in services])

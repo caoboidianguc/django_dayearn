@@ -531,11 +531,19 @@ def supplyDelete(request, pk):
 
 class EmployeeBio(DetailView):
     template = "ledger/employee_bio.html"
-    
+    week_days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"]
     def get(self, request, pk):
         employee = get_object_or_404(Technician, id=pk)
         Technician.objects.filter(id=pk).update(view_count=F('view_count') + 1)
-        context = {'employee': employee}
+        work_days = [self.week_days[index] for index,day in enumerate(employee.work_days) if day == '1' and index < len(self.week_days)]
+        context = {'employee': employee, 'work_days': work_days}
         return render(request, self.template, context)
     
     
