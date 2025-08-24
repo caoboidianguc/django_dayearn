@@ -68,8 +68,9 @@
     <h1 class="profile-header">About {{ employee.name | title }}    </h1>
     {% if employee.still_vacation %}
         <div class="fs-5 text-danger">On vacation from: {{ employee.vacation_start }} <br>to :{{ employee.vacation_end }}</div>
-    
+
     {% endif %}
+    
     <div class="card profile-card">
         <div class="card-body">
             <h3 class="experience-badge">{{ employee.get_experience }} Years in the Field</h3>
@@ -81,5 +82,11 @@
     <a href="{{ employee.get_absolute_url }}" class="text-decoration-none">
         <button class="book-button">Book with {{ employee.name | title }}</button>
     </a>
+    <div class="fs-5 text-primary">Works on:</div>
+    <ul>
+    {% for work_day in work_days %}
+        <li class="fs-5 text-success"> {{ work_day }}</li>
+    {% endfor %}
+    </ul>
 </div>
 {% endblock content %}
