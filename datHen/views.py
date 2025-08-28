@@ -124,7 +124,7 @@ class ExistThirdStep(View):
         if ngay == hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        elif ngayDate.weekday() == 6 or tech.is_on_vacation(check_date=ngayDate):
+        elif ngayDate.weekday() == 0 or tech.is_on_vacation(check_date=ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -151,7 +151,7 @@ class ExistThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         total_point = sum([service.price for service in services])
-        if ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
+        if ngayDate.weekday() == 0 or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -235,7 +235,7 @@ class ThirdStep(View):
         if ngay == hnay:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        elif ngayDate.weekday() or tech.is_on_vacation(ngayDate):
+        elif tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -262,7 +262,7 @@ class ThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         total_point = sum([service.price for service in services])
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngayDate.weekday() == 6 or tech.is_on_vacation(ngayDate):
+        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
