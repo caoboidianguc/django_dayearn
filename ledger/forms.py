@@ -139,6 +139,7 @@ class SupplyForm(forms.ModelForm):
 class ContactForm(forms.Form):
     name = forms.CharField(min_length=3,max_length=25, strip=True)
     email = forms.EmailField()
+    phone = PhoneNumberField(required=True)
     message = forms.CharField(min_length=10, max_length=350,widget=forms.Textarea(
                         attrs={'placeholder': 'Message',
                                'rows': 4,

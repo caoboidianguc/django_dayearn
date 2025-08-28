@@ -54,7 +54,7 @@ class IamHereView(View):
 class ClientFavoriteView(CreateView):
     model = ClientFavorite
     template_name = 'complimentary/client_favorite_form.html'
-    fields = ['technician', 'color', 'note']
+    fields = ['color', 'note']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

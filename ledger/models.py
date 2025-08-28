@@ -32,7 +32,8 @@ class Technician(models.Model):
     experience = models.PositiveIntegerField(default=0, help_text="Years of experience in the field")
     bio = models.TextField(max_length=500, null=True, blank=True, help_text="Short bio about the technician")
     view_count = models.IntegerField(default=0)
-    
+    is_accept_booking = models.BooleanField(default=True, help_text="Is the technician accepting new bookings?")
+
     @property
     def get_experience(self):
         today = timezone.now().date()
@@ -189,7 +190,7 @@ class Khach(models.Model):
     history = HistoricalRecords()
     
     class Meta:
-        unique_together = ('full_name','phone',)#put email here for production, increase secure for chat
+        unique_together = ('full_name','phone',)
         ordering = ['full_name','-day_comes']
 
     def __str__(self) -> str:
@@ -434,13 +435,12 @@ class OpiColor(models.Model):
     
 class ClientFavorite(models.Model):
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="favorites")
-    technician = models.ForeignKey(Technician, on_delete=models.CASCADE, null=True, blank=True, related_name="favorite_clients",help_text="Optional note for the favorite technician.")
     created_at = models.DateTimeField(auto_now_add=True)
     color = models.ForeignKey(OpiColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="favorite_clients", help_text="Optional color for the favorite.")
     note = models.TextField(max_length=250, null=True, blank=True, help_text="Optional note for the favorite.")
     
     def __str__(self):
-        return f"{self.client.full_name} favorited {self.technician.name}"
+        return f"{self.client.full_name} - {self.note if self.note else 'No Note'}"
     
     
 # for fun button but later
@@ -453,3 +453,5 @@ class UpSetButton(models.Model):
     mood = models.CharField(max_length=20, choices=Mood.choices, default=Mood.smile, help_text="Mood of the client when they pressed the button.")
     def __str__(self):
         return f"Upset button for {self.client.full_name}"
+    
+    

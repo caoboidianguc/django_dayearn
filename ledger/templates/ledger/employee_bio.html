@@ -79,9 +79,11 @@
             <i class="bi bi-bar-chart"></i><span class="text-sm-end text-secondary"> {{ employee.view_count }}</span>
         </div>
     </div>
+    {% if employee.is_accept_booking %}
     <a href="{{ employee.get_absolute_url }}" class="text-decoration-none">
         <button class="book-button">Book with {{ employee.name | title }}</button>
     </a>
+    {% endif %}
     <div class="fs-5 text-primary">Works on:</div>
     <ul>
     {% for work_day in work_days %}
