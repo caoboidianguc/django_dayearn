@@ -34,6 +34,11 @@ class Technician(models.Model):
     view_count = models.IntegerField(default=0)
     is_accept_booking = models.BooleanField(default=True, help_text="Is the technician accepting new bookings?")
 
+    def get_day_off(self, date):
+        for i, char in enumerate(self.work_days):
+            if i == date.weekday() and char == '0':
+                return True
+        return False
     @property
     def get_experience(self):
         today = timezone.now().date()
