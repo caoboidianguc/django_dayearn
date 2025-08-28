@@ -71,8 +71,7 @@ class ExistPickTech(View):
     template = 'datHen/exist_pick_tech.html'
     
     def get(self, request, pk):
-        request.session['client_id'] = ""
-        tech = Technician.objects.exclude(name="anyOne")
+        tech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
         cont = {'allTech': tech}
         request.session['client_id'] = pk
         return render(request, self.template, cont)
@@ -184,7 +183,7 @@ class FirstStep(View):
     template = 'datHen/first_step.html'
     #need to filter user
     def get(self,request):
-        tech = Technician.objects.exclude(name="anyOne")
+        tech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
         cont = {'allTech': tech}
         return render(request, self.template, cont)
 
@@ -192,7 +191,6 @@ class FirstStep(View):
 class Second(View):
     template = 'datHen/second.html'
     def get(self, request, pk):
-        request.session['id'] = None
         request.session['date'] = request.GET.get('day_comes')      
         secondForm = DateForm()
         cont = {

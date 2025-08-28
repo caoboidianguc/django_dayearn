@@ -43,9 +43,10 @@ class Contact(View):
             context = {'form': form}
             return render(request, self.template, context)
         name = form.cleaned_data['name']
+        phone = form.cleaned_data['phone']
         email = form.cleaned_data['email']
         message = form.cleaned_data['message']
-        EmailMessage('Contact Form Submission', f'Name: {name}\nEmail: {email}\nMessage: {message}', email, to=[self.receiveEmail],reply_to=[email]).send()
+        EmailMessage('Contact Form Submission', f'Name: {name}\nPhone: {phone}\nEmail: {email}\nMessage: {message}', email, to=[self.receiveEmail],reply_to=[email]).send()
         messages.success(request, 'Your message has been sent successfully!')
         return redirect('ledger:index')
         
