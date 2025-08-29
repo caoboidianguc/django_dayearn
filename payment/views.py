@@ -40,6 +40,7 @@ class SuccessCheckoutView(TemplateView):
                 visit = get_object_or_404(KhachVisit, id=visit_id)
                 if not visit.isPaid:
                     visit.isPaid = True
+                    visit.get_paid_at = timezone.now()
                     visit.save()
             total = 0
             payment_intent = session.get('payment_intent', {})

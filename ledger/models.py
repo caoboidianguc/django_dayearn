@@ -270,6 +270,7 @@ class KhachVisit(models.Model):
     day_comes = models.DateField()
     time_at = models.TimeField()
     isPaid = models.BooleanField(default=False, help_text="Has the client paid for this visit?")
+    get_paid_at = models.DateTimeField(null=True, blank=True)
     total_spent = models.DecimalField(max_digits=7, decimal_places=2, editable=False, null=True)
     
     class Meta:

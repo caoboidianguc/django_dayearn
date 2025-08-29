@@ -98,6 +98,9 @@
                                 {% endfor %}
                             </ul>
                             {% endif %} 
+                            {% if khach.isPaid %}
+                            <div class="fs-4 text-success">Paid at: <span class="fs-5">{{ khach.get_paid_at | time:"h:i A" }}</span></div>
+                            {% endif %}
                             <h6>Done at: <span class="fs-5 text-danger">{{ khach.get_done_at }}</span></h6>
                         </div>
                     </a>
@@ -112,8 +115,3 @@
 {% endblock content %}
 
 
-
-{% block footer %}
-    
-{% endblock footer %}
- 
