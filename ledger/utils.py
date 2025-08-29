@@ -2,6 +2,8 @@ from .models import KhachVisit
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 contactEmail = "Elegant Nails & Spa"
 privacyEmail = "jubivu@icloud.com"
@@ -66,3 +68,8 @@ def cancel_visit(request, id):
     link = request.build_absolute_uri(url)
     return link
 
+def visit_isPaid(request, pk):
+    visit = get_object_or_404(KhachVisit, id=pk)
+    if visit.isPaid:
+        return JsonResponse({'success': True, 'isPaid': True})
+    return JsonResponse({'isPaid': False})
