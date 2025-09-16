@@ -110,7 +110,6 @@ class ExistThirdStep(View):
     def get(self,request):
         client_id = request.session['client_id']
         pk = request.session['tech_id']
-        hnay = date.today().strftime("%Y-%m-%d")
         tech = get_object_or_404(Technician, id=pk)
         client = get_object_or_404(Khach, id=client_id)
         ngay = request.session['date']
@@ -121,10 +120,10 @@ class ExistThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngay == hnay:
+        if ngayDate == date.today() and not tech.get_day_off(ngayDate):
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        elif ngayDate.weekday() == 0 or tech.is_on_vacation(check_date=ngayDate):
+        elif tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -151,7 +150,7 @@ class ExistThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         total_point = sum([service.price for service in services])
-        if ngayDate.weekday() == 0 or tech.is_on_vacation(ngayDate):
+        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
@@ -221,7 +220,6 @@ class ThirdStep(View):
         return reverse_lazy('ledger:index')
     def get(self,request):
         pk = request.session['id']
-        hnay = date.today().strftime("%Y-%m-%d")
         tech = get_object_or_404(Technician, id=pk)
         ngay = request.session['date']
         gioHienTai = datetime.now() + timedelta(minutes=30)
@@ -232,7 +230,7 @@ class ThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngay == hnay:
+        if ngayDate == date.today() and not tech.get_day_off(ngayDate):
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
             available = [gio for gio in available if gio.hour > gioHienTai.hour]
         elif tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):

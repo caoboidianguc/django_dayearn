@@ -78,7 +78,7 @@ class Technician(models.Model):
         return False
     class Meta:
         unique_together = ('name','phone',)
-        ordering = ['name']
+        ordering = ['time_come_in','name']
     def clean(self):
         if self.start_work_at > self.end_work:
             raise ValidationError("Start time must be before end time")

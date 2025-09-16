@@ -67,7 +67,7 @@
     {% for tech in allTech %}
     <div class="col-md-2 align-text-top" id="tech">
         <span class="fs-3">
-            <a href="{% url 'ledger:vacation' tech.id %}" class="btn {% if tech.on_vacation %}btn-secondary{% else %}btn-primary{% endif %}" role="button" > {{ tech.name | title }}
+            <a href="{% url 'ledger:vacation' tech.id %}" class="btn {% if tech.on_vacation or not tech.isWork %}btn-secondary{% else %}btn-primary{% endif %}" role="button" > {{ tech.name | title }}
                 <span class="text-info fs-5">{% if tech.on_vacation %}Off {% else %}  {{ tech.get_services_today }} </span>{% endif %}
             </a>
         </span>
