@@ -417,12 +417,12 @@ class CustomerVisit(View):
     mani = allService.filter(category="Manicure")
     feet = allService.filter(category="Pedicure")
     wax = allService.filter(category="Wax")
-    allTech = Technician.objects.all().exclude(name="anyOne")
 
     def get(self, request):
         response = requests.get(self.url)
         complimentaries = Complimentary.objects.filter(is_available=True).exclude(category=Complimentary.Category.gift).order_by('category')
         today = timezone.now().date()
+        allTech = Technician.objects.filter(is_accept_booking=True)
         if response.status_code == 200:
             data = response.json()
             latest_image_urls = []
@@ -436,7 +436,7 @@ class CustomerVisit(View):
                 'feets': self.feet,
                 'waxs': self.wax,
                 'mani': self.mani,
-                'allTech': self.allTech,
+                'allTech': allTech,
                 'complimentaries': complimentaries,
                 'today': today,
                 'latest_image_urls': latest_image_urls,
@@ -448,7 +448,7 @@ class CustomerVisit(View):
                 'feets': self.feet,
                 'waxs': self.wax,
                 'mani': self.mani,
-                'allTech': self.allTech,
+                'allTech': allTech,
                 'complimentaries': complimentaries,
                 'today': today,
                 'latest_image_urls': [],
