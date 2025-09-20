@@ -135,11 +135,21 @@ class ThirdForm(forms.ModelForm):
         }
     ))
     
-    def clean_full_name(self):
-        data = super().clean()
-        data = self.cleaned_data['full_name']
-        return str(data).upper().strip()
-
+    def clean(self):
+        cleaned_data = super().clean()
+        full_name = cleaned_data.get('full_name').upper()
+        phone = cleaned_data.get('phone')
+        if full_name and phone:
+            existing_client = Khach.objects.filter(full_name=full_name, phone=phone).first()
+            if existing_client:
+                cleaned_data['existing_client'] = existing_client
+            else:
+                cleaned_data['existing_client'] = None
+        return cleaned_data
+    def validate_unique(self):
+        if self.cleaned_data.get('existing_client'):
+            return
+        return super().validate_unique()
 
 
 class ThirdFormExist(forms.ModelForm):

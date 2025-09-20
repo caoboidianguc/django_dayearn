@@ -454,7 +454,7 @@ class CustomerVisit(View):
                 'latest_image_urls': [],
             }
         return render(request, self.template, context)
-    
+
 class ClientWalkinView(LoginRequiredMixin, CreateView):
     template_name = "ledger/walkin.html"
     form_class = KhachWalkin
