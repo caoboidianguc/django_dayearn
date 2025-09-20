@@ -120,13 +120,12 @@ class ExistThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngayDate == date.today() and not tech.get_day_off(ngayDate):
-            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        elif tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
+        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+            if ngayDate == date.today():
+                available = [gio for gio in available if gio.hour > gioHienTai.hour]
         form = ThirdFormExist(instance=client)
         form.instance.day_comes = ngay
         form.instance.technician = tech
@@ -230,13 +229,12 @@ class ThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if ngayDate == date.today() and not tech.get_day_off(ngayDate):
-            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        elif tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
+        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+            if ngayDate == date.today():
+                available = [gio for gio in available if gio.hour > gioHienTai.hour]
         form = ThirdForm()
         
         form.instance.day_comes = ngay
@@ -264,8 +262,8 @@ class ThirdStep(View):
             available = []
         else:
             available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            
-        form = ThirdForm(request.POST)
+        
+        form = ThirdForm(request.POST, instance=tech)
         
         if not form.is_valid():
             cont = {'form' : form, 
@@ -274,14 +272,29 @@ class ThirdStep(View):
                 'ngay': ngayDate,
                 'allServices': services}
             return render(request, self.template, cont)
-        
-        khac = form.save(commit=False)
-        khac.day_comes = ngay
-        khac.technician = tech
-        khac.points = total_point
-        khac.save()
+        existing_client = form.cleaned_data.get('existing_client')
+        if existing_client:
+            khac = existing_client
+            khac.day_comes = ngay
+            khac.technician = tech
+            khac.time_at = form.cleaned_data['time_at']
+            khac.status = form.cleaned_data['status']
+            khac.points = total_point
+            khac.save()
+        else:
+            khac, _ = Khach.objects.get_or_create(
+                full_name=form.cleaned_data['full_name'].upper().strip(),
+                phone=form.cleaned_data['phone'],
+                defaults={
+                    'day_comes': ngay,
+                    'technician': tech,
+                    'time_at': form.cleaned_data['time_at'],
+                    'status': form.cleaned_data['status'],
+                    'points': total_point
+                }
+            )
         khac.services.set(services)
-        form.save_m2m()
+        form.instance = khac
         utils.saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         utils.sendEmailConfirmation(request, form.instance)
