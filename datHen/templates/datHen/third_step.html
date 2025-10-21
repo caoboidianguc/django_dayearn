@@ -45,7 +45,7 @@
       {% endif %}
     </div>
     {% endif %}
-      <form action='' method='post'>
+      <form action='' method='post' onsubmit="disableSubmitButton(this);">
         {% csrf_token %}
         <div class="table-responsive">
         
@@ -75,8 +75,8 @@
                 {{ form.status | as_crispy_field }}
               </div>
 
-              <button class="btn btn-primary w-25" type='submit'> Submit </button>
-              <button type='submit' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
+              <button class="btn btn-primary w-25" type='submit' id="submit-button"> Submit </button>
+              <button type='button' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
             
         </div>
         
@@ -84,14 +84,15 @@
       
 
     <script>
-      var ngay = new Date()
-      var gio = ngay.getHours()
+      function disableSubmitButton(form) {
+        const submitButton = form.querySelector('#submit-button');
+        submitButton.disabled = true;
+        submitButton.innerText = "Submitting...";
+      }
 
     </script>
 {% endblock content %}
 
 
-{% block footer %}
-    <strong>Contact Us somewhere</strong>
-{% endblock footer %}
+
  

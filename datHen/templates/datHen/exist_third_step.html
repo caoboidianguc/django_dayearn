@@ -40,7 +40,8 @@
         {{ form.errors }}
     </div>
     {% endif %}
-      <form action='' method='post'>
+    <form action='' method='post' onsubmit="disableSubmitButton(this);">
+      
         {% csrf_token %}
         <div class="table-responsive">
                 
@@ -62,13 +63,21 @@
                 {{ form.status | as_crispy_field }}
               </div>
 
-              <button class="btn btn-primary w-25" type='submit'> Take </button>
-              <button type='submit' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
-            
+              <button class="btn btn-primary w-25" type='submit' id="submit-button"> Take </button>
+              <button type='button' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
+
         </div>
         
     </form>
       
+        <script>
+      function disableSubmitButton(form) {
+        const submitButton = form.querySelector('#submit-button');
+        submitButton.disabled = true;
+        submitButton.innerText = "Submitting...";
+      }
+
+    </script>
 {% endblock content %}
 
 

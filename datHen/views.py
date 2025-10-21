@@ -375,7 +375,7 @@ def schedule_get_client(request):
     data = [{'full_name': client.full_name, 'phone': str(client.phone)} for client in client_list]
     return JsonResponse(data, safe=False)
     
-    
+
 class ScheduleViewUser(LoginRequiredMixin, View):
     template = "datHen/schedule_user.html"
     success_url = reverse_lazy('datHen:listHen')
