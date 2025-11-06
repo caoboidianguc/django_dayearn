@@ -21,8 +21,6 @@ import stripe
 from . import utils
 
 stripe.api_key = os.environ.get('stripe_secret_key')
-
-
             
 class PrivacyPolicy(View):
     template = "privacy.html"
