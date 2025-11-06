@@ -23,7 +23,7 @@
         {% csrf_token %}
             <div class="col-md-6 mb-3">
                 {{ form.technician | as_crispy_field }}
-                {{ form.status | as_crispy_field }}
+                {{ form.time_at | as_crispy_field }}
             </div>
             <div class="col mb-2">
                 {{ form.services | as_crispy_field }}            

@@ -80,12 +80,39 @@
                     {% endfor %}
             {% else %}
                 <div class="alert alert-warning text-center" role="alert">
-                    No visits scheduled for now.
+                    No visits scheduled for Today.
                 </div>
             {% endif %}
         </div>
     </div>
-
+    <!-- Next's Visits -->
+    {% if client.get_future_visit %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light shadow-sm">
+                <h2 class="h4 mb-0">Next's Visits</h2>
+            </div>
+            <div class="card-body">
+                
+                    {% for visit in client.get_future_visit %}
+                        <ul class="list-group list-group-flush mb-4">
+                                <li class="list-group-item"><strong>Technician:</strong> {{ visit.technician | title }}</li>
+                                <li class="list-group-item"><strong>Scheduled Date:</strong> {{ visit.day_comes|date:"F j, Y" }}</li>
+                                {% for service in visit.services.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ service | title }}
+                                        <input type="hidden" name="service_ids" value="{{ service.id }}">
+                                        <span class="badge bg-warning rounded-pill">{{ service.price }}</span>
+                                    </li>
+                                {% endfor %}
+                            <a href="{{ client.get_cancel_url }}" class="btn btn-outline-danger btn-lg shadow-sm w-100 w-md-auto">
+                                <i class="bi bi-x-circle me-2"></i> Cancel Appointment
+                            </a>
+                            </ul>
+                        </div>
+                    {% endfor %}
+            </div>
+        </div>
+    {% endif %}
     <!-- Favorites Section -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light shadow-sm">

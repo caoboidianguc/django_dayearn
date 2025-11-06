@@ -168,12 +168,11 @@ class ExistThirdStep(View):
         khac.services.set(services)
         form.save_m2m()
         utils.saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
-        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        utils.sendEmailConfirmation(request, form.instance)
-        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
-        if tech.email != None:
-            EmailMessage(utils.chuDe, thongbao, to=[tech.email]).send()
-                    
+        if khac.email:
+            utils.sendEmailConfirmation(request, khac)
+            messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+        else:
+            messages.info(request, "Appointment booked, but no email provided for confirmation.")
         return redirect(self.get_success_url())
 
 
@@ -280,6 +279,7 @@ class ThirdStep(View):
             khac.time_at = form.cleaned_data['time_at']
             khac.status = form.cleaned_data['status']
             khac.points = total_point
+            khac.email = form.cleaned_data['email']
             khac.save()
         else:
             khac, _ = Khach.objects.get_or_create(
@@ -290,18 +290,18 @@ class ThirdStep(View):
                     'technician': tech,
                     'time_at': form.cleaned_data['time_at'],
                     'status': form.cleaned_data['status'],
+                    'email': form.cleaned_data['email'],
                     'points': total_point
                 }
             )
         khac.services.set(services)
         form.instance = khac
         utils.saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
-        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        utils.sendEmailConfirmation(request, form.instance)
-        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
-        if tech.email != None:
-            EmailMessage(utils.chuDe, thongbao, to=[tech.email]).send()
-                    
+        if khac.email:
+            utils.sendEmailConfirmation(request, khac)
+            messages.success(request, f"{form.instance.full_name} was scheduled successfully!\n You might check junk folder for confirmation email.")
+        else:
+            messages.info(request, "Appointment booked, but no email provided for confirmation.")
         return redirect(self.get_success_url())
     
 
@@ -421,8 +421,5 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         form.instance = client
         utils.saveKhachVisit(client, day_comes, time_at, services, tech, status)
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
-        thongbao = f"{form.instance.full_name} booked appointment with you on {form.instance.day_comes} at {form.instance.time_at} \nStatus: {form.instance.status}"
-        if tech.email != None:
-            EmailMessage(utils.chuDe, thongbao, to=[tech.email]).send()
         return redirect(self.success_url)
 

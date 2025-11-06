@@ -5,8 +5,8 @@ from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
-contactEmail = "Elegant Nails & Spa"
-privacyEmail = "jubivu@icloud.com"
+contactEmail = "info@elegantnail.net"
+privacyEmail = "info@elegantnail.net"
 tenSpa = "Elegant Nails & Spa"
 chuDe = "Elegant Nails & Spa Confirm schedule"
 address = "4605 Forest Dr #5, Columbia, SC 29206"
@@ -32,35 +32,46 @@ def cancelKhachVisit(client):
         return
 
 def sendEmailConfirmation(request, client):
-    email_body = {
-                'client': client,
-                'cancel_link': cancel_visit(request, client.id),
-                
-            }
-    body = render_to_string('datHen/email_confirm_dathen.html', email_body)
-    email = EmailMessage(
-        subject='Appointment Confirmation',
-        body=body,
-        from_email=contactEmail,
-        to=[client.email],
-    )
-    email.content_subtype = 'html'
-    email.send()
-    
+    try:
+        email_body = {
+                    'client': client,
+                    'cancel_link': cancel_visit(request, client.id),
+                    
+                }
+        body = render_to_string('datHen/email_confirm_dathen.html', email_body)
+        print(f"attempting to send email to: {client.email}")
+        if not client.email:
+            print("No email address provided for client.")
+            return
+        email = EmailMessage(
+            subject='Appointment Confirmation',
+            body=body,
+            from_email=contactEmail,
+            to=[client.email],
+        )
+        email.content_subtype = 'html'
+        email.send()
+    except Exception as e:
+        print(f"Error sending confirmation email: {e}")
+        return
 def sendEmailCanceled(client):
-    email_body = {
-                'client': client,
-                
-            }
-    body = render_to_string('datHen/email_confirm_cancel.html', email_body)
-    email = EmailMessage(
-        subject='Appointment Cancellation',
-        body=body,
-        from_email=contactEmail,
-        to=[client.email],
-    )
-    email.content_subtype = 'html'
-    email.send()
+    try:
+        email_body = {
+                    'client': client,
+                    
+                }
+        body = render_to_string('datHen/email_confirm_cancel.html', email_body)
+        email = EmailMessage(
+            subject='Appointment Cancellation',
+            body=body,
+            from_email=contactEmail,
+            to=[client.email],
+        )
+        email.content_subtype = 'html'
+        email.send()
+    except Exception as e:
+        print(f"Error sending cancellation email: {e}")
+        return
     # print("Email sent to client:", client.email)
 
 def cancel_visit(request, id):

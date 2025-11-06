@@ -162,12 +162,14 @@ LOGIN_REDIRECT_URL = "ledger:index"
 LOGOUT_REDIRECT_URL = "ledger:index"
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'datHen.custom_email_backend.EmailBackend'
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'hoadambutxinh@gmail.com'
-EMAIL_HOST_PASSWORD = 'seztdjfrcdbcykvp'
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST = 'mail.privateemail.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'info@elegantnail.net'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_FROM_EMAIL = 'info@elegantnail.net'
 
 BOWER_INSTALLED_APPS = (
     'jquery',

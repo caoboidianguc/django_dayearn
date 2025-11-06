@@ -187,5 +187,12 @@ class KhachDetailForm(forms.ModelForm):
 class VisitForm(forms.ModelForm):
     class Meta:
         model = KhachVisit
-        fields = ['technician', 'services', 'status']
+        fields = ['technician','time_at' ,'services',]
+        
+    time_at = forms.TimeField(
+        input_formats=["%H:%M"],
+        widget=ChonNgay(attrs={
+            "type":"time",
+            })
+        )
     services = forms.ModelMultipleChoiceField(queryset=service_queryset ,widget=forms.CheckboxSelectMultiple())
