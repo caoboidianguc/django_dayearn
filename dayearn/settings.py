@@ -160,16 +160,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = "ledger:index"
 
 LOGOUT_REDIRECT_URL = "ledger:index"
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'datHen.custom_email_backend.EmailBackend'
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST = 'mail.privateemail.com'
-EMAIL_PORT = 465
-EMAIL_HOST_USER = 'info@elegantnail.net'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = '9bdb26001@smtp-brevo.com'
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-DEFAULT_FROM_EMAIL = 'info@elegantnail.net'
+DEFAULT_FROM_EMAIL = 'Elegant Nail Spa <info@elegantnail.net>'
+SERVER_EMAIL = 'info@elegantnail.net'
 
 BOWER_INSTALLED_APPS = (
     'jquery',

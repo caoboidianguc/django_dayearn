@@ -1,0 +1,25 @@
+Dear {{ client.full_name|title }},
+
+Thank you for booking with us!
+
+Your appointment is confirmed:
+
+Date       : {{ client.day_comes }}
+Time       : {{ client.time_at }}
+Services   :
+{% for ser in client.services.all %}
+ - {{ ser|title }}
+{% endfor %}
+Technician : {{ client.technician|title }}
+
+If you need to reschedule or cancel, please visit our website and use the "Check Appt" page.
+
+We look forward to seeing you!
+
+Best regards,
+Elegant Nail Spa
+4605 Forest Dr #5, Columbia, SC 29206.
+Email: info@elegantnail.net
+Web: https://www.elegantnail.net
+
+To stop receiving these emails, reply with "Unsubscribe".

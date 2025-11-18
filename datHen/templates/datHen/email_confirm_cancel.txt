@@ -1,0 +1,17 @@
+Dear {{ client.full_name|title }},
+
+Your appointment has been successfully cancelled.
+
+Appointment details:
+Date       : {{ client.day_comes }}
+Time       : {{ client.time_at }}
+Technician : {{ client.technician|title }}
+
+We're sorry to miss you this time! Feel free to book again anytime at https://www.elegantnail.net
+
+Thank you,
+Elegant Nail Spa
+4605 Forest Dr #5, Columbia, SC 29206.
+Email: info@elegantnail.net
+
+To stop receiving these emails, reply with "Unsubscribe".
