@@ -1,11 +1,11 @@
 from .models import KhachVisit
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
-contactEmail = "info@elegantnail.net"
+contactEmail = 'Elegant Nail Spa <info@elegantnail.net>'
 privacyEmail = "info@elegantnail.net"
 tenSpa = "Elegant Nails & Spa"
 chuDe = "Elegant Nails & Spa Confirm schedule"
@@ -32,42 +32,48 @@ def cancelKhachVisit(client):
         return
 
 def sendEmailConfirmation(request, client):
+    if not client.email:
+        return
+    
+    email_body = {
+                'client': client,
+            }
+    html_content = render_to_string('datHen/email_confirm_dathen.html', email_body)
+    text_content = render_to_string('datHen/email_confirm_dathen.txt', email_body)
+
+    email = EmailMultiAlternatives(
+        subject='Appointment Confirmation at Elegant Nails & Spa',
+        body=text_content,
+        from_email=contactEmail,
+        to=[client.email],
+        reply_to=[privacyEmail],
+    )
+    email.attach_alternative(html_content, "text/html")
     try:
-        email_body = {
-                    'client': client,
-                    'cancel_link': cancel_visit(request, client.id),
-                    
-                }
-        body = render_to_string('datHen/email_confirm_dathen.html', email_body)
-        print(f"attempting to send email to: {client.email}")
-        if not client.email:
-            print("No email address provided for client.")
-            return
-        email = EmailMessage(
-            subject='Appointment Confirmation',
-            body=body,
-            from_email=contactEmail,
-            to=[client.email],
-        )
-        email.content_subtype = 'html'
         email.send()
     except Exception as e:
         print(f"Error sending confirmation email: {e}")
         return
+    
+    
+    
 def sendEmailCanceled(client):
+    if not client.email:
+        return
+    email_body = {
+                'client': client,
+            }
+    html_content = render_to_string('datHen/email_confirm_cancel.html', email_body)
+    text_content = render_to_string('datHen/email_confirm_cancel.txt', email_body)
+    email = EmailMultiAlternatives(
+        subject='Appointment Cancellation',
+        body=text_content,
+        from_email=contactEmail,
+        to=[client.email],
+        reply_to=[privacyEmail],
+    )
+    email.attach_alternative(html_content, "text/html")
     try:
-        email_body = {
-                    'client': client,
-                    
-                }
-        body = render_to_string('datHen/email_confirm_cancel.html', email_body)
-        email = EmailMessage(
-            subject='Appointment Cancellation',
-            body=body,
-            from_email=contactEmail,
-            to=[client.email],
-        )
-        email.content_subtype = 'html'
         email.send()
     except Exception as e:
         print(f"Error sending cancellation email: {e}")

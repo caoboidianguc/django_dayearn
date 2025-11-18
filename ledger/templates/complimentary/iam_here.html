@@ -104,12 +104,12 @@
                                         <span class="badge bg-warning rounded-pill">{{ service.price }}</span>
                                     </li>
                                 {% endfor %}
-                            <a href="{{ client.get_cancel_url }}" class="btn btn-outline-danger btn-lg shadow-sm w-100 w-md-auto">
-                                <i class="bi bi-x-circle me-2"></i> Cancel Appointment
-                            </a>
                             </ul>
                         </div>
                     {% endfor %}
+                    <a href="{{ client.get_cancel_url }}" class="btn btn-outline-danger btn-lg shadow-sm w-100 w-md-auto">
+                        <i class="bi bi-x-circle me-2"></i> Cancel Appointment
+                    </a>
             </div>
         </div>
     {% endif %}

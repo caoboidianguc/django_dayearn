@@ -299,7 +299,7 @@ class ThirdStep(View):
         utils.saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
         if khac.email:
             utils.sendEmailConfirmation(request, khac)
-            messages.success(request, f"{form.instance.full_name} was scheduled successfully!\n You might check junk folder for confirmation email.")
+            messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         else:
             messages.info(request, "Appointment booked, but no email provided for confirmation.")
         return redirect(self.get_success_url())
