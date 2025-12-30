@@ -57,7 +57,7 @@
                         {% endif %}
                     </div>
                     <div class="d-flex align-items-center text-muted small mt-2">
-                        <button class="btn btn-sm btn-link text-muted like-button {% if reply.current_khach_like %}text-danger{% endif %}"
+                        <button class="btn btn-sm btn-link like-button {% if reply.current_khach_like %}text-danger {% else %}text-muted{% endif %}"
                                 data-chat-id="{{ reply.id }}"
                                 data-url="{% url 'ledger:chat_detail_like' reply.id %}">
                             <i class="bi bi-heart-fill me-1"></i><span class="like-count">{{ reply.total_likes }}</span>
@@ -117,8 +117,3 @@
 <script src="{% static 'js/chat.js' %}"></script>
 {% endblock content %}
 
-{% block footer %}
-<div class="text-center py-3 bg-light">
-    <strong>Feedback Makes Us Stronger</strong> | Established 2022
-</div>
-{% endblock footer %}
