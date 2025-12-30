@@ -29,7 +29,7 @@ class PrivacyPolicy(View):
         return render(request, self.template, context)
     
 class Contact(View):
-    receiveEmail = "jubivu@icloud.com"
+    receiveEmail = "info@elegantnail.net"
     template = "contact.html"
     def get(self, request):
         form = ContactForm()
@@ -37,16 +37,26 @@ class Contact(View):
         return render(request, self.template, context)
     def post(self, request):
         form = ContactForm(request.POST)
-        if not form.is_valid():
-            context = {'form': form}
-            return render(request, self.template, context)
-        name = form.cleaned_data['name']
-        phone = form.cleaned_data['phone']
-        email = form.cleaned_data['email']
-        message = form.cleaned_data['message']
-        EmailMessage('Contact Form Submission', f'Name: {name}\nPhone: {phone}\nEmail: {email}\nMessage: {message}', email, to=[self.receiveEmail],reply_to=[email]).send()
-        messages.success(request, 'Your message has been sent successfully!')
-        return redirect('ledger:index')
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            phone = form.cleaned_data['phone']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+            try:
+                sendemail = EmailMessage(
+                    subject='Contact Form Submission',
+                    body=f'Name: {name}\nPhone: {phone}\nEmail: {email}\nMessage: {message}',
+                    from_email=self.receiveEmail,
+                    to=[self.receiveEmail],
+                    reply_to=[email]
+                )
+                sendemail.send()
+                messages.success(request, 'Your message has been sent successfully!')
+                return redirect('ledger:index')
+            except Exception as e:
+                messages.error(request, f"Failed to send message: {str(e)}")
+        return render(request, self.template, {'form': form})
+                
         
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
@@ -420,7 +430,7 @@ class CustomerVisit(View):
         response = requests.get(self.url)
         complimentaries = Complimentary.objects.filter(is_available=True).exclude(category=Complimentary.Category.gift).order_by('category')
         today = timezone.now().date()
-        allTech = Technician.objects.filter(is_accept_booking=True)
+        allTech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
         if response.status_code == 200:
             data = response.json()
             latest_image_urls = []

@@ -31,7 +31,7 @@ class SuccessCheckoutView(TemplateView):
         try:
             session = stripe.checkout.Session.retrieve(session_id, expand=['line_items', 'payment_intent.charges'])
             client_name = session['customer_details'].get('name', 'Unknown Client')
-            client_email = session['customer_details'].get('email', 'Unknown Email')
+            # client_email = session['customer_details'].get('email', 'Unknown Email')
             line_items = session['line_items']['data']
             tech_id = session.metadata.get('technician_id')
             tech = Technician.objects.get(id=tech_id)
@@ -67,27 +67,28 @@ class SuccessCheckoutView(TemplateView):
             context['services'] = services
             context['total'] = total
             context['tech'] = tech
-            payment_time_str = timezone.now().strftime("%B %d, %Y, at %I:%M %p %Z")
-            email_body = {
-                'client_email': client_email,
-                'client_name': client_name,
-                'services': services,
-                'total_amount': total,
-                'currency': session['currency'],
-                'payment_time': payment_time_str,
-                # 'tax': tax,
-                'total_amount': total,
-                'tech': tech,
-            }
-            body = render_to_string('payment/confirmation_email.html', email_body)
-            email = EmailMessage(
-                subject='Payment Confirmation',
-                body=body,
-                from_email=utils.contactEmail,
-                to=[client_email, tech.email] if tech.email else [client_email],
-            )
-            email.content_subtype = 'html'
-            email.send()
+            # payment_time_str = timezone.now().strftime("%B %d, %Y, at %I:%M %p %Z")
+            # email_body = {
+            #     'client_email': client_email,
+            #     'client_name': client_name,
+            #     'services': services,
+            #     'total_amount': total,
+            #     'currency': session['currency'],
+            #     'payment_time': payment_time_str,
+            #     # 'tax': tax,
+            #     'total_amount': total,
+            #     'tech': tech,
+            # }
+            # body = render_to_string('payment/confirmation_email.html', email_body)
+            # email = EmailMessage(
+            #     subject='Payment Confirmation',
+            #     body=body,
+            #     from_email=utils.contactEmail,
+            #     to=[client_email],
+            #     reply_to=[utils.privacyEmail],
+            # )
+            # email.content_subtype = 'html'
+            # email.send()
                 
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -192,6 +193,7 @@ def fulfill_checkout(session):
         body=body,
         from_email=utils.contactEmail,
         to=[client_email],
+        reply_to=[utils.privacyEmail],
     )
     email.content_subtype = 'html'
     email.send()

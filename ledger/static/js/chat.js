@@ -33,6 +33,7 @@
                         button.closest('div').find('.chat-text').removeClass('fw-bold'); //can't use button.closest('a') cause a and p is subbling, it not work
                     } else {
                         button.removeClass('liked');
+                        button.addClass('text-muted');
                     }
                     button.closest('p').find('.like-count').text(data.total_likes);
                 },
