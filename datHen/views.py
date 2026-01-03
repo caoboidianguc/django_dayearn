@@ -120,12 +120,10 @@ class ExistThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
-            available = []
-        else:
-            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            if ngayDate == date.today():
-                available = [gio for gio in available if gio.hour > gioHienTai.hour]
+        
+        available = tech.get_available_with(ngay=ngayDate, thoigian=time_perform)
+        if ngayDate == date.today():
+            available = [gio for gio in available if gio.hour > gioHienTai.hour]
         form = ThirdFormExist(instance=client)
         form.instance.day_comes = ngay
         form.instance.technician = tech
@@ -149,10 +147,7 @@ class ExistThirdStep(View):
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         total_point = sum([service.price for service in services])
-        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
-            available = []
-        else:
-            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         form = ThirdFormExist(request.POST, instance=client)
         if not form.is_valid():
             cont = {'form' : form, 
@@ -207,7 +202,7 @@ class ChoiceServicesView(View):
             'form': serviceForm
         }
         return render(request, self.template, cont)
-    
+
 
 class ThirdStep(View):
     template = 'datHen/third_step.html'
@@ -224,18 +219,14 @@ class ThirdStep(View):
         serChon = request.GET.getlist('dichvu')
         serPick = [int(service) for service in serChon]
         services = Service.objects.filter(id__in=serPick)
-
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         available = []
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
-            available = []
-        else:
-            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-            if ngayDate == date.today():
-                available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        form = ThirdForm()
         
+        available = tech.get_available_with(ngay=ngayDate, thoigian=time_perform)
+        if ngayDate == date.today():
+            available = [gio for gio in available if gio.hour > gioHienTai.hour]
+        form = ThirdForm()
         form.instance.day_comes = ngay
         cont = {'form' : form, 
                 'tech': tech,
@@ -257,10 +248,8 @@ class ThirdStep(View):
         time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
         total_point = sum([service.price for service in services])
         ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        if tech.get_day_off(ngayDate) or tech.is_on_vacation(ngayDate):
-            available = []
-        else:
-            available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
+        
+        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
         
         form = ThirdForm(request.POST, instance=tech)
         

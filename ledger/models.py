@@ -34,11 +34,12 @@ class Technician(models.Model):
     view_count = models.IntegerField(default=0)
     is_accept_booking = models.BooleanField(default=True, help_text="Is the technician accepting new bookings?")
 
-    def get_day_off(self, date):
-        for i, char in enumerate(self.work_days):
-            if i == date.weekday() and char == '0':
-                return True
-        return False
+    # def get_day_off(self, date):
+    #     for i, char in enumerate(self.work_days):
+    #         if i == date.weekday() and char == '0':
+    #             return True
+    #     return False
+    
     @property
     def get_experience(self):
         today = timezone.now().date()
@@ -49,8 +50,8 @@ class Technician(models.Model):
         total = self.experience
         
         gain = today.year - self.hire_date.year
-        if (today.month, today.day) < (self.hire_date.month, self.hire_date.day):
-            gain -= 1
+        # if (today.month, today.day) < (self.hire_date.month, self.hire_date.day):
+        #     gain -= 1
         total = self.experience + gain
         
         return max(total, 0)
@@ -101,27 +102,27 @@ class Technician(models.Model):
         return self.khachvisits.all()
     
             
-    def get_available_with(self, ngay, thoigian):
-        start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
-        end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
-        clients = self.get_khachVisit().filter(day_comes=ngay).exclude(status=KhachVisit.Status.cancel)
-        xongs = [client for client in clients]
-        timeCal = start
+    # def get_available_with(self, ngay, thoigian):
+    #     start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
+    #     end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
+    #     clients = self.get_khachVisit().filter(day_comes=ngay).exclude(status=KhachVisit.Status.cancel)
+    #     xongs = [client for client in clients]
+    #     timeCal = start
         
-        while timeCal < end:
-            if not clients:
-                yield timeCal
-                timeCal += timedelta(minutes=15)
-            else:
-                timeCompare = timeCal + timedelta(minutes=thoigian)
-                over_lap = False
-                for khach in xongs:
-                    if khach.start_at() <= timeCal.time() < khach.get_done_at() or timeCal.time() < khach.start_at() <= timeCompare.time():
-                        over_lap = True
-                        break
-                if not over_lap:
-                    yield timeCal
-                timeCal += timedelta(minutes=15)
+    #     while timeCal < end:
+    #         if not clients:
+    #             yield timeCal
+    #             timeCal += timedelta(minutes=15)
+    #         else:
+    #             timeCompare = timeCal + timedelta(minutes=thoigian)
+    #             over_lap = False
+    #             for khach in xongs:
+    #                 if khach.start_at() <= timeCal.time() < khach.get_done_at() or timeCal.time() < khach.start_at() <= timeCompare.time():
+    #                     over_lap = True
+    #                     break
+    #             if not over_lap:
+    #                 yield timeCal
+    #             timeCal += timedelta(minutes=15)
     
     def get_services_today(self):
         now = datetime.datetime.now()
@@ -130,32 +131,34 @@ class Technician(models.Model):
         for client in clients:
             all_ser.extend(client.get_services())
         return len(all_ser)
-    
-    # def get_available_with(self, ngay, thoigian):
-    #     day_of_week = ngay.weekday()
-    #     try:
-    #         work_day = TechWorkDay.objects.get(tech=self, day_of_week=day_of_week)
-    #         start = datetime.datetime.combine(ngay, work_day.start_time)
-    #         end = datetime.datetime.combine(ngay, work_day.end_time)
-    #     except TechWorkDay.DoesNotExist:
-    #         return
-    #     clients = self.get_clients().filter(day_comes=ngay)
-    #     time_cal = start
-    #     while time_cal < end:
-    #         time_compare = time_cal + datetime.timedelta(minutes=thoigian)
-    #         overlap = False
+
+    def get_available_with(self, ngay, thoigian):
+        if self.is_on_vacation(ngay):
+            return
+        day_of_week = ngay.weekday()
+        try:
+            work_day = TechWorkDay.objects.get(tech=self, day_of_week=day_of_week)
+            start = datetime.datetime.combine(ngay, work_day.start_time)
+            end = datetime.datetime.combine(ngay, work_day.end_time)
+        except TechWorkDay.DoesNotExist:
+            return
+        clients = self.get_clients().filter(day_comes=ngay)
+        time_cal = start
+        while time_cal < end:
+            time_compare = time_cal + datetime.timedelta(minutes=thoigian)
+            overlap = False
             
-    #         for client in clients:
-    #             client_start = datetime.datetime.combine(ngay, client.start_at())
-    #             client_end = datetime.datetime.combine(ngay, client.get_done_at())
-                
-    #             if (client_start <= time_cal < client_end) or (time_cal < client_start < time_compare):
-    #                 overlap = True
-    #                 break
+            for client in clients:
+                client_start = datetime.datetime.combine(ngay, client.start_at())
+                client_end = datetime.datetime.combine(ngay, client.get_done_at())
+
+                if (client_start <= time_cal < client_end) or (time_cal < client_start < time_compare):
+                    overlap = True
+                    break
             
-    #         if not overlap:
-    #             yield time_cal.time()
-    #         time_cal += datetime.timedelta(minutes=15)
+            if not overlap:
+                yield time_cal.time()
+            time_cal += datetime.timedelta(minutes=15)
 
 Day_Of_Week = (
     (0, _('Monday')),
@@ -172,6 +175,12 @@ class TechWorkDay(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     day_of_week = models.IntegerField(choices=Day_Of_Week)
+    is_working = models.BooleanField(default=True)
+    class Meta:
+        unique_together = ('tech', 'day_of_week')
+    def __str__(self):
+        return f"{self.tech.name} - {self.get_day_of_week_display()}"
+    
 
 class Khach(models.Model):
     class Status(models.TextChoices):

@@ -45,12 +45,19 @@ class TechForm(forms.ModelForm):
 class TechWorkDayForm(forms.ModelForm):
     class Meta:
         model = TechWorkDay
-        fields = '__all__'
-    start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type':'time'}))
-    end_time = forms.TimeField(
+        fields = ['day_of_week','start_time','end_time','is_working']
+    start_time = forms.TimeField(
+        input_formats=["%H:%M"],
         widget=ChonNgay(attrs={
-            'type': 'time'
-            }))
+            "type":"time",
+            })
+        )
+    end_time = forms.TimeField(
+        input_formats=["%H:%M"],
+        widget=ChonNgay(attrs={
+            "type":"time",
+            })
+        )
         
 class ClientForm(forms.ModelForm):
     email = forms.CharField(required=False)

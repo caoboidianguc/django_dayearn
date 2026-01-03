@@ -84,11 +84,29 @@
         <button class="book-button">Book with {{ employee.name | title }}</button>
     </a>
     {% endif %}
-    <div class="fs-5 text-primary">Works on:</div>
-    <ul>
-    {% for work_day in work_days %}
-        <li class="fs-5 text-success"> {{ work_day }}</li>
-    {% endfor %}
-    </ul>
+    <div class="card profile-card mt-4">
+        <div class="card-body">
+                    <h5 class="card-title mb-3">Current Work Schedule</h5>
+                    
+                    {% if work_days %}
+                    <ul class="list-group list-group-flush mb-4">
+                        {% for work_day in work_days %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{{ work_day.get_day_of_week_display }}</strong>
+                            {% if work_day.is_working %}
+                            <span class="text-primary">
+                                {{ work_day.start_time }} - {{ work_day.end_time }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">Off</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No work days set.</p>
+                    {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock content %}
