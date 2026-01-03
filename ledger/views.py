@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price, Complimentary
+from .models import (Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price,
+                     Complimentary, TechWorkDay)
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DetailView
 from django.views import View
-from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, 
+from .forms import (ClientForm, TechForm, ServiceForm, TaiKhoanCreationForm, TechWorkDayForm,
                     VacationForm, ChatForm, KhachWalkin, SupplyForm, ContactForm)
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import login
@@ -173,6 +174,31 @@ class AddService(LoginRequiredMixin, View):
         messages.success(request, f"{form.instance.service} was added successfully!")
         return redirect(self.success_url)
        
+class SetWorkDayView(LoginRequiredMixin, CreateView):
+    model = TechWorkDay
+    form_class = TechWorkDayForm
+    template_name = 'ledger/set_work_days.html'
+    success_url = reverse_lazy("datHen:listHen")
+    def get_initial(self):
+        tech_id = self.kwargs.get('pk')
+        tech = get_object_or_404(Technician, id=tech_id)
+        initial = super().get_initial()
+        initial['tech'] = tech
+        return initial
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Set Work Days and Time"
+        tech = get_object_or_404(Technician, id=self.kwargs.get('pk'))
+        context['tech'] = tech
+        work_days = TechWorkDay.objects.filter(tech=tech).order_by('day_of_week')
+        context['work_days'] = work_days
+        return context
+    def form_valid(self, form):
+        tech_id = self.kwargs.get('pk')
+        tech = get_object_or_404(Technician, id=tech_id)
+        form.instance.tech = tech
+        messages.success(self.request, f"Work days and time for {tech.name} have been updated.")
+        return super().form_valid(form)
 
 class TechVacationView(LoginRequiredMixin,UpdateView):
     model = Technician
@@ -185,7 +211,7 @@ class TechVacationView(LoginRequiredMixin,UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = "Set Vacation Time"
         return context
-    
+
 class ChatView(View):
     template = "ledger/chat_room.html"
     def get(self, request, pk):
@@ -540,18 +566,11 @@ def supplyDelete(request, pk):
 
 class EmployeeBio(DetailView):
     template = "ledger/employee_bio.html"
-    week_days = [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"]
+    
     def get(self, request, pk):
         employee = get_object_or_404(Technician, id=pk)
         Technician.objects.filter(id=pk).update(view_count=F('view_count') + 1)
-        work_days = [self.week_days[index] for index,day in enumerate(employee.work_days) if day == '1' and index < len(self.week_days)]
+        work_days = TechWorkDay.objects.filter(tech=employee).order_by('day_of_week')
         context = {'employee': employee, 'work_days': work_days}
         return render(request, self.template, context)
     
