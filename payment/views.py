@@ -219,4 +219,3 @@ def stripe_webhook(request):
         session = event['data']['object']
         fulfill_checkout(session)
     return HttpResponse(status=200)
-

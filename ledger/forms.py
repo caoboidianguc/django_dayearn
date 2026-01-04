@@ -58,6 +58,14 @@ class TechWorkDayForm(forms.ModelForm):
             "type":"time",
             })
         )
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        if start_time and end_time:
+            if start_time >= end_time:
+                raise forms.ValidationError("Start time must be before end time.")
+        return cleaned_data
         
 class ClientForm(forms.ModelForm):
     email = forms.CharField(required=False)
