@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 import requests
 import os
+from django.db import IntegrityError
 from django.db.models import Prefetch, F
 from django.views.decorators.http import require_POST
 from django.core.mail import EmailMessage
@@ -197,8 +198,13 @@ class SetWorkDayView(LoginRequiredMixin, CreateView):
         tech_id = self.kwargs.get('pk')
         tech = get_object_or_404(Technician, id=tech_id)
         form.instance.tech = tech
-        messages.success(self.request, f"Work days and time for {tech.name} have been updated.")
-        return super().form_valid(form)
+        try:
+            messages.success(self.request, f"Work days and time for {tech.name} have been updated.")
+            return super().form_valid(form)
+        except IntegrityError:
+            form.add_error(None, "Work day for this day of the week already exists. Remove it first to add a new one.")
+            return self.form_invalid(form)
+
 
 class TechVacationView(LoginRequiredMixin,UpdateView):
     model = Technician

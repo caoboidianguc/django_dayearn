@@ -137,7 +137,7 @@ class Technician(models.Model):
             return
         day_of_week = ngay.weekday()
         try:
-            work_day = TechWorkDay.objects.get(tech=self, day_of_week=day_of_week)
+            work_day = TechWorkDay.objects.get(tech=self, day_of_week=day_of_week, is_working=True)
             start = datetime.datetime.combine(ngay, work_day.start_time)
             end = datetime.datetime.combine(ngay, work_day.end_time)
         except TechWorkDay.DoesNotExist:
