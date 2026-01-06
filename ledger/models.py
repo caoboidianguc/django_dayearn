@@ -101,29 +101,6 @@ class Technician(models.Model):
     def get_khachVisit(self):
         return self.khachvisits.all()
     
-            
-    # def get_available_with(self, ngay, thoigian):
-    #     start = datetime.datetime(1970,1,1, hour=self.start_work_at.hour, minute=self.start_work_at.minute)
-    #     end = datetime.datetime(1970,1,1, hour=self.end_work.hour, minute=self.end_work.minute)
-    #     clients = self.get_khachVisit().filter(day_comes=ngay).exclude(status=KhachVisit.Status.cancel)
-    #     xongs = [client for client in clients]
-    #     timeCal = start
-        
-    #     while timeCal < end:
-    #         if not clients:
-    #             yield timeCal
-    #             timeCal += timedelta(minutes=15)
-    #         else:
-    #             timeCompare = timeCal + timedelta(minutes=thoigian)
-    #             over_lap = False
-    #             for khach in xongs:
-    #                 if khach.start_at() <= timeCal.time() < khach.get_done_at() or timeCal.time() < khach.start_at() <= timeCompare.time():
-    #                     over_lap = True
-    #                     break
-    #             if not over_lap:
-    #                 yield timeCal
-    #             timeCal += timedelta(minutes=15)
-    
     def get_services_today(self):
         now = datetime.datetime.now()
         clients = self.get_today_clients().filter(time_at__lte=now)
@@ -142,7 +119,7 @@ class Technician(models.Model):
             end = datetime.datetime.combine(ngay, work_day.end_time)
         except TechWorkDay.DoesNotExist:
             return
-        clients = self.get_clients().filter(day_comes=ngay)
+        clients = self.get_khachVisit().filter(day_comes=ngay).exclude(status=KhachVisit.Status.cancel)
         time_cal = start
         while time_cal < end:
             time_compare = time_cal + datetime.timedelta(minutes=thoigian)

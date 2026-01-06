@@ -18,6 +18,7 @@ urlpatterns = [
     path('ledger/update_employee_status/', views.UpdateTech.as_view(), name="update_tech_status"),
     path('ledger/tech_vacation/<int:pk>/', views.TechVacationView.as_view(), name="vacation"),
     path('ledger/tech_workdays/<int:pk>/', views.SetWorkDayView.as_view(), name="workdays"),
+    path('ledger/tech_workdays/delete_workday/', views.DeleteWorkDayView.as_view(), name="delete_workday"),
     path('ledger/chat_room/<int:pk>/', views.ChatView.as_view(), name="chat_room"),
     path('ledger/chat_room/detail/<int:pk>/', views.ChatDetailView.as_view(), name="chat_detail"),
     path('ledger/user_chat_room/', views.UserChatView.as_view(), name="user_chat_room"),

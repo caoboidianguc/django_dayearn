@@ -34,6 +34,11 @@
                             <span class="text-primary">
                                 {{ work_day.start_time }} - {{ work_day.end_time }}
                             </span>
+                            <button type="button"
+                                    class="delete_button text-danger fs-5 border-0 bg-transparent" 
+                                    id="delete_{{ work_day.id }}">
+                                <i class="bi bi-calendar-x"></i>
+                            </button>
                             {% else %}
                             <span class="text-muted">Off</span>
                             {% endif %}
@@ -50,13 +55,14 @@
                         {{ form | crispy }}
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            
+                            <button type="submit" class="btn btn-outline-info">
+                                Submit
+                            </button>
                             <button type="button" 
                                     class="btn btn-outline-primary me-md-2" 
                                     onclick="window.location='{% url "datHen:listHen" %}'; return false;">
                                 Cancel
-                            </button>
-                            <button type="submit" class="btn btn-info">
-                                Submit
                             </button>
                         </div>
                     </form>
@@ -65,4 +71,33 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('.delete_button').click(function() {
+            var workDayId = $(this).attr('id').split('_')[1];
+            var button = $(this);
+            if (confirm('Delete this work day?')) {
+                $.ajax({
+                    url: '{% url "ledger:delete_workday" %}',
+                    type: 'POST',
+                    data: {
+                        'work_day_id': workDayId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            button.closest('li').remove();
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred while deleting the work day.');
+                    }
+                });
+            }
+        });
+    });
+</script>
 {% endblock content %}

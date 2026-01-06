@@ -179,7 +179,9 @@ class SetWorkDayView(LoginRequiredMixin, CreateView):
     model = TechWorkDay
     form_class = TechWorkDayForm
     template_name = 'ledger/set_work_days.html'
-    success_url = reverse_lazy("datHen:listHen")
+    def get_success_url(self):
+        id = self.kwargs.get('pk')
+        return reverse_lazy('ledger:workdays', kwargs={'pk': id})
     def get_initial(self):
         tech_id = self.kwargs.get('pk')
         tech = get_object_or_404(Technician, id=tech_id)
@@ -204,7 +206,15 @@ class SetWorkDayView(LoginRequiredMixin, CreateView):
         except IntegrityError:
             form.add_error(None, "Work day for this day of the week already exists. Remove it first to add a new one.")
             return self.form_invalid(form)
-
+        
+class DeleteWorkDayView(LoginRequiredMixin, View):
+    def post(self, request):
+        try:
+            work_day = get_object_or_404(TechWorkDay, id=request.POST.get('work_day_id'))
+            work_day.delete()
+            return JsonResponse({'success': True, 'message': 'Work day deleted successfully.'}, status=200)
+        except TechWorkDay.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Work day not found.'}, status=404)
 
 class TechVacationView(LoginRequiredMixin,UpdateView):
     model = Technician
