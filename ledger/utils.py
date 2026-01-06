@@ -90,3 +90,4 @@ def visit_isPaid(request, pk):
     if visit.isPaid:
         return JsonResponse({'success': True, 'isPaid': True})
     return JsonResponse({'isPaid': False})
+
