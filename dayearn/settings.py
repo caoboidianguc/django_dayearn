@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-81w87l+rc-3sv!!^dk=6cl)9@7pscwf*25+zhd(+43j3q_ttos
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', ]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'elegantnail.onrender.com']
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
