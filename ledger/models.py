@@ -34,11 +34,36 @@ class Technician(models.Model):
     view_count = models.IntegerField(default=0)
     is_accept_booking = models.BooleanField(default=True, help_text="Is the technician accepting new bookings?")
 
-    # def get_day_off(self, date):
-    #     for i, char in enumerate(self.work_days):
-    #         if i == date.weekday() and char == '0':
-    #             return True
-    #     return False
+    def _legacy_day_off(self, check_date):
+        dow = check_date.weekday()
+        if len(self.work_days) == 7:
+            return self.work_days[dow] == '0'
+        return False
+
+    def get_day_off(self, check_date):
+        schedule = self.get_work_schedule_for_date(check_date)
+        if schedule:
+            return not bool(schedule.is_working)
+        return self._legacy_day_off(check_date)
+
+    def get_work_schedule_for_date(self, check_date):
+        specific_day = TechWorkDay.objects.filter(tech=self, date=check_date).first()
+        if specific_day:
+            return specific_day
+        dow = check_date.weekday()
+        recurring_day = TechWorkDay.objects.filter(tech=self, day_of_week=dow, date__isnull=True).first()
+        return recurring_day
+
+    def get_effective_work_hours(self, check_date):
+        schedule = self.get_work_schedule_for_date(check_date)
+        if schedule:
+            if not schedule.is_working:
+                return None, None
+            if schedule.start_time and schedule.end_time:
+                return schedule.start_time, schedule.end_time
+        if self.get_day_off(check_date):
+            return None, None
+        return self.start_work_at, self.end_work
     
     @property
     def get_experience(self):
@@ -70,13 +95,129 @@ class Technician(models.Model):
         return "Just a technician, no bio yet."
 
     def is_on_vacation(self, check_date):
-        if self.vacation_start and self.vacation_end:
+        if not self.vacation_start:
+            return False
+        if self.vacation_end:
             return self.vacation_start <= check_date <= self.vacation_end
-        return False
+        return check_date >= self.vacation_start
+
+    def _group_consecutive_dates(self, dates):
+        if not dates:
+            return []
+        sorted_dates = sorted(dates)
+        ranges = []
+        range_start = sorted_dates[0]
+        range_end = sorted_dates[0]
+        for current in sorted_dates[1:]:
+            if current == range_end + timedelta(days=1):
+                range_end = current
+            else:
+                ranges.append((range_start, range_end))
+                range_start = current
+                range_end = current
+        ranges.append((range_start, range_end))
+        return ranges
+
+    def _recurring_off_weekdays(self):
+        weekdays = set(
+            TechWorkDay.objects.filter(
+                tech=self, date__isnull=True, is_working=False
+            ).values_list('day_of_week', flat=True)
+        )
+        if not weekdays and len(self.work_days) == 7:
+            weekdays = {
+                index for index in range(7) if self.work_days[index] == '0'
+            }
+        return weekdays
+
+    def get_booking_off_notices(self, lookahead_days=60):
+        today = timezone.now().date()
+        notices = []
+        recurring_off_weekdays = self._recurring_off_weekdays()
+
+        if self.vacation_start:
+            vacation_end = self.vacation_end or self.vacation_start
+            if vacation_end >= today:
+                start_show = max(self.vacation_start, today)
+                if start_show == vacation_end:
+                    notices.append(f"Vacation on {vacation_end.strftime('%a, %b %d')}")
+                else:
+                    notices.append(
+                        f"Vacation {start_show.strftime('%b %d')} – {vacation_end.strftime('%b %d')}"
+                    )
+
+        specific_offs = []
+        for entry in (
+            TechWorkDay.objects.filter(
+                tech=self,
+                date__isnull=False,
+                date__gte=today,
+                date__lte=today + timedelta(days=lookahead_days),
+            )
+            .exclude(is_working=True)
+            .exclude(notes__icontains='Bulk')
+            .order_by('date')
+        ):
+            if self.is_on_vacation(entry.date):
+                continue
+            if entry.date.weekday() in recurring_off_weekdays:
+                continue
+            specific_offs.append(entry.date)
+
+        for range_start, range_end in self._group_consecutive_dates(specific_offs):
+            if range_start == range_end:
+                notices.append(f"Off on {range_start.strftime('%a, %b %d')}")
+            else:
+                notices.append(
+                    f"Off {range_start.strftime('%b %d')} – {range_end.strftime('%b %d')}"
+                )
+
+        return notices
+
+    def get_unavailability_reason(self, booking_date, available_times):
+        if self.is_on_vacation(booking_date):
+            return {
+                'type': 'vacation',
+                'message': (
+                    f"{self.name.title()} is on vacation on "
+                    f"{booking_date.strftime('%A, %B %d')}. "
+                    "Please choose another date or technician."
+                ),
+            }
+        if self.get_day_off(booking_date):
+            return {
+                'type': 'day_off',
+                'message': (
+                    f"{self.name.title()} is not working on "
+                    f"{booking_date.strftime('%A, %B %d')}. "
+                    "Please choose another date or technician."
+                ),
+            }
+        if not available_times:
+            return {
+                'type': 'fully_booked',
+                'message': (
+                    f"{self.name.title()} has no open times on "
+                    f"{booking_date.strftime('%A, %B %d')} for your selected services. "
+                    "The day may be fully booked — please try another date or technician."
+                ),
+            }
+        return None
+
     def still_vacation(self):
         if self.vacation_end:
             return self.vacation_end > timezone.now().date()
         return False
+    @property
+    def vacation_notice(self):
+        start = self.vacation_start
+        end = self.vacation_end
+        day = start.strftime("%A")
+        date_str = end.strftime("%b %d")
+        if start == end:
+            return f"Off on {day}, {date_str}"
+        else:
+            return f"Off from {self.vacation_start: %b %d} to {self.vacation_end: %b %d}"
     class Meta:
         unique_together = ('name','phone',)
         ordering = ['time_come_in','name']
@@ -112,13 +253,11 @@ class Technician(models.Model):
     def get_available_with(self, ngay, thoigian):
         if self.is_on_vacation(ngay):
             return
-        day_of_week = ngay.weekday()
-        try:
-            work_day = TechWorkDay.objects.get(tech=self, day_of_week=day_of_week, is_working=True)
-            start = datetime.datetime.combine(ngay, work_day.start_time)
-            end = datetime.datetime.combine(ngay, work_day.end_time)
-        except TechWorkDay.DoesNotExist:
+        start_time, end_time = self.get_effective_work_hours(ngay)
+        if not start_time or not end_time:
             return
+        start = datetime.datetime.combine(ngay, start_time)
+        end = datetime.datetime.combine(ngay, end_time)
         clients = self.get_khachVisit().filter(day_comes=ngay).exclude(status=KhachVisit.Status.cancel)
         time_cal = start
         while time_cal < end:
@@ -149,14 +288,25 @@ Day_Of_Week = (
 
 class TechWorkDay(models.Model):
     tech = models.ForeignKey(Technician, on_delete=models.CASCADE)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    date = models.DateField(null=True, blank=True, help_text="Specific date for this work schedule. Leave blank for recurring weekly schedule.")
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     day_of_week = models.IntegerField(choices=Day_Of_Week)
-    is_working = models.BooleanField(default=True)
+    is_working = models.BooleanField(default=True, null=True, blank=True)
+    notes = models.CharField(max_length=250, null=True, blank=True, help_text="Optional notes for this work day (e.g., 'Morning shift only').")
     class Meta:
-        unique_together = ('tech', 'day_of_week')
+        constraints = [
+            models.UniqueConstraint(fields=['tech', 'day_of_week',],
+                                    condition=models.Q(date__isnull=True),
+                                    name='unique_tech_date'),
+            models.UniqueConstraint(fields=['tech', 'date'], 
+                                    condition=models.Q(date__isnull=False),
+                                    name='unique_tech_date_specific'),
+        ]
     def __str__(self):
-        return f"{self.tech.name} - {self.get_day_of_week_display()}"
+        if self.date:
+            return f"{self.tech.name} - {self.date} ({self.get_day_of_week_display()})"
+        return f"{self.tech.name} - {self.get_day_of_week_display()} ({'Working' if self.is_working else 'Off'})"
     
 
 class Khach(models.Model):
@@ -445,5 +595,4 @@ class UpSetButton(models.Model):
     mood = models.CharField(max_length=20, choices=Mood.choices, default=Mood.smile, help_text="Mood of the client when they pressed the button.")
     def __str__(self):
         return f"Upset button for {self.client.full_name}"
-    
     

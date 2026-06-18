@@ -12,7 +12,6 @@
 <h4>you can change the <span class="text-danger">Status to "Anyone"</span></h4>
 {% endblock heading %}
 
-
 {% block content %}
 
 <h5>Your technician: <strong>{{ tech | title }}</strong></h5>
@@ -33,6 +32,11 @@
         <div>Please fill out:</div>
         
       </div>
+      {% if unavailability %}
+      <div class="alert alert-warning" role="alert">
+        {{ unavailability.message }}
+      </div>
+      {% endif %}
       {% if form.errors %}
     <div class="alert alert-danger">
         {{ form.errors }}
@@ -47,14 +51,17 @@
     {% endif %}
       <form action='' method='post' onsubmit="disableSubmitButton(this);">
         {% csrf_token %}
+        {% for service in allServices %}
+        <input type="hidden" name="service_ids" value="{{ service.id }}">
+        {% endfor %}
+        <input type="hidden" name="technician" value="{{ tech.id }}">
         <div class="table-responsive">
         
               <div class="col-md-4 mb-3">
-                <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example">
-                  
-                  <option selected>Select your time:</option>
+                <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example" {% if not available %}disabled{% else %}required{% endif %}>
+                  <option value="" disabled selected>Select your time:</option>
                   {% for tieng in available %}
-                  <option value="{{tieng.hour }}:{{tieng.minute }}">{{tieng.hour }} : {{tieng.minute }}</option>
+                  <option value="{{ tieng|time:'H:i' }}">{{ tieng|time:"g:i A" }}</option>
                   {% endfor %}
                 </select>
             </div>
@@ -75,7 +82,10 @@
                 {{ form.status | as_crispy_field }}
               </div>
 
+              {% if available %}
               <button class="btn btn-primary w-25" type='submit' id="submit-button"> Submit </button>
+              {% endif %}
+              <button type='button' class="btn btn-secondary" onclick="window.location='{% url 'datHen:technician_detail' tech.id %}'; return false; ">Pick Another Date</button>
               <button type='button' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
             
         </div>

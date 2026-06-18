@@ -7,7 +7,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Field, Div, Column
 from django.core.exceptions import ValidationError
 
- 
+
 service_queryset = Service.objects.exclude(service="tax")
 
 class ChonNgay(forms.widgets.DateInput):
@@ -108,14 +108,14 @@ class ThirdForm(forms.ModelForm):
     class Meta:
         model=Khach
         fields = ['time_at','full_name', 'phone', 'email', 'status','technician']
-    technician = forms.widgets.HiddenInput()
-    
-    def __init__(self, *args,**kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['status'].choices = [
             choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
         ]
-        
+        self.fields['technician'].widget = forms.HiddenInput()
+        self.fields['technician'].required = False
+
     email = forms.CharField(
         label="Email",
         required=False,
@@ -137,14 +137,18 @@ class ThirdForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        full_name = cleaned_data.get('full_name').upper()
+        full_name = cleaned_data.get('full_name')
         phone = cleaned_data.get('phone')
-        if full_name and phone:
-            existing_client = Khach.objects.filter(full_name=full_name, phone=phone).first()
-            if existing_client:
-                cleaned_data['existing_client'] = existing_client
-            else:
-                cleaned_data['existing_client'] = None
+        if full_name:
+            cleaned_data['full_name'] = str(full_name).upper().strip()
+        if cleaned_data.get('full_name') and phone:
+            existing_client = Khach.objects.filter(
+                full_name=cleaned_data['full_name'],
+                phone=phone,
+            ).first()
+            cleaned_data['existing_client'] = existing_client
+        else:
+            cleaned_data['existing_client'] = None
         return cleaned_data
     def validate_unique(self):
         if self.cleaned_data.get('existing_client'):
@@ -156,23 +160,19 @@ class ThirdFormExist(forms.ModelForm):
     class Meta:
         model=Khach
         fields = ['time_at', 'email', 'status','technician']
-    def __init__(self, *args,**kwargs):
+
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['status'].choices = [
             choice for choice in self.fields['status'].choices if choice[0] != Khach.Status.cancel
         ]
-    technician = forms.widgets.HiddenInput()
-     
+        self.fields['technician'].widget = forms.HiddenInput()
+        self.fields['technician'].required = False
+
     email = forms.CharField(
         label="Email",
         required=False,
         widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
-    
-    def clean_full_name(self):
-        data = super().clean()
-        data = self.cleaned_data['full_name']
-        return str(data).upper()
-    
 
 class ServicesChoiceForm(forms.Form):
     dichvu = forms.ModelMultipleChoiceField(queryset=service_queryset.order_by('category'), 
@@ -190,9 +190,9 @@ class VisitForm(forms.ModelForm):
         fields = ['technician','time_at' ,'services',]
         
     time_at = forms.TimeField(
-        input_formats=["%H:%M"],
-        widget=ChonNgay(attrs={
+        widget=forms.TimeInput(attrs={
             "type":"time",
-            })
+            'class':'form-control',
+        }), label="Time of Visit"
         )
     services = forms.ModelMultipleChoiceField(queryset=service_queryset ,widget=forms.CheckboxSelectMultiple())

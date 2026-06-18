@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import (Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price,
-                     Complimentary, TechWorkDay)
+                     Complimentary, TechWorkDay, Day_Of_Week)
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DetailView
 from django.views import View
@@ -179,33 +179,111 @@ class SetWorkDayView(LoginRequiredMixin, CreateView):
     model = TechWorkDay
     form_class = TechWorkDayForm
     template_name = 'ledger/set_work_days.html'
+
     def get_success_url(self):
-        id = self.kwargs.get('pk')
-        return reverse_lazy('ledger:workdays', kwargs={'pk': id})
-    def get_initial(self):
         tech_id = self.kwargs.get('pk')
-        tech = get_object_or_404(Technician, id=tech_id)
-        initial = super().get_initial()
-        initial['tech'] = tech
-        return initial
+        return reverse_lazy('ledger:workdays', kwargs={'pk': tech_id})
+
+    def get_initial(self):
+        tech = get_object_or_404(Technician, id=self.kwargs.get('pk'))
+        return {
+            'start_time': tech.start_work_at,
+            'end_time': tech.end_work,
+            'is_working': 'true',
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = "Set Work Days and Time"
         tech = get_object_or_404(Technician, id=self.kwargs.get('pk'))
         context['tech'] = tech
-        work_days = TechWorkDay.objects.filter(tech=tech).order_by('day_of_week')
-        context['work_days'] = work_days
+        recurring = TechWorkDay.objects.filter(tech=tech, date__isnull=True).order_by('day_of_week')
+        context['recurring_days'] = recurring
+        recurring_map = {day.day_of_week: day for day in recurring}
+        week_schedule = []
+        for dow, label in Day_Of_Week:
+            entry = recurring_map.get(dow)
+            week_schedule.append({
+                'day_of_week': dow,
+                'label': label,
+                'entry': entry,
+                'is_configured': entry is not None,
+                'is_working': entry.is_working if entry else True,
+                'start_time': (entry.start_time if entry and entry.start_time else tech.start_work_at),
+                'end_time': (entry.end_time if entry and entry.end_time else tech.end_work),
+            })
+        context['week_schedule'] = week_schedule
+        recurring_off_days = []
+        for day in week_schedule:
+            if not day['is_working'] and day['is_configured']:
+                recurring_off_days.append(day['label'])
+        context['recurring_off_days'] = recurring_off_days
+        today = timezone.now().date()
+        specific = (
+            TechWorkDay.objects
+            .filter(tech=tech, date__isnull=False)
+            .exclude(notes__icontains='Bulk')
+            .order_by('date')
+        )
+        context['specific_exceptions'] = specific
+        context['today'] = today
+        context['upcoming_exceptions'] = specific.filter(date__gte=today)
         return context
+
     def form_valid(self, form):
-        tech_id = self.kwargs.get('pk')
-        tech = get_object_or_404(Technician, id=tech_id)
-        form.instance.tech = tech
+        tech = get_object_or_404(Technician, id=self.kwargs.get('pk'))
+        date = form.cleaned_data.get('date')
+        day_of_week = form.cleaned_data['day_of_week']
+        is_working = form.cleaned_data.get('is_working', True)
+        start_time = form.cleaned_data.get('start_time')
+        end_time = form.cleaned_data.get('end_time')
+
+        if is_working:
+            start_time = start_time or tech.start_work_at
+            end_time = end_time or tech.end_work
+        else:
+            start_time = None
+            end_time = None
+
         try:
-            messages.success(self.request, f"Work days and time for {tech.name} have been updated.")
-            return super().form_valid(form)
+            if date:
+                TechWorkDay.objects.update_or_create(
+                    tech=tech,
+                    date=date,
+                    defaults={
+                        'day_of_week': date.weekday(),
+                        'is_working': is_working,
+                        'start_time': start_time,
+                        'end_time': end_time,
+                    },
+                )
+                msg = f"Schedule for {date.strftime('%A, %b %d')} saved for {tech.name}."
+            else:
+                TechWorkDay.objects.update_or_create(
+                    tech=tech,
+                    day_of_week=day_of_week,
+                    date=None,
+                    defaults={
+                        'is_working': is_working,
+                        'start_time': start_time,
+                        'end_time': end_time,
+                    },
+                )
+                work_days = list(tech.work_days.ljust(7, '1')[:7])
+                work_days[day_of_week] = '1' if is_working else '0'
+                tech.work_days = ''.join(work_days)
+                tech.save(update_fields=['work_days'])
+                day_label = dict(TechWorkDay._meta.get_field('day_of_week').choices).get(day_of_week, '')
+                if is_working:
+                    msg = f"{day_label} is back on ({start_time} - {end_time}) for {tech.name}."
+                else:
+                    msg = f"{day_label} is off every week for {tech.name} until you turn it back on."
+            messages.success(self.request, msg)
+            return redirect(self.get_success_url())
         except IntegrityError:
-            form.add_error(None, "Work day for this day of the week already exists. Remove it first to add a new one.")
+            form.add_error(None, "Could not save this schedule. Please try again.")
             return self.form_invalid(form)
+
         
 class DeleteWorkDayView(LoginRequiredMixin, View):
     def post(self, request):
@@ -216,17 +294,37 @@ class DeleteWorkDayView(LoginRequiredMixin, View):
         except TechWorkDay.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Work day not found.'}, status=404)
 
-class TechVacationView(LoginRequiredMixin,UpdateView):
+class TechVacationView(LoginRequiredMixin, UpdateView):
     model = Technician
     form_class = VacationForm
     template_name = 'ledger/vacation_tech.html'
     success_url = reverse_lazy("datHen:listHen")
+
     def get_object(self):
         return get_object_or_404(Technician, id=self.kwargs.get('pk'))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = "Set Vacation Time"
+        context['title'] = "Off Period (consecutive days)"
         return context
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('clear_vacation'):
+            tech = self.get_object()
+            tech.vacation_start = None
+            tech.vacation_end = None
+            tech.save(update_fields=['vacation_start', 'vacation_end'])
+            messages.success(request, f"{tech.name} is turned back on.")
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            f"Off period saved for {form.instance.name}."
+            + (" Stays off until you turn back on." if not form.instance.vacation_end else "")
+        )
+        return super().form_valid(form)
 
 class ChatView(View):
     template = "ledger/chat_room.html"
@@ -458,9 +556,6 @@ class ServiceDetail(LoginRequiredMixin, View):
 
 
 class CustomerVisit(View):
-    page_id = "4841897016034853"
-    access_token = os.environ.get('access_token')
-    url = f"https://graph.facebook.com/v22.0/{page_id}/feed?fields=full_picture,message,attachments{{media,image}}&access_token={access_token}"
     template = "home.html"
     allService = Service.objects.all()
     nail = allService.filter(category="Nail Enhancement")
@@ -469,40 +564,18 @@ class CustomerVisit(View):
     wax = allService.filter(category="Wax")
 
     def get(self, request):
-        response = requests.get(self.url)
         complimentaries = Complimentary.objects.filter(is_available=True).exclude(category=Complimentary.Category.gift).order_by('category')
         today = timezone.now().date()
         allTech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
-        if response.status_code == 200:
-            data = response.json()
-            latest_image_urls = []
-            for post in data.get('data', []):
-                if 'full_picture' in post:
-                    latest_image_urls.append(post['full_picture'])
-            latest_image_urls = latest_image_urls[:5]
-                        
-            context = {
-                'nails': self.nail,
-                'feets': self.feet,
-                'waxs': self.wax,
-                'mani': self.mani,
-                'allTech': allTech,
-                'complimentaries': complimentaries,
-                'today': today,
-                'latest_image_urls': latest_image_urls,
-            }
-        else:
-            print(f"Failed to fetch data: {response.status_code}, Response: {response.text}")
-            context = {
-                'nails': self.nail,
-                'feets': self.feet,
-                'waxs': self.wax,
-                'mani': self.mani,
-                'allTech': allTech,
-                'complimentaries': complimentaries,
-                'today': today,
-                'latest_image_urls': [],
-            }
+        context = {
+            'nails': self.nail,
+            'feets': self.feet,
+            'waxs': self.wax,
+            'mani': self.mani,
+            'allTech': allTech,
+            'complimentaries': complimentaries,
+            'today': today,
+        }
         return render(request, self.template, context)
 
 class ClientWalkinView(LoginRequiredMixin, CreateView):
@@ -586,7 +659,7 @@ class EmployeeBio(DetailView):
     def get(self, request, pk):
         employee = get_object_or_404(Technician, id=pk)
         Technician.objects.filter(id=pk).update(view_count=F('view_count') + 1)
-        work_days = TechWorkDay.objects.filter(tech=employee).order_by('day_of_week')
+        work_days = TechWorkDay.objects.filter(tech=employee, date__isnull=True).order_by('day_of_week')
         context = {'employee': employee, 'work_days': work_days}
         return render(request, self.template, context)
     

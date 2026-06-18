@@ -13,7 +13,12 @@ address = "4605 Forest Dr #5, Columbia, SC 29206"
 
 def saveKhachVisit(client, date, time, services, tech, status):
     try:
-        khachvisit = KhachVisit(client=client, day_comes=date, time_at=time,technician=tech, status=status)
+        if hasattr(date, 'year'):
+            visit_date = date
+        else:
+            from datetime import datetime
+            visit_date = datetime.strptime(str(date), '%Y-%m-%d').date()
+        khachvisit = KhachVisit(client=client, day_comes=visit_date, time_at=time, technician=tech, status=status)
         khachvisit.save()
         khachvisit.services.set(services)
         khachvisit.total_spent = sum(dv.price for dv in services)
@@ -90,4 +95,3 @@ def visit_isPaid(request, pk):
     if visit.isPaid:
         return JsonResponse({'success': True, 'isPaid': True})
     return JsonResponse({'isPaid': False})
-

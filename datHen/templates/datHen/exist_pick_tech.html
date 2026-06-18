@@ -22,10 +22,9 @@
         <a href="{% url 'datHen:technician_detail_exist' employee.id %}" class="text-decoration-none link-offset-2 link-underline link-underline-opacity-0">
                 <img src="{% if employee.picture %} {{ employee.picture.url }} {% else %} {% static 'ledger/images/person.jpg' %} {% endif %}" class="img-fluid" alt="{{ employee.name }}" style="width: 120px; height: 120px; object-fit: cover;" id="tech-pic">
             <div id="tech-name">{{ employee.name | title }} </div>
-            {% if employee.still_vacation %}
-                    <div class="text-danger">Off from {{ employee.vacation_start }} <br>to {{ employee.vacation_end }}</div>
-
-                {% endif %}
+            {% for notice in employee.off_notices %}
+                <div class="text-danger small">{{ notice }}</div>
+            {% endfor %}
         </a>
         </div>
         {% endfor %}

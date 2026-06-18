@@ -2,20 +2,20 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_filters %}
 
-
 {% block heading %}
-    <h1>Vacation :-)</h1>
+    <h1>Off Period</h1>
 {% endblock heading %}
 
-
 {% block content %}
-<h4> {{ title }} </h4>
+<h4>{{ title }}</h4>
+<p class="text-muted">For consecutive days off (not every Tuesday). Leave end date blank to stay off until you turn back on.</p>
 <form action="" method="post">
     {% csrf_token %}
     <div class="form-group col-md-4">
-    {{ form | crispy }}
+        {{ form | crispy }}
     </div>
-    <input type='submit' value='Vacation' class="btn btn-info" role="button">
-    <input type="submit" onclick="window.location='{% url "datHen:listHen" %}'; return false; " value="No Vacation" class="btn btn-primary" role="button">
-</form>  
+    <button type="submit" class="btn btn-info">Save Off Period</button>
+    <button type="submit" name="clear_vacation" value="1" class="btn btn-success">Turn Back On</button>
+    <button type="button" class="btn btn-primary" onclick="window.location='{% url "datHen:listHen" %}'; return false;">Cancel</button>
+</form>
 {% endblock content %}

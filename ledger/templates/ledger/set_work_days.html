@@ -1,68 +1,145 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
-{% load crispy_forms_filters %}
 
 {% block nutPhu %}
-        <div class="d-flex flex-row">
-            <div class="nav-item">
-                <a class="nav-link" href="{% url 'ledger:vacation' tech.id %}"><span>Set Vacation</span></a>
-            </div>
-        </div>
+<div class="d-flex flex-row">
+    <div class="nav-item">
+        <a class="nav-link" href="{% url 'ledger:vacation' tech.id %}"><span>Vacation</span></a>
+    </div>
+</div>
 {% endblock nutPhu %}
 
 {% block heading %}
-    <h1>Work is Great :-)</h1>
+    <h1>Work Schedule</h1>
 {% endblock heading %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-sm">
+        <div class="col-lg-10">
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">{{ title }}, {{ tech.name | title }}</h4>
+                    <h4 class="mb-0">{{ title }} — {{ tech.name|title }}</h4>
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title mb-3">Current Work Schedule</h5>
-                    
-                    {% if work_days %}
+                    <p class="text-muted mb-3">
+                        Use <strong>Off</strong> for a regular every-week day off (e.g. every Tuesday). It stays off until you turn it back <strong>On</strong>.
+                        Use a <strong>specific date</strong> only for a one-time change. Default hours: {{ tech.start_work_at }} – {{ tech.end_work }}.
+                    </p>
+
+                    {% if recurring_off_days %}
+                    <div class="alert alert-secondary py-2 mb-4">
+                        <strong>Regular days off:</strong> {{ recurring_off_days|join:", " }}
+                        <span class="text-muted">— turn back on anytime with the form below.</span>
+                    </div>
+                    {% endif %}
+
+                    {% if tech.vacation_start %}
+                    <div class="alert alert-warning py-2 mb-4">
+                        <strong>Off period:</strong>
+                        {{ tech.vacation_start|date:"M d, Y" }}
+                        {% if tech.vacation_end %}
+                            to {{ tech.vacation_end|date:"M d, Y" }}
+                        {% else %}
+                            onward (until turned back on)
+                        {% endif %}
+                        <a href="{% url 'ledger:vacation' tech.id %}" class="ms-2">Edit</a>
+                    </div>
+                    {% endif %}
+
+                    {% if upcoming_exceptions %}
+                    <h5 class="mb-3">Specific Date Changes</h5>
                     <ul class="list-group list-group-flush mb-4">
-                        {% for work_day in work_days %}
+                        {% for exception in upcoming_exceptions %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>{{ work_day.get_day_of_week_display }}</strong>
-                            {% if work_day.is_working %}
-                            <span class="text-primary">
-                                {{ work_day.start_time }} - {{ work_day.end_time }}
-                            </span>
+                            <div>
+                                <strong>{{ exception.date|date:"l, M d, Y" }}</strong>
+                                {% if exception.is_working %}
+                                    <span class="text-primary ms-2">{{ exception.start_time }} – {{ exception.end_time }}</span>
+                                {% else %}
+                                    <span class="text-muted ms-2">Day off</span>
+                                {% endif %}
+                                {% if exception.notes %}
+                                    <small class="text-muted d-block">{{ exception.notes }}</small>
+                                {% endif %}
+                            </div>
                             <button type="button"
-                                    class="delete_button text-danger fs-5 border-0 bg-transparent" 
-                                    id="delete_{{ work_day.id }}">
-                                <i class="bi bi-calendar-x"></i>
+                                    class="delete_button btn btn-sm btn-outline-danger"
+                                    id="delete_{{ exception.id }}">
+                                <i class="bi bi-trash"></i>
                             </button>
-                            {% else %}
-                            <span class="text-muted">Off</span>
-                            {% endif %}
                         </li>
                         {% endfor %}
                     </ul>
-                    {% else %}
-                    <p class="text-muted">No work days set.</p>
                     {% endif %}
 
-                    <h5 class="card-title mb-3">Update Schedule</h5>
-                    <form action="" method="post">
+                    <h5 class="mb-3">Update Schedule</h5>
+                    <form action="" method="post" id="schedule-form">
                         {% csrf_token %}
-                        {{ form | crispy }}
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            
-                            <button type="submit" class="btn btn-outline-info">
-                                Submit
-                            </button>
-                            <button type="button" 
-                                    class="btn btn-outline-primary me-md-2" 
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="id_date" class="form-label">{{ form.date.label }}</label>
+                            {{ form.date }}
+                            {% if form.date.help_text %}
+                            <div class="form-text">{{ form.date.help_text }}</div>
+                            {% endif %}
+                            {% for error in form.date.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3" id="day-of-week-group">
+                            <label for="id_day_of_week" class="form-label">{{ form.day_of_week.label }}</label>
+                            {{ form.day_of_week }}
+                            {% if form.day_of_week.help_text %}
+                            <div class="form-text">{{ form.day_of_week.help_text }}</div>
+                            {% endif %}
+                            {% for error in form.day_of_week.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Working this day</label>
+                            <input type="hidden" name="is_working" id="id_is_working" value="{% if form.is_working.value == False or form.is_working.value == 'false' %}false{% else %}true{% endif %}">
+                            <div class="btn-group" role="group" aria-label="Working this day">
+                                <button type="button" class="btn btn-success" id="btn-working-on">On</button>
+                                <button type="button" class="btn btn-outline-secondary" id="btn-working-off">Off</button>
+                            </div>
+                            <div class="form-text">Off marks this as a day off.</div>
+                        </div>
+
+                        <div class="mb-3" id="time-fields-group">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_start_time" class="form-label">{{ form.start_time.label }}</label>
+                                    {{ form.start_time }}
+                                    {% for error in form.start_time.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_end_time" class="form-label">{{ form.end_time.label }}</label>
+                                    {{ form.end_time }}
+                                    {% for error in form.end_time.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                            <button type="button"
+                                    class="btn btn-outline-primary"
                                     onclick="window.location='{% url "datHen:listHen" %}'; return false;">
                                 Cancel
+                            </button>
+                            <button type="submit" class="btn btn-outline-info">
+                                Save Schedule
                             </button>
                         </div>
                     </form>
@@ -74,10 +151,58 @@
 
 <script>
     $(document).ready(function() {
+        var $isWorking = $('#id_is_working');
+        var $date = $('#id_date');
+        var $dayOfWeekGroup = $('#day-of-week-group');
+        var $dayOfWeek = $('#id_day_of_week');
+        var $timeFields = $('#time-fields-group');
+        var $btnOn = $('#btn-working-on');
+        var $btnOff = $('#btn-working-off');
+
+        function isWorkingOn() {
+            return $isWorking.val() === 'true';
+        }
+
+        function setWorkingState(working) {
+            $isWorking.val(working ? 'true' : 'false');
+            if (working) {
+                $btnOn.removeClass('btn-outline-success').addClass('btn-success');
+                $btnOff.removeClass('btn-secondary').addClass('btn-outline-secondary');
+                $timeFields.show();
+            } else {
+                $btnOn.removeClass('btn-success').addClass('btn-outline-success');
+                $btnOff.removeClass('btn-outline-secondary').addClass('btn-secondary');
+                $timeFields.hide();
+            }
+        }
+
+        function toggleDayOfWeek() {
+            if ($date.val()) {
+                $dayOfWeekGroup.hide();
+                $dayOfWeek.prop('required', false).val('');
+            } else {
+                $dayOfWeekGroup.show();
+                $dayOfWeek.prop('required', true);
+            }
+        }
+
+        $btnOn.on('click', function() {
+            setWorkingState(true);
+        });
+
+        $btnOff.on('click', function() {
+            setWorkingState(false);
+        });
+
+        $date.on('change input', toggleDayOfWeek);
+
+        setWorkingState(isWorkingOn());
+        toggleDayOfWeek();
+
         $('.delete_button').click(function() {
             var workDayId = $(this).attr('id').split('_')[1];
-            var button = $(this);
-            if (confirm('Delete this work day?')) {
+            var row = $(this).closest('li');
+            if (confirm('Remove this schedule entry?')) {
                 $.ajax({
                     url: '{% url "ledger:delete_workday" %}',
                     type: 'POST',
@@ -87,12 +212,12 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            button.closest('li').remove();
+                            row.remove();
                         } else {
                             alert('Error: ' + response.error);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function() {
                         alert('An error occurred while deleting the work day.');
                     }
                 });
