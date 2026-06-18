@@ -100,6 +100,110 @@ class Technician(models.Model):
         if self.vacation_end:
             return self.vacation_start <= check_date <= self.vacation_end
         return check_date >= self.vacation_start
+
+    def _group_consecutive_dates(self, dates):
+        if not dates:
+            return []
+        sorted_dates = sorted(dates)
+        ranges = []
+        range_start = sorted_dates[0]
+        range_end = sorted_dates[0]
+        for current in sorted_dates[1:]:
+            if current == range_end + timedelta(days=1):
+                range_end = current
+            else:
+                ranges.append((range_start, range_end))
+                range_start = current
+                range_end = current
+        ranges.append((range_start, range_end))
+        return ranges
+
+    def _recurring_off_weekdays(self):
+        weekdays = set(
+            TechWorkDay.objects.filter(
+                tech=self, date__isnull=True, is_working=False
+            ).values_list('day_of_week', flat=True)
+        )
+        if not weekdays and len(self.work_days) == 7:
+            weekdays = {
+                index for index in range(7) if self.work_days[index] == '0'
+            }
+        return weekdays
+
+    def get_booking_off_notices(self, lookahead_days=60):
+        today = timezone.now().date()
+        notices = []
+        recurring_off_weekdays = self._recurring_off_weekdays()
+
+        if self.vacation_start:
+            vacation_end = self.vacation_end or self.vacation_start
+            if vacation_end >= today:
+                start_show = max(self.vacation_start, today)
+                if start_show == vacation_end:
+                    notices.append(f"Vacation on {vacation_end.strftime('%a, %b %d')}")
+                else:
+                    notices.append(
+                        f"Vacation {start_show.strftime('%b %d')} – {vacation_end.strftime('%b %d')}"
+                    )
+
+        specific_offs = []
+        for entry in (
+            TechWorkDay.objects.filter(
+                tech=self,
+                date__isnull=False,
+                date__gte=today,
+                date__lte=today + timedelta(days=lookahead_days),
+            )
+            .exclude(is_working=True)
+            .exclude(notes__icontains='Bulk')
+            .order_by('date')
+        ):
+            if self.is_on_vacation(entry.date):
+                continue
+            if entry.date.weekday() in recurring_off_weekdays:
+                continue
+            specific_offs.append(entry.date)
+
+        for range_start, range_end in self._group_consecutive_dates(specific_offs):
+            if range_start == range_end:
+                notices.append(f"Off on {range_start.strftime('%a, %b %d')}")
+            else:
+                notices.append(
+                    f"Off {range_start.strftime('%b %d')} – {range_end.strftime('%b %d')}"
+                )
+
+        return notices
+
+    def get_unavailability_reason(self, booking_date, available_times):
+        if self.is_on_vacation(booking_date):
+            return {
+                'type': 'vacation',
+                'message': (
+                    f"{self.name.title()} is on vacation on "
+                    f"{booking_date.strftime('%A, %B %d')}. "
+                    "Please choose another date or technician."
+                ),
+            }
+        if self.get_day_off(booking_date):
+            return {
+                'type': 'day_off',
+                'message': (
+                    f"{self.name.title()} is not working on "
+                    f"{booking_date.strftime('%A, %B %d')}. "
+                    "Please choose another date or technician."
+                ),
+            }
+        if not available_times:
+            return {
+                'type': 'fully_booked',
+                'message': (
+                    f"{self.name.title()} has no open times on "
+                    f"{booking_date.strftime('%A, %B %d')} for your selected services. "
+                    "The day may be fully booked — please try another date or technician."
+                ),
+            }
+        return None
+
     def still_vacation(self):
         if self.vacation_end:
             return self.vacation_end > timezone.now().date()
@@ -491,5 +595,4 @@ class UpSetButton(models.Model):
     mood = models.CharField(max_length=20, choices=Mood.choices, default=Mood.smile, help_text="Mood of the client when they pressed the button.")
     def __str__(self):
         return f"Upset button for {self.client.full_name}"
-    
     

@@ -32,7 +32,11 @@
       
     </div>
 <br>
-  
+      {% if unavailability %}
+      <div class="alert alert-warning" role="alert">
+        {{ unavailability.message }}
+      </div>
+      {% endif %}
    
       {% if form.errors %}
     <div class="alert alert-danger">
@@ -48,7 +52,7 @@
         <div class="table-responsive">
                 
               <div class="col-md-4 mb-3">
-                <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example" required>
+                <select class="form-select" name="time_at" id="id_time_at" aria-label="Default select example" {% if not available %}disabled{% else %}required{% endif %}>
                   <option value="" disabled selected>Pick your time:</option>
                   {% for tieng in available %}
                   <option value="{{ tieng|time:'H:i' }}">{{ tieng|time:"g:i A" }}</option>
@@ -64,7 +68,10 @@
                 {{ form.status | as_crispy_field }}
               </div>
 
+              {% if available %}
               <button class="btn btn-primary w-25" type='submit' id="submit-button"> Take </button>
+              {% endif %}
+              <button type='button' class="btn btn-secondary" onclick="window.location='{% url 'datHen:technician_detail_exist' tech.id %}'; return false; ">Pick Another Date</button>
               <button type='button' class="btn btn-secondary" onclick="window.location='{% url 'ledger:index' %}'; return false; ">Cancel</button>
 
         </div>

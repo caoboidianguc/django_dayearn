@@ -65,6 +65,26 @@ def _available_times(tech, booking_date, services):
     return available
 
 
+def _annotate_tech_off_notices(techs):
+    for tech in techs:
+        tech.off_notices = tech.get_booking_off_notices()
+
+
+def _third_step_context(state):
+    available = state['available']
+    unavailability = state['tech'].get_unavailability_reason(
+        state['booking_date'],
+        available,
+    )
+    return {
+        'tech': state['tech'],
+        'available': available,
+        'ngay': state['booking_date'],
+        'allServices': state['services'],
+        'unavailability': unavailability,
+    }
+
+
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
     def get(self, request):
@@ -124,6 +144,7 @@ class ExistPickTech(View):
     
     def get(self, request, pk):
         tech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
+        _annotate_tech_off_notices(tech)
         cont = {'allTech': tech}
         request.session['client_id'] = pk
         return render(request, self.template, cont)
@@ -198,13 +219,9 @@ class ExistThirdStep(View):
             )
         form = ThirdFormExist(instance=state['client'])
         form.initial['technician'] = state['tech'].pk
-        return render(request, self.template, {
-            'form': form,
-            'tech': state['tech'],
-            'available': state['available'],
-            'ngay': state['booking_date'],
-            'allServices': state['services'],
-        })
+        context = _third_step_context(state)
+        context['form'] = form
+        return render(request, self.template, context)
 
     def post(self, request):
         state = self._load_booking_state(request)
@@ -215,13 +232,13 @@ class ExistThirdStep(View):
             )
         form = ThirdFormExist(request.POST, instance=state['client'])
         if not form.is_valid():
-            return render(request, self.template, {
-                'form': form,
-                'tech': state['tech'],
-                'available': state['available'],
-                'ngay': state['booking_date'],
-                'allServices': state['services'],
-            })
+            context = _third_step_context(state)
+            context['form'] = form
+            return render(request, self.template, context)
+        if not state['available']:
+            context = _third_step_context(state)
+            context['form'] = form
+            return render(request, self.template, context)
         khac = form.save(commit=False)
         khac.day_comes = state['booking_date']
         khac.technician = state['tech']
@@ -244,6 +261,7 @@ class FirstStep(View):
     #need to filter user
     def get(self,request):
         tech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
+        _annotate_tech_off_notices(tech)
         cont = {'allTech': tech}
         return render(request, self.template, cont)
 
@@ -314,13 +332,9 @@ class ThirdStep(View):
                 "Your booking session expired or is missing information. Please start again.",
             )
         form = ThirdForm(initial={'technician': state['tech'].pk})
-        return render(request, self.template, {
-            'form': form,
-            'tech': state['tech'],
-            'available': state['available'],
-            'ngay': state['booking_date'],
-            'allServices': state['services'],
-        })
+        context = _third_step_context(state)
+        context['form'] = form
+        return render(request, self.template, context)
 
     def post(self, request):
         state = self._load_booking_state(request)
@@ -331,13 +345,13 @@ class ThirdStep(View):
             )
         form = ThirdForm(request.POST)
         if not form.is_valid():
-            return render(request, self.template, {
-                'form': form,
-                'tech': state['tech'],
-                'available': state['available'],
-                'ngay': state['booking_date'],
-                'allServices': state['services'],
-            })
+            context = _third_step_context(state)
+            context['form'] = form
+            return render(request, self.template, context)
+        if not state['available']:
+            context = _third_step_context(state)
+            context['form'] = form
+            return render(request, self.template, context)
         total_point = sum(service.price for service in state['services'])
         existing_client = form.cleaned_data.get('existing_client')
         if existing_client:
