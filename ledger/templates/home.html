@@ -164,14 +164,5 @@
         Privacy Policy</a>
         <a class="nav-link" href="{% url 'ledger:contact' %}">
             Contact us</a>
-    <br>
-    {% if latest_image_urls %}
-    <div class="image-container" style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
-        {% for image_url in latest_image_urls %}
-            <img src="{{ image_url }}" alt="Image from FB" style="max-width: 50%; height: auto;">
-            
-        {% endfor %} 
-    </div>
-    {% endif %}
 {% endblock footer %}
 

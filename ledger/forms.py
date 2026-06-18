@@ -1,5 +1,5 @@
 from django import forms
-from .models import Technician, Khach, Service, Chat, TechWorkDay, Supply, Complimentary
+from .models import Technician, Khach, Service, Chat, TechWorkDay, Supply, Complimentary, Day_Of_Week
 from django.contrib.auth.forms import UserCreationForm
 from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
@@ -41,30 +41,67 @@ class TechForm(forms.ModelForm):
         label="Upload Picture",
         required=False
     )
-        
+
 class TechWorkDayForm(forms.ModelForm):
+    date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label="Specific date (optional)",
+        help_text="Leave blank for every-week schedule (e.g. every Tuesday off until you turn back on). Pick a date for a one-time change only.",
+    )
+    day_of_week = forms.ChoiceField(
+        choices=[('', 'Pick a day')] + list(Day_Of_Week),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Day of week",
+        help_text="Pick the weekday for a regular every-week schedule. Stays on or off until you change it.",
+    )
+    is_working = forms.TypedChoiceField(
+        choices=[('true', 'On'), ('false', 'Off')],
+        required=False,
+        initial='true',
+        label="Working this day",
+        widget=forms.HiddenInput(),
+    )
+
     class Meta:
         model = TechWorkDay
-        fields = ['day_of_week','start_time','end_time','is_working']
+        fields = ['date', 'day_of_week', 'is_working', 'start_time', 'end_time']
+
     start_time = forms.TimeField(
+        required=False,
         input_formats=["%H:%M"],
-        widget=ChonNgay(attrs={
-            "type":"time",
-            })
-        )
+        widget=ChonNgay(attrs={"type": "time", "class": "form-control"}),
+    )
     end_time = forms.TimeField(
+        required=False,
         input_formats=["%H:%M"],
-        widget=ChonNgay(attrs={
-            "type":"time",
-            })
-        )
+        widget=ChonNgay(attrs={"type": "time", "class": "form-control"}),
+    )
+
     def clean(self):
         cleaned_data = super().clean()
+        date = cleaned_data.get('date')
+        day_of_week = cleaned_data.get('day_of_week')
+        is_working = cleaned_data.get('is_working', 'true') == 'true'
+        cleaned_data['is_working'] = is_working
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
-        if start_time and end_time:
-            if start_time >= end_time:
+
+        if date:
+            cleaned_data['day_of_week'] = date.weekday()
+        elif day_of_week not in (None, ''):
+            cleaned_data['day_of_week'] = int(day_of_week)
+        else:
+            raise forms.ValidationError("Pick a day of the week, or choose a specific date.")
+
+        if is_working:
+            if start_time and end_time and start_time >= end_time:
                 raise forms.ValidationError("Start time must be before end time.")
+        else:
+            cleaned_data['start_time'] = None
+            cleaned_data['end_time'] = None
+
         return cleaned_data
         
 class ClientForm(forms.ModelForm):
@@ -102,12 +139,21 @@ class TaiKhoanCreationForm(UserCreationForm):
         
     
 class VacationForm(forms.ModelForm):
+    vacation_end = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        label="Last day off (optional)",
+        help_text="Leave blank to stay off until you turn back on.",
+    )
+
     class Meta:
         model = Technician
-        fields = ['vacation_start','vacation_end']
+        fields = ['vacation_start', 'vacation_end']
         widgets = {
-            'vacation_start': forms.DateInput(attrs={"type":"date"}),
-            'vacation_end': forms.DateInput(attrs={"type":"date"}),
+            'vacation_start': forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        }
+        help_texts = {
+            'vacation_start': 'First day off for consecutive days away.',
         }
         
 class ChatForm(forms.ModelForm):

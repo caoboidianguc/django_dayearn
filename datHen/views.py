@@ -15,6 +15,56 @@ from django.http import JsonResponse
 from ledger import utils
 
 
+def _booking_restart(request, message):
+    messages.error(request, message)
+    return redirect('datHen:first_step')
+
+
+def _parse_booking_date(date_value):
+    if not date_value:
+        return None
+    if hasattr(date_value, 'year'):
+        return date_value
+    return datetime.strptime(str(date_value), '%Y-%m-%d').date()
+
+
+def _get_service_ids(request):
+    service_ids = (
+        request.POST.getlist('service_ids')
+        or request.GET.getlist('dichvu')
+        or request.session.get('service_ids', [])
+    )
+    parsed = []
+    for service_id in service_ids:
+        try:
+            parsed.append(int(service_id))
+        except (TypeError, ValueError):
+            continue
+    return parsed
+
+
+def _get_selected_services(request):
+    service_ids = _get_service_ids(request)
+    if not service_ids:
+        return Service.objects.none()
+    return Service.objects.filter(id__in=service_ids)
+
+
+def _service_duration_minutes(services):
+    if not services:
+        return 0
+    return sum(service.time_perform.total_seconds() for service in services) / 60
+
+
+def _available_times(tech, booking_date, services):
+    time_perform = _service_duration_minutes(services)
+    available = list(tech.get_available_with(ngay=booking_date, thoigian=time_perform))
+    if booking_date == date.today():
+        cutoff = datetime.now() + timedelta(minutes=30)
+        available = [slot for slot in available if slot > cutoff.time()]
+    return available
+
+
 class DatHenView(LoginRequiredMixin,View):
     template_name = 'datHen/dathenview.html'
     def get(self, request):
@@ -40,6 +90,8 @@ class DatHenView(LoginRequiredMixin,View):
         }
         for tech in all_tech:
             tech.on_vacation = tech.is_on_vacation(check_date=selected_date)
+            tech.is_day_off = tech.get_day_off(check_date=selected_date)
+            tech.off_for_date = tech.on_vacation or tech.is_day_off
             tech.clients = tech.get_khachVisit().filter(day_comes=selected_date).order_by('time_at')
         return render(request, self.template_name, context)
 
@@ -79,21 +131,30 @@ class ExistPickTech(View):
 class ExistSecond(View):
     template = 'datHen/exist_second.html'
     def get(self, request, pk):
-        request.session['date'] = request.GET.get('day_comes')
-        tech = get_object_or_404(Technician, id=pk)        
+        day_comes = request.GET.get('day_comes')
+        if day_comes:
+            request.session['date'] = day_comes
+        get_object_or_404(Technician, id=pk)
+        request.session['tech_id'] = pk
         secondForm = DateForm()
         cont = {
                 'secondForm': secondForm,
             }
-        request.session['tech_id'] = pk
         return render(request, self.template, cont)
 
 class ChoiceServicesExistView(View):
     template = 'datHen/services_choice_exist.html'
 
     def get(self, request):
+        day_comes = request.GET.get('day_comes')
+        if day_comes:
+            request.session['date'] = day_comes
+        if not request.session.get('client_id') or not request.session.get('tech_id') or not request.session.get('date'):
+            return _booking_restart(
+                request,
+                "Please pick a client, technician, and date before choosing services.",
+            )
         serviceForm = ServicesChoiceForm(request.GET)
-        request.session['date'] = request.GET.get('day_comes')
         cont = {
             'form': serviceForm
         }
@@ -102,70 +163,77 @@ class ChoiceServicesExistView(View):
     
 class ExistThirdStep(View):
     template = 'datHen/exist_third_step.html'
-    
+
     def get_success_url(self):
         if self.request.user.is_authenticated:
             return reverse_lazy('datHen:listHen')
         return reverse_lazy('ledger:index')
-    def get(self,request):
-        client_id = request.session['client_id']
-        pk = request.session['tech_id']
-        tech = get_object_or_404(Technician, id=pk)
+
+    def _load_booking_state(self, request):
+        client_id = request.session.get('client_id')
+        tech_id = request.session.get('tech_id')
+        booking_date = _parse_booking_date(request.session.get('date'))
+        if not client_id or not tech_id or not booking_date:
+            return None
+        services = _get_selected_services(request)
+        if not services.exists():
+            return None
+        tech = get_object_or_404(Technician, id=tech_id)
         client = get_object_or_404(Khach, id=client_id)
-        ngay = request.session['date']
-        gioHienTai = datetime.now() + timedelta(minutes=30)
-        serChon = request.GET.getlist('dichvu')
-        serPick = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=serPick)
-        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
-        available = []
-        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        
-        available = tech.get_available_with(ngay=ngayDate, thoigian=time_perform)
-        if ngayDate == date.today():
-            available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        form = ThirdFormExist(instance=client)
-        form.instance.day_comes = ngay
-        form.instance.technician = tech
-        cont = {'form' : form, 
-                'tech': tech,
-                'available': available,
-                'ngay': ngayDate}
-        
-        return render(request, self.template, cont)
-    
-    def post(self,request):
-        client_id = request.session['client_id']
-        pk = request.session['tech_id']
-        tech = get_object_or_404(Technician, id=pk)
-        client = get_object_or_404(Khach, id=client_id)
-        ngay = request.session['date']
-        serChon = request.GET.getlist('dichvu')
-        serPick = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=serPick)
-        available = []
-        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
-        total_point = sum([service.price for service in services])
-        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-        form = ThirdFormExist(request.POST, instance=client)
+        request.session['service_ids'] = list(services.values_list('id', flat=True))
+        return {
+            'tech': tech,
+            'client': client,
+            'booking_date': booking_date,
+            'services': services,
+            'available': _available_times(tech, booking_date, services),
+        }
+
+    def get(self, request):
+        state = self._load_booking_state(request)
+        if not state:
+            return _booking_restart(
+                request,
+                "Your booking session expired or is missing information. Please start again.",
+            )
+        form = ThirdFormExist(instance=state['client'])
+        form.initial['technician'] = state['tech'].pk
+        return render(request, self.template, {
+            'form': form,
+            'tech': state['tech'],
+            'available': state['available'],
+            'ngay': state['booking_date'],
+            'allServices': state['services'],
+        })
+
+    def post(self, request):
+        state = self._load_booking_state(request)
+        if not state:
+            return _booking_restart(
+                request,
+                "Your booking session expired or is missing information. Please start again.",
+            )
+        form = ThirdFormExist(request.POST, instance=state['client'])
         if not form.is_valid():
-            cont = {'form' : form, 
-                'tech': tech,
-                'available': available,
-                'ngay': ngayDate}
-            return render(request, self.template, cont)
+            return render(request, self.template, {
+                'form': form,
+                'tech': state['tech'],
+                'available': state['available'],
+                'ngay': state['booking_date'],
+                'allServices': state['services'],
+            })
         khac = form.save(commit=False)
-        khac.day_comes = ngay
-        khac.technician = tech
-        khac.points = total_point
+        khac.day_comes = state['booking_date']
+        khac.technician = state['tech']
+        khac.points = sum(service.price for service in state['services'])
         khac.save()
-        khac.services.set(services)
-        form.save_m2m()
-        utils.saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
+        khac.services.set(state['services'])
+        utils.saveKhachVisit(
+            khac, state['booking_date'], khac.time_at, state['services'], state['tech'], khac.status
+        )
         if khac.email:
             utils.sendEmailConfirmation(request, khac)
-            messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+            messages.success(request, f"{khac.full_name} was scheduled successfully!")
         else:
             messages.info(request, "Appointment booked, but no email provided for confirmation.")
         return redirect(self.get_success_url())
@@ -183,12 +251,14 @@ class FirstStep(View):
 class Second(View):
     template = 'datHen/second.html'
     def get(self, request, pk):
-        request.session['date'] = request.GET.get('day_comes')      
+        day_comes = request.GET.get('day_comes')
+        if day_comes:
+            request.session['date'] = day_comes
+        request.session['id'] = pk
         secondForm = DateForm()
         cont = {
                 'secondForm': secondForm,
             }
-        request.session['id'] = pk
         return render(request, self.template, cont)
 
 
@@ -196,8 +266,15 @@ class ChoiceServicesView(View):
     template = 'datHen/services_choice.html'
 
     def get(self, request):
+        day_comes = request.GET.get('day_comes')
+        if day_comes:
+            request.session['date'] = day_comes
+        if not request.session.get('id') or not request.session.get('date'):
+            return _booking_restart(
+                request,
+                "Please pick a technician and date before choosing services.",
+            )
         serviceForm = ServicesChoiceForm(request.GET)
-        request.session['date'] = request.GET.get('day_comes')
         cont = {
             'form': serviceForm
         }
@@ -206,65 +283,67 @@ class ChoiceServicesView(View):
 
 class ThirdStep(View):
     template = 'datHen/third_step.html'
-    
+
     def get_success_url(self):
         if self.request.user.is_authenticated:
             return reverse_lazy('datHen:listHen')
         return reverse_lazy('ledger:index')
-    def get(self,request):
-        pk = request.session['id']
-        tech = get_object_or_404(Technician, id=pk)
-        ngay = request.session['date']
-        gioHienTai = datetime.now() + timedelta(minutes=30)
-        serChon = request.GET.getlist('dichvu')
-        serPick = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=serPick)
-        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
-        available = []
-        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        
-        available = tech.get_available_with(ngay=ngayDate, thoigian=time_perform)
-        if ngayDate == date.today():
-            available = [gio for gio in available if gio.hour > gioHienTai.hour]
-        form = ThirdForm()
-        form.instance.day_comes = ngay
-        cont = {'form' : form, 
-                'tech': tech,
-                'available': available,
-                'ngay': ngayDate,
-                'allServices': services
-                }
-        form.instance.technician = tech
-        return render(request, self.template, cont)
-    
-    def post(self,request):
-        pk = request.session['id']
-        tech = get_object_or_404(Technician, id=pk)
-        ngay = request.session['date']
-        serChon = request.GET.getlist('dichvu')
-        serPick = [int(service) for service in serChon]
-        services = Service.objects.filter(id__in=serPick)
-        available = []
-        time_perform = sum([service.time_perform.total_seconds() for service in services]) / 60
-        total_point = sum([service.price for service in services])
-        ngayDate = datetime.strptime(ngay, "%Y-%m-%d").date()
-        
-        available = tech.get_available_with(ngay=ngay, thoigian=time_perform)
-        
-        form = ThirdForm(request.POST, instance=tech)
-        
+
+    def _load_booking_state(self, request):
+        tech_id = request.session.get('id')
+        booking_date = _parse_booking_date(request.session.get('date'))
+        if not tech_id or not booking_date:
+            return None
+        services = _get_selected_services(request)
+        if not services.exists():
+            return None
+        tech = get_object_or_404(Technician, id=tech_id)
+        request.session['service_ids'] = list(services.values_list('id', flat=True))
+        return {
+            'tech': tech,
+            'booking_date': booking_date,
+            'services': services,
+            'available': _available_times(tech, booking_date, services),
+        }
+
+    def get(self, request):
+        state = self._load_booking_state(request)
+        if not state:
+            return _booking_restart(
+                request,
+                "Your booking session expired or is missing information. Please start again.",
+            )
+        form = ThirdForm(initial={'technician': state['tech'].pk})
+        return render(request, self.template, {
+            'form': form,
+            'tech': state['tech'],
+            'available': state['available'],
+            'ngay': state['booking_date'],
+            'allServices': state['services'],
+        })
+
+    def post(self, request):
+        state = self._load_booking_state(request)
+        if not state:
+            return _booking_restart(
+                request,
+                "Your booking session expired or is missing information. Please start again.",
+            )
+        form = ThirdForm(request.POST)
         if not form.is_valid():
-            cont = {'form' : form, 
-                'tech': tech,
-                'available': available,
-                'ngay': ngayDate,
-                'allServices': services}
-            return render(request, self.template, cont)
+            return render(request, self.template, {
+                'form': form,
+                'tech': state['tech'],
+                'available': state['available'],
+                'ngay': state['booking_date'],
+                'allServices': state['services'],
+            })
+        total_point = sum(service.price for service in state['services'])
         existing_client = form.cleaned_data.get('existing_client')
         if existing_client:
             khac = existing_client
-            khac.day_comes = ngay
-            khac.technician = tech
+            khac.day_comes = state['booking_date']
+            khac.technician = state['tech']
             khac.time_at = form.cleaned_data['time_at']
             khac.status = form.cleaned_data['status']
             khac.points = total_point
@@ -272,23 +351,32 @@ class ThirdStep(View):
             khac.save()
         else:
             khac, _ = Khach.objects.get_or_create(
-                full_name=form.cleaned_data['full_name'].upper().strip(),
+                full_name=form.cleaned_data['full_name'],
                 phone=form.cleaned_data['phone'],
                 defaults={
-                    'day_comes': ngay,
-                    'technician': tech,
+                    'day_comes': state['booking_date'],
+                    'technician': state['tech'],
                     'time_at': form.cleaned_data['time_at'],
                     'status': form.cleaned_data['status'],
                     'email': form.cleaned_data['email'],
-                    'points': total_point
-                }
+                    'points': total_point,
+                },
             )
-        khac.services.set(services)
-        form.instance = khac
-        utils.saveKhachVisit(khac, ngay, khac.time_at, services, tech, khac.status)
+            if khac.day_comes != state['booking_date'] or khac.technician_id != state['tech'].pk:
+                khac.day_comes = state['booking_date']
+                khac.technician = state['tech']
+                khac.time_at = form.cleaned_data['time_at']
+                khac.status = form.cleaned_data['status']
+                khac.email = form.cleaned_data['email']
+                khac.points = total_point
+                khac.save()
+        khac.services.set(state['services'])
+        utils.saveKhachVisit(
+            khac, state['booking_date'], khac.time_at, state['services'], state['tech'], khac.status
+        )
         if khac.email:
             utils.sendEmailConfirmation(request, khac)
-            messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+            messages.success(request, f"{khac.full_name} was scheduled successfully!")
         else:
             messages.info(request, "Appointment booked, but no email provided for confirmation.")
         return redirect(self.get_success_url())
@@ -352,7 +440,7 @@ class VisitDetailView(LoginRequiredMixin, UpdateView):
     template_name = 'datHen/visit_detail.html'
     success_url = reverse_lazy('datHen:listHen')
     form_class = VisitForm
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['visit'] = self.object
@@ -364,7 +452,6 @@ def schedule_get_client(request):
     data = [{'full_name': client.full_name, 'phone': str(client.phone)} for client in client_list]
     return JsonResponse(data, safe=False)
     
-
 class ScheduleViewUser(LoginRequiredMixin, View):
     template = "datHen/schedule_user.html"
     success_url = reverse_lazy('datHen:listHen')

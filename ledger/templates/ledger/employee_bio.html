@@ -67,8 +67,7 @@
 <div class="container profile-container">
     <h1 class="profile-header">About {{ employee.name | title }}    </h1>
     {% if employee.still_vacation %}
-        <div class="fs-5 text-danger">On vacation from: {{ employee.vacation_start }} <br>to :{{ employee.vacation_end }}</div>
-
+        <div class="text-danger">{{ employee.vacation_notice }}</div>
     {% endif %}
     
     <div class="card profile-card">
