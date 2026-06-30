@@ -80,14 +80,19 @@
                             <p class="card-text">
                                 <span class="badge {% if khach.status == "Anyone" %} bg-warning 
                                 {% elif khach.status == 'Cancel' %} bg-danger
+                                {% elif khach.status == 'Phone' %} bg-info
                                 {% else %} bg-success
                                 {% endif %} text-wrap fw-medium" style="width: 10rem;">
                                         With: {{ khach.technician | title }}
-                                        {%if khach.status == "Anyone" %}
+                                        {% if khach.status == "Confirmed" %}
+                                    <br><span class="small fw-normal"><i class="bi bi-globe"></i> Online: {{ khach.status }}</span>
+                                        {% elif khach.status == "Phone" %}
+                                    <br><i class="bi bi-telephone-fill"></i> {{ khach.status }}
+                                        {% elif khach.status == "Anyone" %}
                                     <br>Random: {{ khach.status }}
-                                            {% elif khach.status == 'Cancel' %}
+                                        {% elif khach.status == 'Cancel' %}
                                     <br>Was {{ khach.status }}ed
-                                            {% endif %}
+                                        {% endif %}
                                 </span>
                             </p>
                         

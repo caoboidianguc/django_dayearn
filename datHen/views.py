@@ -245,8 +245,13 @@ class ExistThirdStep(View):
         khac.points = sum(service.price for service in state['services'])
         khac.save()
         khac.services.set(state['services'])
+        visit_status = (
+            KhachVisit.Status.anyone
+            if khac.status == Khach.Status.anyone
+            else KhachVisit.Status.online
+        )
         utils.saveKhachVisit(
-            khac, state['booking_date'], khac.time_at, state['services'], state['tech'], khac.status
+            khac, state['booking_date'], khac.time_at, state['services'], state['tech'], visit_status
         )
         if khac.email:
             utils.sendEmailConfirmation(request, khac)
@@ -385,8 +390,13 @@ class ThirdStep(View):
                 khac.points = total_point
                 khac.save()
         khac.services.set(state['services'])
+        visit_status = (
+            KhachVisit.Status.anyone
+            if khac.status == Khach.Status.anyone
+            else KhachVisit.Status.online
+        )
         utils.saveKhachVisit(
-            khac, state['booking_date'], khac.time_at, state['services'], state['tech'], khac.status
+            khac, state['booking_date'], khac.time_at, state['services'], state['tech'], visit_status
         )
         if khac.email:
             utils.sendEmailConfirmation(request, khac)
@@ -509,7 +519,12 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         client.points = total_point
         client.save()
         form.instance = client
-        utils.saveKhachVisit(client, day_comes, time_at, services, tech, status)
+        visit_status = (
+            KhachVisit.Status.anyone
+            if status == Khach.Status.anyone
+            else KhachVisit.Status.phone
+        )
+        utils.saveKhachVisit(client, day_comes, time_at, services, tech, visit_status)
         messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
         return redirect(self.success_url)
 

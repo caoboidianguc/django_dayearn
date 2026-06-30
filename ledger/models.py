@@ -397,6 +397,7 @@ class Khach(models.Model):
 class KhachVisit(models.Model):
     class Status(models.TextChoices):
         online = "Confirmed"
+        phone = "Phone"
         anyone = "Anyone"
         cancel = "Cancel"
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="khachvisits", null=True)
