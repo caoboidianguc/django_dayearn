@@ -6,13 +6,158 @@ from django.views.generic.edit import UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .forms import (UserExistClientForm, ExistClientForm, DateForm, ThirdForm, DatHenForm,
                     ThirdFormExist, ServicesChoiceForm, KhachDetailForm, VisitForm, DatePickerInput)
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date, datetime, time
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.http import JsonResponse
 from ledger import utils
+
+# Timeline display: pixels per minute of shop-open hours.
+# 2.0 → ~30px per 15 minutes.
+_TIMELINE_PX_PER_MIN = 2.0
+_TIMELINE_MIN_BLOCK_MINUTES = 15
+_TIMELINE_SLOT_STEP_MINUTES = 30
+# Minor grid every 15 minutes (labels stay every 30)
+_TIMELINE_MINOR_STEP_MINUTES = 15
+_DEFAULT_OPEN = time(9, 30)
+_DEFAULT_CLOSE = time(18, 30)
+
+def _time_to_minutes(t):
+    """Convert a time (or datetime.time) to minutes since midnight."""
+    return t.hour * 60 + t.minute
+
+
+def _minutes_to_time(total_minutes):
+    total_minutes = int(total_minutes) % (24 * 60)
+    return time(hour=total_minutes // 60, minute=total_minutes % 60)
+
+
+def _format_time_label(t):
+    """12-hour label without leading zero on the hour (portable across OSes)."""
+    return t.strftime('%I:%M %p').lstrip('0')
+
+
+def _pct_from_timeline(t, timeline_start_min, total_minutes):
+    if total_minutes <= 0:
+        return 0.0
+    return max(0.0, min(100.0, (_time_to_minutes(t) - timeline_start_min) / total_minutes * 100))
+
+
+def _build_timeline_slots(timeline_start, timeline_end, step_minutes=_TIMELINE_SLOT_STEP_MINUTES):
+    """Hour/half-hour labels for the left gutter of the schedule board."""
+    start_min = _time_to_minutes(timeline_start)
+    end_min = _time_to_minutes(timeline_end)
+    total = end_min - start_min
+    if total <= 0:
+        return []
+    slots = []
+    current = start_min
+    # Snap first label to a step boundary if needed, but always include open.
+    while current <= end_min:
+        t = _minutes_to_time(current)
+        slots.append({
+            'time': t,
+            'label': _format_time_label(t),
+            'top_pct': _pct_from_timeline(t, start_min, total),
+        })
+        current += step_minutes
+    # Ensure close time appears if last step skipped it
+    if not slots or slots[-1]['time'] != timeline_end:
+        slots.append({
+            'time': timeline_end,
+            'label': _format_time_label(timeline_end),
+            'top_pct': 100.0,
+        })
+    return slots
+
+
+def _build_timeline_minor_lines(timeline_start, timeline_end, step_minutes=_TIMELINE_MINOR_STEP_MINUTES):
+    """Light 15-minute grid lines (no labels) for finer time reading."""
+    start_min = _time_to_minutes(timeline_start)
+    end_min = _time_to_minutes(timeline_end)
+    total = end_min - start_min
+    if total <= 0:
+        return []
+    lines = []
+    current = start_min
+    while current <= end_min:
+        t = _minutes_to_time(current)
+        is_major = (current - start_min) % _TIMELINE_SLOT_STEP_MINUTES == 0
+        lines.append({
+            'top_pct': _pct_from_timeline(t, start_min, total),
+            'is_major': is_major,
+        })
+        current += step_minutes
+    return lines
+
+
+def _annotate_visit_position(visit, timeline_start_min, total_minutes):
+    """Attach top_pct / height_pct so the template can place the appointment block."""
+    start_min = _time_to_minutes(visit.time_at)
+    try:
+        done = visit.get_done_at()
+    except Exception:
+        done = visit.time_at
+    end_min = _time_to_minutes(done)
+    duration = max(end_min - start_min, _TIMELINE_MIN_BLOCK_MINUTES)
+    visit.done_at_display = done
+    visit.top_pct = _pct_from_timeline(visit.time_at, timeline_start_min, total_minutes)
+    if total_minutes > 0:
+        visit.height_pct = max(duration / total_minutes * 100, _TIMELINE_MIN_BLOCK_MINUTES / total_minutes * 100)
+        # Keep block inside the lane
+        if visit.top_pct + visit.height_pct > 100:
+            visit.height_pct = max(1.0, 100 - visit.top_pct)
+    else:
+        visit.height_pct = 5.0
+    return visit
+
+
+def _free_gaps_for_tech(clients, work_start, work_end, timeline_start_min, total_minutes):
+    """
+    Empty windows between appointments (and before first / after last) inside the tech's work hours.
+    Shown as free bands so staff can see when another client can be scheduled.
+    """
+    if not work_start or not work_end or total_minutes <= 0:
+        return []
+    active = [
+        c for c in clients
+        if getattr(c, 'status', None) != KhachVisit.Status.cancel
+    ]
+    active.sort(key=lambda c: c.time_at)
+    gaps = []
+    cursor = work_start
+
+    def add_gap(gap_start, gap_end):
+        start_m = _time_to_minutes(gap_start)
+        end_m = _time_to_minutes(gap_end)
+        if end_m - start_m < 5:
+            return
+        gaps.append({
+            'start': gap_start,
+            'end': gap_end,
+            'top_pct': _pct_from_timeline(gap_start, timeline_start_min, total_minutes),
+            'height_pct': max((end_m - start_m) / total_minutes * 100, 0.5),
+            'label': f"{_format_time_label(gap_start)} – {_format_time_label(gap_end)}",
+        })
+
+    for visit in active:
+        try:
+            done = visit.get_done_at()
+        except Exception:
+            done = visit.time_at
+        if visit.time_at > cursor:
+            gap_end = min(visit.time_at, work_end) if visit.time_at < work_end else work_end
+            if cursor < gap_end:
+                add_gap(cursor, gap_end)
+        if done > cursor:
+            cursor = done
+        if cursor >= work_end:
+            break
+    if cursor < work_end:
+        add_gap(max(cursor, work_start), work_end)
+    return gaps
 
 
 def _booking_restart(request, message):
@@ -100,19 +245,96 @@ class DatHenView(LoginRequiredMixin,View):
         prev_day = selected_date - timedelta(days=1)
         next_day = selected_date + timedelta(days=1)
         all_tech = Technician.objects.filter(owner=request.user).order_by('time_come_in')
-        context = {
-            'allTech' : all_tech,
-            'selected_date': selected_date,
-            'prev_day' : prev_day,
-            'next_day' : next_day,
-            'form': form,
-            'now': timezone.now().time(),
-        }
+        now_time = timezone.now().time()
+
+        # Collect work windows so the board opens at earliest open / closes at latest close
+        day_starts = []
+        day_ends = []
         for tech in all_tech:
             tech.on_vacation = tech.is_on_vacation(check_date=selected_date)
             tech.is_day_off = tech.get_day_off(check_date=selected_date)
             tech.off_for_date = tech.on_vacation or tech.is_day_off
-            tech.clients = tech.get_khachVisit().filter(day_comes=selected_date).order_by('time_at')
+            work_start, work_end = tech.get_effective_work_hours(selected_date)
+            tech.work_start = work_start
+            tech.work_end = work_end
+            if work_start and work_end and not tech.off_for_date:
+                day_starts.append(work_start)
+                day_ends.append(work_end)
+            tech.clients = list(
+                tech.get_khachVisit()
+                .filter(day_comes=selected_date)
+                .select_related('client', 'technician')
+                .prefetch_related('services')
+                .order_by('time_at')
+            )
+
+        timeline_start = min(day_starts) if day_starts else _DEFAULT_OPEN
+        timeline_end = max(day_ends) if day_ends else _DEFAULT_CLOSE
+        # If any visit falls outside work hours, expand the board so it still shows
+        for tech in all_tech:
+            for visit in tech.clients:
+                if visit.time_at < timeline_start:
+                    timeline_start = visit.time_at
+                try:
+                    done = visit.get_done_at()
+                except Exception:
+                    done = visit.time_at
+                if done > timeline_end:
+                    timeline_end = done
+
+        timeline_start_min = _time_to_minutes(timeline_start)
+        timeline_end_min = _time_to_minutes(timeline_end)
+        total_minutes = max(timeline_end_min - timeline_start_min, 1)
+        lane_height_px = int(total_minutes * _TIMELINE_PX_PER_MIN)
+
+        for tech in all_tech:
+            for visit in tech.clients:
+                _annotate_visit_position(visit, timeline_start_min, total_minutes)
+                visit.is_past = visit.get_done_at() < now_time if selected_date == timezone.now().date() else (
+                    selected_date < timezone.now().date()
+                )
+            if tech.off_for_date or not tech.work_start:
+                tech.free_gaps = []
+            else:
+                tech.free_gaps = _free_gaps_for_tech(
+                    tech.clients,
+                    tech.work_start,
+                    tech.work_end,
+                    timeline_start_min,
+                    total_minutes,
+                )
+            # Grey “outside this tech’s hours” bands relative to the shared timeline
+            tech.outside_before_pct = 0.0
+            tech.outside_after_top_pct = 100.0
+            tech.outside_after_height_pct = 0.0
+            if tech.work_start and tech.work_end and not tech.off_for_date:
+                tech.outside_before_pct = _pct_from_timeline(
+                    tech.work_start, timeline_start_min, total_minutes
+                )
+                after_top = _pct_from_timeline(tech.work_end, timeline_start_min, total_minutes)
+                tech.outside_after_top_pct = after_top
+                tech.outside_after_height_pct = max(0.0, 100.0 - after_top)
+
+        now_pct = None
+        if selected_date == timezone.now().date():
+            if timeline_start <= now_time <= timeline_end:
+                now_pct = _pct_from_timeline(now_time, timeline_start_min, total_minutes)
+
+        context = {
+            'allTech': all_tech,
+            'selected_date': selected_date,
+            'prev_day': prev_day,
+            'next_day': next_day,
+            'form': form,
+            'now': now_time,
+            'timeline_start': timeline_start,
+            'timeline_end': timeline_end,
+            'timeline_slots': _build_timeline_slots(timeline_start, timeline_end),
+            'timeline_minor_lines': _build_timeline_minor_lines(timeline_start, timeline_end),
+            'lane_height_px': lane_height_px,
+            'now_pct': now_pct,
+            'is_today': selected_date == timezone.now().date(),
+        }
         return render(request, self.template_name, context)
 
 
