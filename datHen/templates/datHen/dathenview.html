@@ -63,60 +63,125 @@
 
 {% block content %}
 
-<div class="container_tech">
-    {% for tech in allTech %}
-    <div class="col-md-2 align-text-top" id="tech">
-        <span class="fs-3">
-            <a href="{% url 'ledger:workdays' tech.id %}" class="btn {% if tech.off_for_date or not tech.isWork %}btn-secondary{% else %}btn-primary{% endif %}" role="button">{{ tech.name | title }}
-                <span class="fs-5 {% if tech.off_for_date %}text-danger{% else %}text-info{% endif %}">{% if tech.off_for_date %}Off{% else %}{{ tech.get_services_today }}{% endif %}</span>
-            </a>
-        </span>
-            {% for khach in tech.clients %}
-                <div class="card" style="width: 14rem; {% if khach.get_done_at < now %} opacity: 0.65; {% endif %}" id="client_{{ khach }}">
-                    <a tabindex="0" class="btn btn-lg" role="button" data-bs-trigger="focus" data-bs-toggle="popover" data-bs-title="{{ khach.client.phone_formatted }}" data-bs-html="true" data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button" >Remove Appoinment</a><p>Tag: {{ khach.client.tag | default:"" }}</p><a href="{{ khach.get_visit_detail_url }}" class="btn btn-primary" role="button" >Detail</a><p>{{ khach.client.desc | default:""}}</p></div>'>
-                        <div class="card-body">
-                            <h5 class="card-title text-info">{{ khach }}</h5>
-                            <h6 class="card-subtitle mb-2 text-body-secondary">Start: <span class="fs-5">{{ khach.time_at }}</span></h6>
-                            <p class="card-text">
-                                <span class="badge {% if khach.status == "Anyone" %} bg-warning 
-                                {% elif khach.status == 'Cancel' %} bg-danger
-                                {% elif khach.status == 'Phone' %} bg-info
-                                {% else %} bg-success
-                                {% endif %} text-wrap fw-medium" style="width: 10rem;">
-                                        With: {{ khach.technician | title }}
-                                        {% if khach.status == "Confirmed" %}
-                                    <br><span class="small fw-normal"><i class="bi bi-globe"></i> Online: {{ khach.status }}</span>
-                                        {% elif khach.status == "Phone" %}
-                                    <br><i class="bi bi-telephone-fill"></i> {{ khach.status }}
-                                        {% elif khach.status == "Anyone" %}
-                                    <br>Random: {{ khach.status }}
-                                        {% elif khach.status == 'Cancel' %}
-                                    <br>Was {{ khach.status }}ed
-                                        {% endif %}
-                                </span>
-                            </p>
-                        
-                            {% if khach.services %}
-                            <ul>
-                                {% for dichvu in khach.services.all %}
-                                    <li>{{ dichvu | title }} </li>
-                                {% endfor %}
-                            </ul>
-                            {% endif %} 
-                            {% if khach.isPaid %}
-                            <div class="fs-4 text-success">Paid at: <span class="fs-5">{{ khach.get_paid_at | time:"h:i A" }}</span></div>
-                            {% endif %}
-                            <h6>Done at: <span class="fs-5 text-danger">{{ khach.get_done_at }}</span></h6>
-                        </div>
-                    </a>
+<div class="schedule-board-wrap">
+    <div class="schedule-board" style="--lane-height: {{ lane_height_px }}px;">
+
+        {# Left clock gutter #}
+        <div class="schedule-gutter-col">
+            <div class="tech-header tech-header-spacer sticky-header">Time</div>
+            <div class="time-gutter day-lane">
+                {% for slot in timeline_slots %}
+                <div class="time-label" style="top: {{ slot.top_pct }}%;">{{ slot.label }}</div>
+                {% endfor %}
+                {% for line in timeline_minor_lines %}
+                <div class="time-grid-line {% if line.is_major %}is-major{% else %}is-minor{% endif %}"
+                     style="top: {{ line.top_pct }}%;"></div>
+                {% endfor %}
+                {% if now_pct != None %}
+                <div class="now-line gutter-now" style="top: {{ now_pct }}%;" title="Now"></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% for tech in allTech %}
+        <div class="tech-column">
+            <div class="tech-header sticky-header">
+                <a href="{% url 'ledger:workdays' tech.id %}"
+                   class="btn btn-sm {% if tech.off_for_date or not tech.isWork %}btn-secondary{% else %}btn-primary{% endif %}"
+                   role="button">
+                    {{ tech.name | title }}
+                    <span class="fs-6 {% if tech.off_for_date %}text-danger{% else %}text-info{% endif %}">
+                        {% if tech.off_for_date %}Off{% else %}{{ tech.get_services_today }}{% endif %}
+                    </span>
+                </a>
+            </div>
+
+            <div class="day-lane" id="lane_tech_{{ tech.id }}">
+                {% for line in timeline_minor_lines %}
+                <div class="time-grid-line {% if line.is_major %}is-major{% else %}is-minor{% endif %}"
+                     style="top: {{ line.top_pct }}%;"></div>
+                {% endfor %}
+
+                {% if tech.off_for_date %}
+                <div class="day-off-overlay">
+                    {% if tech.on_vacation %}Vacation{% else %}Day off{% endif %}
                 </div>
-        {%endfor%}
+                {% else %}
+                    {% if tech.outside_before_pct > 0 %}
+                    <div class="outside-hours" style="top: 0; height: {{ tech.outside_before_pct }}%;"></div>
+                    {% endif %}
+                    {% if tech.outside_after_height_pct > 0 %}
+                    <div class="outside-hours" style="top: {{ tech.outside_after_top_pct }}%; height: {{ tech.outside_after_height_pct }}%;"></div>
+                    {% endif %}
+
+                    {% for gap in tech.free_gaps %}
+                    <div class="free-gap"
+                         style="top: {{ gap.top_pct }}%; height: {{ gap.height_pct }}%;"
+                         title="Free {{ gap.label }}">
+                        <span class="free-gap-label">Free {{ gap.label }}</span>
+                    </div>
+                    {% endfor %}
+
+                    {% for khach in tech.clients %}
+                    <div class="appt-block card
+                                {% if khach.is_past %} is-past{% endif %}
+                                {% if khach.status == 'Cancel' %} is-cancel{% endif %}"
+                         style="top: {{ khach.top_pct }}%; height: {{ khach.height_pct }}%;"
+                         id="client_{{ khach.id }}">
+                        <a tabindex="0" class="btn btn-sm appt-trigger" role="button"
+                           data-bs-trigger="focus" data-bs-toggle="popover"
+                           data-bs-title="{{ khach.client.phone_formatted }}"
+                           data-bs-html="true"
+                           data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button">Remove Appointment</a><p>Tag: {{ khach.client.tag | default:"" }}</p><a href="{{ khach.get_visit_detail_url }}" class="btn btn-primary" role="button">Detail</a><p>{{ khach.client.desc | default:"" }}</p></div>'>
+                            <div class="card-body appt-body">
+                                <h6 class="card-title text-info mb-0">{{ khach }}</h6>
+                                <div class="appt-times">
+                                    <span class="start-time">{{ khach.time_at|time:"g:i A" }}</span>
+                                    <span class="sep">→</span>
+                                    <span class="done-time text-danger">{{ khach.done_at_display|time:"g:i A" }}</span>
+                                </div>
+                                <span class="badge status-badge
+                                    {% if khach.status == 'Anyone' %} bg-warning
+                                    {% elif khach.status == 'Cancel' %} bg-danger
+                                    {% elif khach.status == 'Phone' %} bg-info
+                                    {% else %} bg-success
+                                    {% endif %} text-wrap fw-medium">
+                                    {% if khach.status == "Confirmed" %}
+                                        <i class="bi bi-globe"></i> Online
+                                    {% elif khach.status == "Phone" %}
+                                        <i class="bi bi-telephone-fill"></i> Phone
+                                    {% elif khach.status == "Anyone" %}
+                                        Random
+                                    {% elif khach.status == 'Cancel' %}
+                                        Cancelled
+                                    {% else %}
+                                        {{ khach.status }}
+                                    {% endif %}
+                                </span>
+                                {% if khach.services.all %}
+                                <ul class="appt-services">
+                                    {% for dichvu in khach.services.all %}
+                                        <li>{{ dichvu | title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                {% if khach.isPaid %}
+                                <div class="text-success paid-line">Paid {{ khach.get_paid_at | time:"g:i A" }}</div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if now_pct != None %}
+                <div class="now-line" style="top: {{ now_pct }}%;" title="Now"></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
     </div>
-    {%endfor%}
-    
 </div>
 
-
 {% endblock content %}
-
-
