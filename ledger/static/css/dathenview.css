@@ -304,33 +304,6 @@ div #id_date {
     margin-top: 0.15rem;
 }
 
-/* "Now" indicator */
-.now-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 0;
-    border-top: 2px solid #dc3545;
-    z-index: 6;
-    pointer-events: none;
-}
-
-.now-line::before {
-    content: "";
-    position: absolute;
-    left: -3px;
-    top: -5px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #dc3545;
-}
-
-.gutter-now::before {
-    left: auto;
-    right: 0;
-}
-
 /* Legacy */
 div.container_tech {
     height: auto;

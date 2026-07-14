@@ -4,22 +4,26 @@
 
 
 {% block heading %}
-    <h1>Add Your favorite item</h1>
-    
+    <div class="container my-4">
+        <h1 class="display-6 text-center text-primary">Add a Note</h1>
+        <p class="lead text-center text-muted">Save a color preference or note for your next visit.</p>
+    </div>
 {% endblock heading %}
 
 
 {% block content %}
-<div>
+<div class="container my-4">
 <form action="" method="post" class="p-4 bg-light rounded shadow-sm">
     
     {% csrf_token %}
-    <div class="form-group col-md-4">
+    <div class="form-group col-md-6">
     {{ form | crispy }}
     </div>
 
-    <input type="submit" value="Add " class="btn btn-primary w-25">
-    <input type="submit" onclick="window.location='{% url 'ledger:iam_here' client.pk %}'; return false; " value="Cancel" class="btn btn-secondary">
+    <div class="d-flex flex-column flex-md-row gap-2 mt-3">
+        <input type="submit" value="Save Note" class="btn btn-primary">
+        <button type="button" onclick="window.location='{% url 'ledger:iam_here' client.pk %}';" class="btn btn-secondary">Cancel</button>
+    </div>
 </form>  
 </div>
 {% endblock content %}

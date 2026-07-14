@@ -421,6 +421,10 @@ class KhachVisit(models.Model):
     
     def get_cancel_url(self):
         return reverse("datHen:cancel_khachvisit", kwargs={'pk':self.pk})
+
+    def get_client_cancel_url(self):
+        """Public cancel link for a single visit (client-facing iam_here page)."""
+        return reverse("datHen:client_cancel_visit", kwargs={'pk': self.pk})
     
     def get_time_done(sefl):
         tong = 0

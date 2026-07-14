@@ -44,10 +44,16 @@ class IamHereView(View):
         gift = Complimentary.objects.filter(category=Complimentary.Category.gift, is_available=True)
         client = get_object_or_404(Khach, pk=kwargs['pk'])
         favorites = client.favorites.all()
+        today = datetime.date.today()
+        # Upcoming = strictly after today (today's visits are listed separately)
+        upcoming_visits = client.khachvisits.filter(day_comes__gt=today).order_by('day_comes', 'time_at')
+        today_visits = client.khachvisits.filter(day_comes=today).order_by('time_at')
         context = {
             'client': client,
             'favorites': favorites,
             'gift': gift,
+            'today_visits': today_visits,
+            'upcoming_visits': upcoming_visits,
         }
         return render(request, self.template, context)
     

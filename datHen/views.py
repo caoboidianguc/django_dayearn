@@ -315,11 +315,6 @@ class DatHenView(LoginRequiredMixin,View):
                 tech.outside_after_top_pct = after_top
                 tech.outside_after_height_pct = max(0.0, 100.0 - after_top)
 
-        now_pct = None
-        if selected_date == timezone.now().date():
-            if timeline_start <= now_time <= timeline_end:
-                now_pct = _pct_from_timeline(now_time, timeline_start_min, total_minutes)
-
         context = {
             'allTech': all_tech,
             'selected_date': selected_date,
@@ -332,7 +327,6 @@ class DatHenView(LoginRequiredMixin,View):
             'timeline_slots': _build_timeline_slots(timeline_start, timeline_end),
             'timeline_minor_lines': _build_timeline_minor_lines(timeline_start, timeline_end),
             'lane_height_px': lane_height_px,
-            'now_pct': now_pct,
             'is_today': selected_date == timezone.now().date(),
         }
         return render(request, self.template_name, context)
@@ -348,17 +342,32 @@ class UserFindClient(LoginRequiredMixin,View):
         return render(request, self.template, cont)
     
 class FindClient(View):
-    template = 'datHen/exist_client_hen_cancel.html'
+    """Look up client by name + phone, then show appointments on iam_here."""
+    template = 'complimentary/iam_here.html'
+
     def get(self, request):
-        submitted = False
+        from ledger.models import Complimentary
+
         form = ExistClientForm()
-        khach = None
+        submitted = False
         if "full_name" in request.GET and "phone" in request.GET:
             submitted = True
             name = str(request.GET.get("full_name")).upper().strip()
             phone = request.GET.get('phone')
-            khach = Khach.objects.filter(full_name=name, phone=phone)
-        cont = {'formDatHen': form, 'khach': khach, 'submitted': submitted}
+            client = Khach.objects.filter(full_name=name, phone=phone).first()
+            if client:
+                return redirect('ledger:iam_here', pk=client.pk)
+        gift = Complimentary.objects.filter(
+            category=Complimentary.Category.gift, is_available=True
+        )
+        cont = {
+            'formDatHen': form,
+            'submitted': submitted,
+            'client': None,
+            'favorites': [],
+            'gift': gift,
+            'show_lookup_form': True,
+        }
         return render(request, self.template, cont)
     
 class ExistPickTech(View):
@@ -629,6 +638,7 @@ class ThirdStep(View):
     
 
 class CancelViewConfirm(View):
+    """Legacy: cancel all visits for a client. Prefer ClientCancelKhachVisit for single visits."""
     template = "datHen/confirm_cancel.html"
     def get_success_url(self):
         if self.request.user.is_authenticated:
@@ -653,7 +663,32 @@ class CancelViewConfirm(View):
         utils.cancelKhachVisit(client=client)
         messages.success(request, "Your services have been canceled successfully.")
         return redirect(self.get_success_url())
-    
+
+
+class ClientCancelKhachVisit(DeleteView):
+    """Public: cancel a single appointment (one visit), then return to iam_here."""
+    model = KhachVisit
+    template_name = "datHen/user_delete_khachvisit.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['visit'] = self.object
+        context['is_client_cancel'] = True
+        return context
+
+    def form_valid(self, form):
+        self._client_pk = self.object.client_id
+        client = self.object.client
+        response = super().form_valid(form)
+        if client.email:
+            utils.sendEmailCanceled(client=client)
+        messages.success(self.request, "That appointment has been canceled.")
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy('ledger:iam_here', kwargs={'pk': self._client_pk})
+
+
 class CancelKhachVisit(LoginRequiredMixin, DeleteView):
     model = KhachVisit
     template_name = "datHen/user_delete_khachvisit.html"
