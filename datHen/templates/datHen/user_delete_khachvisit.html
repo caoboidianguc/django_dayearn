@@ -45,7 +45,11 @@
         {% csrf_token %}
         <div class="d-flex justify-content-center gap-3">
             <button type="submit" class="btn btn-primary px-4">Confirm Cancellation</button>
+            {% if is_client_cancel and visit %}
+            <button type="button" class="btn btn-secondary px-4" onclick="window.location='{% url 'ledger:iam_here' visit.client.pk %}';">Go Back</button>
+            {% else %}
             <button type="button" class="btn btn-secondary px-4" onclick="window.location='{% url 'datHen:listHen' %}';">Cancel</button>
+            {% endif %}
         </div>
     </form>
 </div>

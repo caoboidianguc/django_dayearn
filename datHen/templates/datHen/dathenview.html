@@ -77,9 +77,6 @@
                 <div class="time-grid-line {% if line.is_major %}is-major{% else %}is-minor{% endif %}"
                      style="top: {{ line.top_pct }}%;"></div>
                 {% endfor %}
-                {% if now_pct != None %}
-                <div class="now-line gutter-now" style="top: {{ now_pct }}%;" title="Now"></div>
-                {% endif %}
             </div>
         </div>
 
@@ -172,10 +169,6 @@
                         </a>
                     </div>
                     {% endfor %}
-                {% endif %}
-
-                {% if now_pct != None %}
-                <div class="now-line" style="top: {{ now_pct }}%;" title="Now"></div>
                 {% endif %}
             </div>
         </div>

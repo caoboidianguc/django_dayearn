@@ -4,20 +4,62 @@
 
 {% block heading %}
     <div class="container my-4">
-        <h1 class="display-4 text-center text-primary">Welcome, {{ client.full_name }}!</h1>
+        {% if client %}
+            <h1 class="display-4 text-center text-primary">Welcome, {{ client.full_name }}!</h1>
+        {% else %}
+            <h1 class="display-5 text-center text-primary">Check Your Appointments</h1>
+            <p class="lead text-center text-muted">Enter your full name and phone number to view or manage your visits.</p>
+        {% endif %}
     </div>
 {% endblock heading %}
 
 {% block nutPhu %}
-    <div class="container text-end my-3">
+    {% if client %}
+    <div class="container text-end my-3 d-flex flex-column flex-md-row justify-content-end gap-2">
+        <a href="{{ client.get_absolute_url }}" class="btn btn-success btn-lg shadow-sm">
+            <i class="bi bi-calendar-plus me-2"></i>New Appointment
+        </a>
         <a href="{% url 'ledger:client_favorite' client.pk %}" class="btn btn-primary btn-lg shadow-sm">
-            <i class="bi bi-star-fill me-2"></i>Add Favorite
+            <i class="bi bi-journal-text me-2"></i>Add Note
         </a>
     </div>
+    {% endif %}
 {% endblock nutPhu %}
 
 {% block content %}
 <div class="container my-5">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if show_lookup_form or not client %}
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6 col-12">
+            {% if submitted and not client %}
+            <div class="alert alert-danger text-center" role="alert">
+                No client found with the provided name and phone number.
+                <a href="{% url 'datHen:first_step' %}" class="btn btn-primary btn-sm ms-2">Book New Appointment</a>
+            </div>
+            {% endif %}
+            <h4 class="text-info mb-4">Please Fill Out the Form</h4>
+            <form action="{% url 'datHen:find_client' %}" method="get" class="p-4 bg-light rounded shadow-sm">
+                <div class="mb-3">
+                    {{ formDatHen | crispy }}
+                </div>
+                <div class="d-flex flex-column flex-md-row gap-3">
+                    <button type="submit" class="btn btn-info flex-fill">Find My Appointments</button>
+                    <button type="button" onclick="window.location='{% url 'ledger:index' %}';" class="btn btn-secondary flex-fill">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+
     <div class="alert alert-info text-center" role="alert">
         Thank you for choosing our services!
     </div>
@@ -28,13 +70,14 @@
             {% for item in gift %}
                 <div class="col-md-3 mb-4 px-2">
                     <div class="card h-100" style="width: 12rem;">
+                        {% if item.photo %}
                         <img src="{{ item.photo.url }}" class="card-img-top" alt="{{ item.title }}" style="height: 120px; object-fit: cover;">
+                        {% endif %}
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ item.title | title }}</h5>
-                            <span> {{ item.description }} </span>
+                            <span>{{ item.description }}</span>
                         </div>
                     </div>
-                    </a>
                 </div>
             {% endfor %}
             </div>
@@ -47,14 +90,14 @@
             <h2 class="h4 mb-0">Today's Visits</h2>
         </div>
         <div class="card-body">
-            {% if client.get_today_visits %}
-                <h3 class="fs-4 text-secondary">Your visit with:</h3>
-                    {% for visit in client.get_today_visits %}
+            {% if today_visits %}
+                {% for visit in today_visits %}
+                    <div class="border rounded p-3 mb-3">
                         <form action="{% url 'payment:multi_checkout_session' %}" method="post">
                             {% csrf_token %}
-                        <div class="mb-3">
-                            <ul class="list-group list-group-flush">
+                            <ul class="list-group list-group-flush mb-2">
                                 <li class="list-group-item"><strong>Technician:</strong> {{ visit.technician | title }}</li>
+                                <li class="list-group-item"><strong>Time:</strong> {{ visit.time_at }}</li>
                                 {% for service in visit.services.all %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         {{ service | title }}
@@ -63,80 +106,101 @@
                                     </li>
                                 {% endfor %}
                             </ul>
-                        </div>
-                        <input type="hidden" name="technician_id" value="{{ visit.technician.id }}">
-                        
-                        <input type="hidden" name="client_visit_id" value="{{ visit.id }}">
-                        {% if not visit.isPaid %}
-                        <button type="submit" class="btn btn-primary mt-3">Proceed to Checkout</button>
-                        {% else %}
-                        <li class="d-flex justify-content-between align-items-center">
-                        <span></span>
-                        <span class="text-success">Services with {{ visit.technician | title }} have been paid.</span>
-                        </li>
-                        {% endif %} 
-                        
+                            <input type="hidden" name="technician_id" value="{{ visit.technician.id }}">
+                            <input type="hidden" name="client_visit_id" value="{{ visit.id }}">
+                            <div class="d-flex flex-column flex-md-row gap-2 mt-2">
+                                {% if not visit.isPaid %}
+                                <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
+                                {% else %}
+                                <span class="text-success align-self-center">Services with {{ visit.technician | title }} have been paid.</span>
+                                {% endif %}
+                                <a href="{{ visit.get_client_cancel_url }}" class="btn btn-outline-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel This Visit
+                                </a>
+                            </div>
                         </form>
-                    {% endfor %}
+                    </div>
+                {% endfor %}
             {% else %}
                 <div class="alert alert-warning text-center" role="alert">
-                    No visits scheduled for Today.
+                    No visits scheduled for today.
                 </div>
             {% endif %}
         </div>
     </div>
-    <!-- Next's Visits -->
-    {% if client.get_future_visit %}
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light shadow-sm">
-                <h2 class="h4 mb-0">Next's Visits</h2>
-            </div>
-            <div class="card-body">
-                
-                    {% for visit in client.get_future_visit %}
-                        <ul class="list-group list-group-flush mb-4">
-                                <li class="list-group-item"><strong>Technician:</strong> {{ visit.technician | title }}</li>
-                                <li class="list-group-item"><strong>Scheduled Date:</strong> {{ visit.day_comes|date:"F j, Y" }}</li>
-                                {% for service in visit.services.all %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        {{ service | title }}
-                                        <input type="hidden" name="service_ids" value="{{ service.id }}">
-                                        <span class="badge bg-warning rounded-pill">{{ service.price }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endfor %}
-                    <a href="{{ client.get_cancel_url }}" class="btn btn-outline-danger btn-lg shadow-sm w-100 w-md-auto">
-                        <i class="bi bi-x-circle me-2"></i> Cancel Appointment
-                    </a>
-            </div>
-        </div>
-    {% endif %}
-    <!-- Favorites Section -->
+
+    <!-- Upcoming Visits -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light shadow-sm">
-            <h2 class="h4 mb-0">Your Favorites</h2>
+            <h2 class="h4 mb-0">Upcoming Visits</h2>
+        </div>
+        <div class="card-body">
+            {% if upcoming_visits %}
+                {% for visit in upcoming_visits %}
+                    <div class="border rounded p-3 mb-3">
+                        <ul class="list-group list-group-flush mb-2">
+                            <li class="list-group-item"><strong>Technician:</strong> {{ visit.technician | title }}</li>
+                            <li class="list-group-item"><strong>Scheduled Date:</strong> {{ visit.day_comes|date:"F j, Y" }}</li>
+                            <li class="list-group-item"><strong>Time:</strong> {{ visit.time_at }}</li>
+                            {% for service in visit.services.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ service | title }}
+                                    <span class="badge bg-warning rounded-pill">{{ service.price }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{{ visit.get_client_cancel_url }}" class="btn btn-outline-danger">
+                            <i class="bi bi-x-circle me-1"></i>Cancel This Visit
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    No upcoming appointments. Use <strong>New Appointment</strong> to book one.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light shadow-sm">
+            <h2 class="h4 mb-0">Your Notes</h2>
         </div>
         <div class="card-body">
             {% for favorite in favorites %}
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>{{ favorite.color | title }} - {{ favorite.note }}</span>
-                    <span class="text-muted">with: {{ favorite.technician | title }}</span>
+                    <span>
+                        {% if favorite.color %}{{ favorite.color | title }} — {% endif %}
+                        {{ favorite.note|default:"(no note text)" }}
+                    </span>
                 </div>
             {% empty %}
                 <div class="alert alert-info text-center" role="alert">
-                    No favorites added yet.
+                    No notes added yet. Tap <strong>Add Note</strong> to save a color or preference.
                 </div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Feedback Button -->
-    <div class="text-center my-4">
+    <!-- Feedback + New Appointment -->
+    <div class="text-center my-4 d-flex flex-column flex-md-row justify-content-center gap-3">
+        <a href="{{ client.get_absolute_url }}" class="btn btn-success btn-lg shadow-sm">
+            <i class="bi bi-calendar-plus me-2"></i>New Appointment
+        </a>
         <a href="{{ client.get_chat_url }}" class="btn btn-outline-primary btn-lg shadow-sm">
             <i class="bi bi-chat-dots me-2"></i>Leave Feedback
         </a>
     </div>
+    {% endif %}
 </div>
+
+<style>
+@media (max-width: 767px) {
+    .btn-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+}
+</style>
 {% endblock content %}
