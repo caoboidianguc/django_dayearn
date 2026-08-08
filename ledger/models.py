@@ -242,13 +242,74 @@ class Technician(models.Model):
     def get_khachVisit(self):
         return self.khachvisits.all()
     
-    def get_services_today(self):
-        now = datetime.datetime.now()
-        clients = self.get_today_clients().filter(time_at__lte=now)
+    def get_appointment_services_today(self):
+        """Services from real appointments (KhachVisit) today, price > 35.
+
+        Only visits whose start time has already arrived (and not cancelled).
+        """
+        now_time = timezone.now().time()
+        visits = (
+            self.get_today_clients()
+            .filter(time_at__lte=now_time)
+            .exclude(status=KhachVisit.Status.cancel)
+            .prefetch_related('services')
+        )
         all_ser = []
-        for client in clients:
-            all_ser.extend(client.get_services())
-        return len(all_ser)
+        for visit in visits:
+            all_ser.extend(visit.get_services())
+        return all_ser
+
+    def get_turn_services_today(self):
+        """Walk-in / turn services logged on AllEmployee (not appointments)."""
+        today = timezone.now().date()
+        return self.turn_services.filter(created_at__date=today).select_related('service')
+
+    def get_display_services_today(self):
+        """
+        Unified list for AllEmployee UI, sorted by time:
+        - appointment services once visit start time has arrived
+        - manually logged walk-in turn services
+        Each item: id (turn only), name, time, source, removable.
+        """
+        today = timezone.now().date()
+        now_time = timezone.now().time()
+        items = []
+
+        visits = (
+            self.get_today_clients()
+            .filter(time_at__lte=now_time)
+            .exclude(status=KhachVisit.Status.cancel)
+            .prefetch_related('services')
+            .order_by('time_at')
+        )
+        for visit in visits:
+            for service in visit.get_services():
+                items.append({
+                    'id': None,
+                    'name': service.service,
+                    'time': visit.time_at.strftime('%H:%M'),
+                    'sort_time': datetime.datetime.combine(today, visit.time_at),
+                    'source': 'appointment',
+                    'removable': False,
+                })
+
+        for log in self.get_turn_services_today():
+            items.append({
+                'id': log.id,
+                'name': log.service.service,
+                'time': log.created_at.strftime('%H:%M'),
+                'sort_time': log.created_at if isinstance(log.created_at, datetime.datetime)
+                else datetime.datetime.combine(today, log.created_at),
+                'source': 'turn',
+                'removable': True,
+            })
+
+        items.sort(key=lambda x: x['sort_time'])
+        return items
+
+    def get_services_today(self):
+        """Total turn-relevant service count: appointments + manually logged turns."""
+        return len(self.get_appointment_services_today()) + self.get_turn_services_today().count()
 
     def get_available_with(self, ngay, thoigian):
         if self.is_on_vacation(ngay):
@@ -449,6 +510,26 @@ class KhachVisit(models.Model):
         them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
         return datetime.time(hour=them.hour, minute=them.minute)
    
+class TurnService(models.Model):
+    
+    technician = models.ForeignKey(
+        Technician, on_delete=models.CASCADE, related_name='turn_services'
+    )
+    service = models.ForeignKey(
+        'Service', on_delete=models.CASCADE, related_name='turn_logs'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='turn_services'
+    )
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self) -> str:
+        return f"{self.technician.name}: {self.service.service} @ {self.created_at}"
+
+
 class Service(models.Model):
     class Category(models.TextChoices):
         nail = "Nail Enhancement"

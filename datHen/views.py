@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from ledger import utils
 
-# Timeline display: pixels per minute of shop-open hours.
+
 # 2.0 → ~30px per 15 minutes.
 _TIMELINE_PX_PER_MIN = 2.0
 _TIMELINE_MIN_BLOCK_MINUTES = 15
@@ -247,7 +247,6 @@ class DatHenView(LoginRequiredMixin,View):
         all_tech = Technician.objects.filter(owner=request.user).order_by('time_come_in')
         now_time = timezone.now().time()
 
-        # Collect work windows so the board opens at earliest open / closes at latest close
         day_starts = []
         day_ends = []
         for tech in all_tech:
@@ -682,7 +681,7 @@ class ClientCancelKhachVisit(DeleteView):
         response = super().form_valid(form)
         if client.email:
             utils.sendEmailCanceled(client=client)
-        messages.success(self.request, "That appointment has been canceled.")
+        messages.success(self.request, f"That appointment has been canceled.")
         return response
 
     def get_success_url(self):
@@ -782,6 +781,6 @@ class ScheduleViewUser(LoginRequiredMixin, View):
             else KhachVisit.Status.phone
         )
         utils.saveKhachVisit(client, day_comes, time_at, services, tech, visit_status)
-        messages.success(request, f"{form.instance.full_name} was scheduled successfully!")
+        messages.success(request, f"{form.instance.full_name} was scheduled successfully on {day_comes} at {time_at}.")
         return redirect(self.success_url)
 

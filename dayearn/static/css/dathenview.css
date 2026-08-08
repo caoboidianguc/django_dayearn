@@ -169,8 +169,10 @@ div #id_date {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.25rem;
     background: repeating-linear-gradient(
         -45deg,
         #f0f0f0,
@@ -182,6 +184,18 @@ div #id_date {
     font-weight: 600;
     font-size: 0.95rem;
     z-index: 3;
+    /* Let appointment cards (higher z-index) stay clickable on top */
+    pointer-events: none;
+}
+
+.day-off-appt-count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #0d6efd;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid #b6d4fe;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
 }
 
 /* Free time bands */
