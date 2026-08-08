@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import (Technician, Khach, Service, Chat, Like, Supply, KhachVisit, Price,
-                     Complimentary, TechWorkDay, Day_Of_Week)
+                     Complimentary, TechWorkDay, Day_Of_Week, TurnService)
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DetailView
 from django.views import View
@@ -59,45 +59,188 @@ class Contact(View):
                 messages.error(request, f"Failed to send message: {str(e)}")
         return render(request, self.template, {'form': form})
                 
-        
+
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
     def get(self,request):
-        employee = Technician.objects.filter(owner=request.user).exclude(name="anyOne").order_by("time_come_in")
-        sort_tech = sorted(list(employee), 
-                           key= lambda tech: tech.get_services_today(),reverse=False
-                           )
-        for tech in sort_tech:
-            if tech.time_come_in == None or tech.time_come_in.date() < timezone.now().date():
-                tech.isWork = False
-                tech.save()
-        cont = {'employees': sort_tech }
+        employee = Technician.objects.filter(owner=request.user).exclude(name="anyOne")
+        for tech in employee:
+            if tech.time_come_in is None or tech.time_come_in.date() < timezone.now().date():
+                if tech.isWork or tech.time_come_in is not None:
+                    tech.isWork = False
+                    tech.time_come_in = None
+                    tech.save(update_fields=['isWork', 'time_come_in'])
+        # First come first serve: fewest services first, then earliest check-in
+        sort_tech = sorted(
+            list(employee),
+            key=lambda tech: (
+                tech.get_services_today(),
+                tech.time_come_in or timezone.now(),
+                tech.name,
+            ),
+        )
+        services = (
+            Service.objects.filter(owner=request.user)
+            .exclude(service='tax')
+            .order_by('category', 'service')
+        )
+        cont = {
+            'employees': sort_tech,
+            'services': services,
+        }
         return render(request, self.template, cont)
               
 class UpdateTech(LoginRequiredMixin, View):
+    """Check-in only: set isWork True once. No toggle off (resets next day)."""
     def post(self, request):
         try:
-            tech_id = request.POST.get('tech_id') #tech_id have to match with ajax data.tech_id from template
-            tech = Technician.objects.get(id=tech_id)
-            tech.isWork = not tech.isWork  #toggle
-            if tech.isWork:
-                tech.time_come_in = timezone.now()
-                tech.date_go_work = timezone.now().date()
-            else:
-                tech.time_come_in = None
-            tech.save()
-            time_come_in_str = tech.time_come_in.strftime('%H:%M') if tech.time_come_in else ''
+            tech_id = request.POST.get('tech_id')
+            tech = get_object_or_404(Technician, id=tech_id, owner=request.user)
+            if tech.isWork and tech.time_come_in and tech.time_come_in.date() == timezone.now().date():
+                time_come_in_str = tech.time_come_in.strftime('%H:%M')
+                return JsonResponse({
+                    'success': True,
+                    'isWork': True,
+                    'already_in': True,
+                    'time_come_in': time_come_in_str,
+                    'color': 'green',
+                    'services_count': tech.get_services_today(),
+                })
+            tech.isWork = True
+            tech.time_come_in = timezone.now()
+            tech.date_go_work = timezone.now().date()
+            tech.save(update_fields=['isWork', 'time_come_in', 'date_go_work'])
+            time_come_in_str = tech.time_come_in.strftime('%H:%M')
             return JsonResponse({
-                'success' : True,
-                'isWork': tech.isWork,
+                'success': True,
+                'isWork': True,
+                'already_in': False,
                 'time_come_in': time_come_in_str,
-                'color': 'green' if tech.isWork else 'gray'
+                'color': 'green',
+                'services_count': tech.get_services_today(),
             })
         except Technician.DoesNotExist:
             return JsonResponse({
-                'success' : False,
+                'success': False,
                 'error': 'Technician not found'
             }, status=404)
+
+
+def _display_services_payload(tech):
+    """JSON-friendly list for AllEmployee service boxes (appt + walk-in)."""
+    return [
+        {
+            'id': item['id'],
+            'name': item['name'],
+            'time': item['time'],
+            'source': item['source'],
+            'removable': item['removable'],
+        }
+        for item in tech.get_display_services_today()
+    ]
+
+
+class AddTurnServices(LoginRequiredMixin, View):
+    """Add 1–2 services to a checked-in tech for turn tracking (not appointments)."""
+    def post(self, request):
+        tech_id = request.POST.get('tech_id')
+        raw_ids = request.POST.getlist('service_ids')
+        if not raw_ids:
+            raw = request.POST.get('service_ids', '')
+            if raw:
+                raw_ids = [s.strip() for s in raw.split(',') if s.strip()]
+        if not tech_id:
+            return JsonResponse({'success': False, 'error': 'Missing technician.'}, status=400)
+        if not raw_ids:
+            return JsonResponse({'success': False, 'error': 'Pick at least 1 service.'}, status=400)
+
+        try:
+            service_ids = []
+            for sid in raw_ids:
+                n = int(sid)
+                if n not in service_ids:
+                    service_ids.append(n)
+        except (TypeError, ValueError):
+            return JsonResponse({'success': False, 'error': 'Invalid service selected.'}, status=400)
+
+        if len(service_ids) < 1:
+            return JsonResponse({'success': False, 'error': 'Pick at least 1 service.'}, status=400)
+        if len(service_ids) > 2:
+            return JsonResponse({'success': False, 'error': 'You can add at most 2 services at a time.'}, status=400)
+
+        tech = get_object_or_404(Technician, id=tech_id, owner=request.user)
+        if not tech.isWork:
+            return JsonResponse({'success': False, 'error': 'Technician must check in first.'}, status=400)
+
+        found = {
+            s.id: s
+            for s in Service.objects.filter(
+                id__in=service_ids, owner=request.user
+            ).exclude(service='tax')
+        }
+        if len(found) != len(service_ids):
+            return JsonResponse({'success': False, 'error': 'Invalid service selected.'}, status=400)
+
+        created = []
+        for sid in service_ids:
+            service = found[sid]
+            log = TurnService.objects.create(
+                technician=tech,
+                service=service,
+                owner=request.user,
+            )
+            created.append({
+                'id': log.id,
+                'service_id': service.id,
+                'name': service.service,
+                'time': log.created_at.strftime('%H:%M'),
+            })
+
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'turn_services': _display_services_payload(tech),
+            'services_count': tech.get_services_today(),
+            'tech_id': tech.id,
+        })
+
+
+class DeleteTurnService(LoginRequiredMixin, View):
+    """Remove a mistaken turn-service log (same day only)."""
+    def post(self, request):
+        turn_id = request.POST.get('turn_id')
+        log = get_object_or_404(TurnService, id=turn_id, owner=request.user)
+        tech = log.technician
+        if log.created_at.date() != timezone.now().date():
+            return JsonResponse({'success': False, 'error': 'Can only remove today’s turn services.'}, status=400)
+        log.delete()
+        return JsonResponse({
+            'success': True,
+            'turn_services': _display_services_payload(tech),
+            'services_count': tech.get_services_today(),
+            'tech_id': tech.id,
+        })
+
+
+class TurnBoardStatus(LoginRequiredMixin, View):
+    """Lightweight poll: refresh counts + service boxes when appointment times arrive."""
+    def get(self, request):
+        techs = Technician.objects.filter(
+            owner=request.user, isWork=True
+        ).exclude(name='anyOne')
+        payload = []
+        for tech in techs:
+            if tech.time_come_in is None or tech.time_come_in.date() < timezone.now().date():
+                continue
+            payload.append({
+                'tech_id': tech.id,
+                'services_count': tech.get_services_today(),
+                'turn_services': _display_services_payload(tech),
+                'time_come_in': tech.time_come_in.strftime('%H:%M') if tech.time_come_in else '',
+            })
+        # sort same as AllEmployee
+        payload.sort(key=lambda x: (x['services_count'], x['time_come_in'] or '99:99'))
+        return JsonResponse({'success': True, 'employees': payload})
        
 
 class AllServices(LoginRequiredMixin, ListView):

@@ -102,6 +102,9 @@
                 {% if tech.off_for_date %}
                 <div class="day-off-overlay">
                     {% if tech.on_vacation %}Vacation{% else %}Day off{% endif %}
+                    {% if tech.clients %}
+                    <span class="day-off-appt-count">{{ tech.clients|length }} appt{{ tech.clients|length|pluralize }}</span>
+                    {% endif %}
                 </div>
                 {% else %}
                     {% if tech.outside_before_pct > 0 %}
@@ -118,58 +121,59 @@
                         <span class="free-gap-label">Free {{ gap.label }}</span>
                     </div>
                     {% endfor %}
-
-                    {% for khach in tech.clients %}
-                    <div class="appt-block card
-                                {% if khach.is_past %} is-past{% endif %}
-                                {% if khach.status == 'Cancel' %} is-cancel{% endif %}"
-                         style="top: {{ khach.top_pct }}%; height: {{ khach.height_pct }}%;"
-                         id="client_{{ khach.id }}">
-                        <a tabindex="0" class="btn btn-sm appt-trigger" role="button"
-                           data-bs-trigger="focus" data-bs-toggle="popover"
-                           data-bs-title="{{ khach.client.phone_formatted }}"
-                           data-bs-html="true"
-                           data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button">Remove Appointment</a><p>Tag: {{ khach.client.tag | default:"" }}</p><a href="{{ khach.get_visit_detail_url }}" class="btn btn-primary" role="button">Detail</a><p>{{ khach.client.desc | default:"" }}</p></div>'>
-                            <div class="card-body appt-body">
-                                <h6 class="card-title text-info mb-0">{{ khach }}</h6>
-                                <div class="appt-times">
-                                    <span class="start-time">{{ khach.time_at|time:"g:i A" }}</span>
-                                    <span class="sep">→</span>
-                                    <span class="done-time text-danger">{{ khach.done_at_display|time:"g:i A" }}</span>
-                                </div>
-                                <span class="badge status-badge
-                                    {% if khach.status == 'Anyone' %} bg-warning
-                                    {% elif khach.status == 'Cancel' %} bg-danger
-                                    {% elif khach.status == 'Phone' %} bg-info
-                                    {% else %} bg-success
-                                    {% endif %} text-wrap fw-medium">
-                                    {% if khach.status == "Confirmed" %}
-                                        <i class="bi bi-globe"></i> Online
-                                    {% elif khach.status == "Phone" %}
-                                        <i class="bi bi-telephone-fill"></i> Phone
-                                    {% elif khach.status == "Anyone" %}
-                                        Random
-                                    {% elif khach.status == 'Cancel' %}
-                                        Cancelled
-                                    {% else %}
-                                        {{ khach.status }}
-                                    {% endif %}
-                                </span>
-                                {% if khach.services.all %}
-                                <ul class="appt-services">
-                                    {% for dichvu in khach.services.all %}
-                                        <li>{{ dichvu | title }}</li>
-                                    {% endfor %}
-                                </ul>
-                                {% endif %}
-                                {% if khach.isPaid %}
-                                <div class="text-success paid-line">Paid {{ khach.get_paid_at | time:"g:i A" }}</div>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </div>
-                    {% endfor %}
                 {% endif %}
+
+                {# Always show appointments — including when staff booked a tech who is off that day #}
+                {% for khach in tech.clients %}
+                <div class="appt-block card
+                            {% if khach.is_past %} is-past{% endif %}
+                            {% if khach.status == 'Cancel' %} is-cancel{% endif %}"
+                     style="top: {{ khach.top_pct }}%; height: {{ khach.height_pct }}%;"
+                     id="client_{{ khach.id }}">
+                    <a tabindex="0" class="btn btn-sm appt-trigger" role="button"
+                       data-bs-trigger="focus" data-bs-toggle="popover"
+                       data-bs-title="{{ khach.client.phone_formatted }}"
+                       data-bs-html="true"
+                       data-bs-content='<div><a href="{{ khach.get_cancel_url }}" class="btn btn-danger" role="button">Remove Appointment</a><p>Tag: {{ khach.client.tag | default:"" }}</p><a href="{{ khach.get_visit_detail_url }}" class="btn btn-primary" role="button">Detail</a><p>{{ khach.client.desc | default:"" }}</p></div>'>
+                        <div class="card-body appt-body">
+                            <h6 class="card-title text-info mb-0">{{ khach }}</h6>
+                            <div class="appt-times">
+                                <span class="start-time">{{ khach.time_at|time:"g:i A" }}</span>
+                                <span class="sep">→</span>
+                                <span class="done-time text-danger">{{ khach.done_at_display|time:"g:i A" }}</span>
+                            </div>
+                            <span class="badge status-badge
+                                {% if khach.status == 'Anyone' %} bg-warning
+                                {% elif khach.status == 'Cancel' %} bg-danger
+                                {% elif khach.status == 'Phone' %} bg-info
+                                {% else %} bg-success
+                                {% endif %} text-wrap fw-medium">
+                                {% if khach.status == "Confirmed" %}
+                                    <i class="bi bi-globe"></i> Online
+                                {% elif khach.status == "Phone" %}
+                                    <i class="bi bi-telephone-fill"></i> Phone
+                                {% elif khach.status == "Anyone" %}
+                                    Random
+                                {% elif khach.status == 'Cancel' %}
+                                    Cancelled
+                                {% else %}
+                                    {{ khach.status }}
+                                {% endif %}
+                            </span>
+                            {% if khach.services.all %}
+                            <ul class="appt-services">
+                                {% for dichvu in khach.services.all %}
+                                    <li>{{ dichvu | title }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% if khach.isPaid %}
+                            <div class="text-success paid-line">Paid {{ khach.get_paid_at | time:"g:i A" }}</div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
             </div>
         </div>
         {% endfor %}

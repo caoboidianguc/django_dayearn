@@ -6,84 +6,546 @@
 {% endblock nutPhu %}
 
 {% block content %}
-{% comment %} {% if not user.is_authenticated %}
-<div>
-    <a href="{% url 'ledger:register' %}">Register Account</a>
-</div> 
-{% endif %}
-{% endcomment %}
+<style>
+  .employee-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  /* Working row: square name card LEFT, services RIGHT */
+  .tech-card {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+  .name-card {
+    flex: 0 0 118px;
+    width: 118px;
+    min-height: 118px;
+    border: 2px solid green !important;
+    display: flex;
+    flex-direction: column;
+  }
+  .name-card .card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    padding: 0.45rem 0.4rem !important;
+    height: 100%;
+  }
+  .name-card .card-title {
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.15;
+    word-break: break-word;
+  }
+  .name-card .come-in-time {
+    font-size: 0.7rem;
+    margin-top: 0.1rem;
+  }
+  .tech-card .service-count {
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: #0d6efd;
+    line-height: 1;
+  }
+  .tech-card-count {
+    text-align: center;
+    margin: 0.2rem 0;
+  }
+  .tech-card-count .count-label {
+    font-size: 0.65rem;
+    color: #6c757d;
+  }
+  .name-card .btn-add-services {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.3rem;
+    white-space: nowrap;
+  }
+  .tech-checkin-btn {
+    flex: 0 0 118px;
+    width: 118px;
+    min-height: 118px;
+    border: 2px solid gray !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .tech-checkin-btn .card-title {
+    font-size: 0.95rem;
+  }
+  /* Services on the right of name card */
+  .services-row {
+    flex: 1;
+    min-width: 0;
+    min-height: 118px;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 3px solid #0d6efd;
+    background: #fafbfc;
+    border-radius: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .services-row-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.3rem;
+    text-align: left;
+  }
+  .turn-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: stretch;
+    gap: 0.4rem;
+    text-align: left;
+  }
+  .turn-list li.empty-turn {
+    font-size: 0.8rem;
+    padding: 0.15rem 0;
+  }
+  .turn-list li.turn-chip {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    min-width: 4.5rem;
+    max-width: 7.5rem;
+    padding: 0.35rem 0.4rem 0.3rem;
+    border: 1px solid #cfe2ff;
+    border-radius: 0.4rem;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    position: relative;
+  }
+  /* Booked appointment services (auto-added when time arrives) */
+  .turn-list li.turn-chip.is-appointment {
+    border-color: #c3e6cb;
+    background: #f0fff4;
+  }
+  .turn-list li.turn-chip.is-appointment .turn-name {
+    color: #155724;
+  }
+  .turn-list li.turn-chip.is-walkin {
+    border-color: #cfe2ff;
+    background: #f0f7ff;
+  }
+  .turn-list .turn-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    word-break: break-word;
+    color: #0d47a1;
+  }
+  .turn-list .turn-time {
+    font-size: 0.65rem;
+    color: #6c757d;
+    white-space: nowrap;
+  }
+  .turn-list .turn-source {
+    font-size: 0.58rem;
+    color: #868e96;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .turn-list .btn-remove-turn {
+    border: none;
+    background: transparent;
+    color: #dc3545;
+    padding: 0;
+    line-height: 1;
+    font-size: 0.85rem;
+    cursor: pointer;
+    position: absolute;
+    top: -0.2rem;
+    right: 0.05rem;
+  }
+  .service-picker-item {
+    display: block;
+    text-align: left;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.35rem;
+    cursor: pointer;
+  }
+  .service-picker-item:hover {
+    background: #f0f4ff;
+  }
+  .service-picker-item input {
+    margin-right: 0.5rem;
+  }
+  .service-picker-item.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  #servicePickerModal .modal-body {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .section-label {
+    width: 100%;
+    max-width: 720px;
+    margin: 0.75rem auto 0.35rem;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+  }
+  #off-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.55rem;
+  }
+  #off-row .tech-card {
+    width: auto;
+  }
+</style>
+
 <div class="container text-center">
-  <div class="row row-cols-auto">
+
+  <div class="section-label">Working today</div>
+  <div class="employee-stack" id="working-row">
     {% for employee in employees %}
     {% if employee.isWork %}
-    <div class="cols-auto">
-      <button class="tech-button btn btn-light" style="border: 2px solid green" id="em_{{employee.id}}">
+    <div class="tech-card" data-tech-id="{{ employee.id }}" data-working="1">
+      {# Compact square name card (left) #}
+      <div class="card shadow-sm name-card">
         <div class="card-body">
-             <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
-          <div class="card-subtitle align-content-center">{{ employee.time_come_in |time:"H:i A"}}</div>
-          <span class="align-bottomr fs-3 text-primary"> {{ employee.get_services_today | default:0 }}</span> Service
+          <div>
+            <h5 class="card-title">{{ employee.name | title }}</h5>
+            <div class="card-subtitle text-muted come-in-time">
+              In {{ employee.time_come_in | time:"g:i A" }}
+            </div>
+          </div>
+          <div class="tech-card-count">
+            <span class="service-count" id="count_{{ employee.id }}">{{ employee.get_services_today }}</span>
+            <div class="count-label">services</div>
+          </div>
+          <button type="button"
+                  class="btn btn-sm btn-primary w-100 btn-add-services"
+                  data-tech-id="{{ employee.id }}"
+                  data-tech-name="{{ employee.name|title }}">
+            + Add
+          </button>
+        </div>
       </div>
-      </button>
+      {# Services on the RIGHT: walk-ins + appointments once their time arrives #}
+      <div class="services-row">
+        <div class="services-row-label">Services today </div>
+        <ul class="turn-list" id="turns_{{ employee.id }}">
+          {% for t in employee.get_display_services_today %}
+          <li class="turn-chip {% if t.source == 'appointment' %}is-appointment{% else %}is-walkin{% endif %}"
+              {% if t.removable %}data-turn-id="{{ t.id }}"{% endif %}>
+            {% if t.removable %}
+            <button type="button" class="btn-remove-turn" title="Remove" data-turn-id="{{ t.id }}">&times;</button>
+            {% endif %}
+            <span class="turn-name">{{ t.name }}</span>
+            <span class="turn-time">{{ t.time }}</span>
+            <span class="turn-source">{% if t.source == 'appointment' %}booked{% else %}walk-in{% endif %}</span>
+          </li>
+          {% empty %}
+          <li class="text-muted empty-turn">No services yet</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-    
     {% endif %}
     {% endfor %}
-  <hr style="border: 1px solid black; width: 100%; margin: 20px 0;">
-  {% for employee in employees %}
-  {% if not employee.isWork %}
-  <div class="cols-auto">
-    <button class="tech-button btn btn-secondary" style="border: 2px solid gray" id="em_{{employee.id}}">
-      <div class="card-body">
-           <h5 class="card-title align-text-top"> {{ employee.name | title }}</h5>
-        <span class="card-subtitle align-content-center">Off</span>
-    </div>
-    </button>
   </div>
-  
-  {% endif %}
-  {% endfor %}
-  </div>
-</div>   
-    
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-      $(document).ready(function() {
-        $('.tech-button').click(function() {
-          var techId = $(this).attr('id').split('_')[1];
-          var button = $(this);
-          $.ajax({
-            url: '{% url "ledger:update_tech_status" %}',
-            type: 'POST',
-            data: {
-              'tech_id': techId,
-              'csrfmiddlewaretoken': '{{ csrf_token }}'
-            },
-            success: function(response) {
-              if (response.success) {
-                button.css('border', '2px solid ' + response.color);
-                button.find('.card-subtitle').text(response.isWork ? 'Came at: ' + response.time_come_in : "Off");
-                
-                if (response.isWork){
-                  button.closest('.cols-auto').insertBefore('.row.row-cols-auto hr');
-                  button.addClass('btn-light').removeClass('btn-secondary');
-                } else {
-                  button.closest('.cols-auto').insertAfter('.row.row-cols-auto hr');
-                  button.addClass('btn-secondary').removeClass('btn-light');
-                }
-              } else {
-                alert(response.error);
-              }
+  <hr style="border: 1px solid black; width: 100%; max-width: 720px; margin: 20px auto;">
+
+  <div class="section-label">Not checked in — tap to check in</div>
+  <div class="employee-stack" id="off-row">
+    {% for employee in employees %}
+    {% if not employee.isWork %}
+    <div class="tech-card" data-tech-id="{{ employee.id }}" data-working="0">
+      <button type="button" class="tech-checkin-btn btn btn-secondary"
+              data-tech-id="{{ employee.id }}">
+        <div>
+          <h5 class="card-title mb-0">{{ employee.name | title }}</h5>
+          <span class="card-subtitle small">Off</span>
+        </div>
+      </button>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{# Modal: pick 1–2 services #}
+<div class="modal fade" id="servicePickerModal" tabindex="-1" aria-labelledby="servicePickerLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="servicePickerLabel">Add services for <span id="picker-tech-name"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-2">Select <strong>1 or 2</strong> services for this turn.</p>
+        <div id="service-picker-list">
+          {% regroup services by category as cat_list %}
+          {% for cat in cat_list %}
+          <div class="fw-semibold text-start mt-2 mb-1 text-secondary">{{ cat.grouper }}</div>
+          {% for s in cat.list %}
+          <label class="service-picker-item">
+            <input type="checkbox" class="service-check" value="{{ s.id }}" data-name="{{ s.service }}">
+            {{ s.service }}
+            {% if s.price %}<span class="text-muted small">${{ s.price|floatformat:0 }}</span>{% endif %}
+          </label>
+          {% endfor %}
+          {% empty %}
+          <p class="text-danger">No services found. Add services first.</p>
+          {% endfor %}
+        </div>
+        <div class="mt-2 small" id="picker-selected-count">0 selected</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirm-add-services" disabled>Add to turn</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    var csrf = '{{ csrf_token }}';
+    var selectedTechId = null;
+    var modalEl = document.getElementById('servicePickerModal');
+    var pickerModal = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+    function renderTurnList(techId, turnServices) {
+      var $ul = $('#turns_' + techId);
+      if (!$ul.length) return;
+      $ul.empty();
+      if (!turnServices || turnServices.length === 0) {
+        $ul.append('<li class="text-muted empty-turn">No services yet</li>');
+        return;
+      }
+      turnServices.forEach(function (t) {
+        var isAppt = t.source === 'appointment';
+        var chipClass = 'turn-chip ' + (isAppt ? 'is-appointment' : 'is-walkin');
+        var removeBtn = '';
+        if (t.removable && t.id) {
+          removeBtn = '<button type="button" class="btn-remove-turn" title="Remove" data-turn-id="' + t.id + '">&times;</button>';
+        }
+        $ul.append(
+          '<li class="' + chipClass + '"' + (t.removable && t.id ? ' data-turn-id="' + t.id + '"' : '') + '>' +
+            removeBtn +
+            '<span class="turn-name">' + $('<div>').text(t.name).html() + '</span>' +
+            '<span class="turn-time">' + t.time + '</span>' +
+            '<span class="turn-source">' + (isAppt ? 'booked' : 'walk-in') + '</span>' +
+          '</li>'
+        );
+      });
+    }
+
+    function updateCount(techId, count) {
+      $('#count_' + techId).text(count);
+    }
+
+    function resortWorking() {
+      var $row = $('#working-row');
+      var cards = $row.children('.tech-card').get();
+      cards.sort(function (a, b) {
+        var ca = parseInt($(a).find('.service-count').text(), 10) || 0;
+        var cb = parseInt($(b).find('.service-count').text(), 10) || 0;
+        if (ca !== cb) return ca - cb;
+        var ta = $(a).find('.come-in-time').text() || '';
+        var tb = $(b).find('.come-in-time').text() || '';
+        return ta.localeCompare(tb);
+      });
+      $.each(cards, function (_, el) { $row.append(el); });
+    }
+
+    function resetPicker() {
+      $('.service-check').prop('checked', false).closest('.service-picker-item').removeClass('disabled');
+      $('#picker-selected-count').text('0 selected');
+      $('#confirm-add-services').prop('disabled', true);
+    }
+
+    function syncPickerLimits() {
+      var checked = $('.service-check:checked');
+      var n = checked.length;
+      $('#picker-selected-count').text(n + ' selected' + (n >= 2 ? ' (max 2)' : ''));
+      $('#confirm-add-services').prop('disabled', n < 1 || n > 2);
+      if (n >= 2) {
+        $('.service-check:not(:checked)').closest('.service-picker-item').addClass('disabled');
+      } else {
+        $('.service-picker-item').removeClass('disabled');
+      }
+    }
+
+    // Check-in only (off techs)
+    $(document).on('click', '.tech-checkin-btn', function () {
+      var techId = $(this).data('tech-id');
+      var $card = $(this).closest('.tech-card');
+      $.ajax({
+        url: '{% url "ledger:update_tech_status" %}',
+        type: 'POST',
+        data: { tech_id: techId, csrfmiddlewaretoken: csrf },
+        success: function (response) {
+          if (!response.success) {
+            alert(response.error || 'Check-in failed');
+            return;
+          }
+          // Rebuild as working card and move to working stack
+          var name = $card.find('.card-title').text().trim();
+          var safeName = $('<div>').text(name).html();
+          var count = response.services_count != null ? response.services_count : 0;
+          var timeLabel = response.time_come_in || '';
+          var html =
+            '<div class="tech-card" data-tech-id="' + techId + '" data-working="1">' +
+              '<div class="card shadow-sm name-card">' +
+                '<div class="card-body">' +
+                  '<div>' +
+                    '<h5 class="card-title">' + safeName + '</h5>' +
+                    '<div class="card-subtitle text-muted come-in-time">In ' + timeLabel + '</div>' +
+                  '</div>' +
+                  '<div class="tech-card-count">' +
+                    '<span class="service-count" id="count_' + techId + '">' + count + '</span>' +
+                    '<div class="count-label">services</div>' +
+                  '</div>' +
+                  '<button type="button" class="btn btn-sm btn-primary w-100 btn-add-services"' +
+                  ' data-tech-id="' + techId + '" data-tech-name="' + safeName + '">' +
+                  '+ Add</button>' +
+                '</div></div>' +
+              '<div class="services-row">' +
+                '<div class="services-row-label">Services today </div>' +
+                '<ul class="turn-list" id="turns_' + techId + '">' +
+                  '<li class="text-muted empty-turn">No services yet</li>' +
+                '</ul>' +
+              '</div>' +
+            '</div>';
+          $card.remove();
+          $('#working-row').append(html);
+          resortWorking();
+        },
+        error: function (xhr) {
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Check-in failed';
+          alert(msg);
+        }
+      });
+    });
+
+    // Open service picker
+    $(document).on('click', '.btn-add-services', function () {
+      selectedTechId = $(this).data('tech-id');
+      var name = $(this).data('tech-name') || '';
+      $('#picker-tech-name').text(name);
+      resetPicker();
+      if (pickerModal) pickerModal.show();
+    });
+
+    $(document).on('change', '.service-check', syncPickerLimits);
+
+    $('#confirm-add-services').on('click', function () {
+      if (!selectedTechId) return;
+      var ids = $('.service-check:checked').map(function () { return $(this).val(); }).get();
+      if (ids.length < 1 || ids.length > 2) {
+        alert('Select 1 or 2 services.');
+        return;
+      }
+      var $btn = $(this).prop('disabled', true);
+      $.ajax({
+        url: '{% url "ledger:add_turn_services" %}',
+        type: 'POST',
+        data: {
+          tech_id: selectedTechId,
+          service_ids: ids,
+          csrfmiddlewaretoken: csrf
+        },
+        traditional: true,
+        success: function (response) {
+          if (!response.success) {
+            alert(response.error || 'Could not add services');
+            $btn.prop('disabled', false);
+            return;
+          }
+          renderTurnList(response.tech_id, response.turn_services);
+          updateCount(response.tech_id, response.services_count);
+          resortWorking();
+          if (pickerModal) pickerModal.hide();
+          resetPicker();
+          $btn.prop('disabled', false);
+        },
+        error: function (xhr) {
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Could not add services';
+          alert(msg);
+          $btn.prop('disabled', false);
+        }
+      });
+    });
+
+    // Remove a walk-in turn service only (appointments are not removable here)
+    $(document).on('click', '.btn-remove-turn', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var turnId = $(this).data('turn-id');
+      if (!turnId) return;
+      if (!confirm('Remove this walk-in service from the turn list?')) return;
+      $.ajax({
+        url: '{% url "ledger:delete_turn_service" %}',
+        type: 'POST',
+        data: { turn_id: turnId, csrfmiddlewaretoken: csrf },
+        success: function (response) {
+          if (!response.success) {
+            alert(response.error || 'Could not remove');
+            return;
+          }
+          renderTurnList(response.tech_id, response.turn_services);
+          updateCount(response.tech_id, response.services_count);
+          resortWorking();
+        },
+        error: function (xhr) {
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Could not remove';
+          alert(msg);
+        }
+      });
+    });
+
+    // Auto-refresh so booked services appear when appointment time arrives
+    function pollTurnBoard() {
+      $.ajax({
+        url: '{% url "ledger:turn_board_status" %}',
+        type: 'GET',
+        success: function (response) {
+          if (!response.success || !response.employees) return;
+          response.employees.forEach(function (emp) {
+            if ($('#count_' + emp.tech_id).length) {
+              updateCount(emp.tech_id, emp.services_count);
+              renderTurnList(emp.tech_id, emp.turn_services);
             }
           });
-        });
+          resortWorking();
+        }
       });
-    </script>
+    }
+    setInterval(pollTurnBoard, 45000);
+  });
+</script>
 
 {% endblock content %}
-    
+
 {% block footer %}
-    {% comment %} <a class="btn btn-primary" href="{% url 'password_change' %}">Change Password</a> {% endcomment %}
 {% endblock footer %}
 
-<!-- https://x.com/i/grok/share/7LKBdIeextzDNORfdzVhdEQO1 --> 
