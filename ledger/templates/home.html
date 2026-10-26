@@ -16,8 +16,8 @@
         Where Beauty meets relaxation - <cite title="Source Title"> Elegant Nails & Spa</cite>
     </figcaption>
 </figure>
-{% if messages %} 
-    {% for tin in messages %} 
+{% if messages %}
+    {% for tin in messages %}
     <li class="text-success fs-4">{{ tin }}</li>
     {% endfor %}
 {% endif %}
@@ -25,9 +25,10 @@
 {% endblock heading %}
 
 {% block content %}
+<div class="halloween-banner text-center rounded-3 mb-3 px-3 py-2" style="background: linear-gradient(135deg, #2b1810, #4a2511); border: 2px solid #f59e0b; border-radius: 15px; color: #fde68a;">🎃 Happy Halloween from Elegant Nails & Spa! Ask about our festive nail art & autumn colors — <a href="/dathen/first_step/" class="btn btn-sm ms-1" style="background-color: #f59e0b; color: #2b1810; font-weight: 600; border-radius: 20px;">Book Your Visit</a></div>
 <div class="hero" style="background-image: url('{% static 'ledger/images/elegant.jpg' %}'); background-size: cover; background-position: center; padding: 150px 0; border-radius: 15px;">
     <div class="container text-center text-white">
-        
+
         <h1 class="display-4 text-bottom">Your Journey to Beauty Begins Here</h1>
         <p class="lead text-bottom">Experience the pinnacle of nail care and beauty treatments at Elegant Nails & Spa</p>
     </div>
@@ -36,20 +37,19 @@
 {% if complimentaries %}
 <div class="container my-5">
     <h2 class="text-center mb-3 p-2 bg-light rounded-5" style="border-radius: 15px;">
-        Today's Complimentary 
+        Today's Complimentary
         <span class='fs-5 fst-italic text-primary' style="transition: color 0.3s;">{{ today|date:'F-d'}}
 
         </span>
     </h2>
-    
     <div class="d-flex flex-nowrap overflow-auto">
         {% for item in complimentaries %}
         <div class="col-md-3 mb-4 px-2">
             <div class="card h-100" style="width: 18rem;">
                 <img src="{{ item.photo.url }}" class="card-img-top" alt="{{ item.title }}" style="height: 200px; object-fit: cover;">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ item.title | title }}</h5>
-                    <span> {{ item.description }} </span>
+                    <h5 class="card-title">{{ item.title | title }}: <span class="fs-6 text-muted">{{item.description }}</span> </h5>
+
                 </div>
             </div>
             </a>
@@ -58,21 +58,21 @@
     </div>
 </div>
 {% endif %}
-<!-- Staffs Section -->
+<!-- staffs Section -->
 <div class="container my-5">
     <h2 class="text-center mb-4 p-2 bg-light rounded-5" style="border-radius: 15px;">Our Staffs</h2>
     <div class="d-flex flex-nowrap overflow-auto">
         {% for tech in allTech %}
         <div class="col-md-3 mb-4 px-2">
-            <a class="nav-link" href="{% url 'ledger:employee_bio' tech.id %}">
-            <div class="card h-100" style="width: 18rem;">
-                <img src="{% if tech.picture %} {{ tech.picture.url }} {% else %} {% static 'ledger/images/default_avatar.png' %} {% endif %}" class="card-img-top" alt="{{ tech.name }}" style="height: 200px; object-fit: cover;">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ tech.name | title }}</h5>
-                    <p class="card-text"><small class="text-muted">Experience: {{ tech.get_experience }} years</small></p>
-                    <p class="card-text flex-grow-1"><small class="text-muted">Expertise: {{ tech.get_bio }}</small></p>
+                <a class="nav-link" href="{% url 'ledger:employee_bio' tech.id %}">
+                    <div class="card h-100" style="width: 18rem;">
+                    <img src="{% if tech.picture %} {{ tech.picture.url }} {% else %} {% static 'ledger/images/default_avatar.png' %} {% endif %}" class="card-img-top" alt="{{ tech.name }}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ tech.name | title }}</h5>
+                        <p class="card-text"><small class="text-muted">Experience: {{ tech.get_experience }} years</small></p>
+                        <p class="card-text flex-grow-1"><small class="text-muted">Expertise: {{ tech.get_bio }}</small></p>
+                    </div>
                 </div>
-            </div>
             </a>
         </div>
         {% endfor %}
@@ -135,8 +135,8 @@
                 </div>
             </a>
         </div>
-        
-        <!-- Wax -->
+
+        <!-- Wax
         <div class="col-md-4 col-lg-3">
             <a class="nav-link" href="{% url 'ledger:service_info' category='Wax' %}">
                 <div class="card h-100 service-card shadow-sm">
@@ -155,14 +155,15 @@
         </div>
     </div>
 </div>
+-->
+
 {% endblock content %}
 
 {% block footer %}
 
     >> Discover your beauty with us.
-    <a class="nav-link" href="{% url 'ledger:privacy' %}">
-        Privacy Policy</a>
-        <a class="nav-link" href="{% url 'ledger:contact' %}">
-            Contact us</a>
+    <a class="nav-link" href="{% url 'ledger:privacy' %}">Privacy Policy</a>
+    <a class="nav-link" href="{% url 'ledger:contact' %}">Contact us</a>
+
 {% endblock footer %}
 

@@ -114,13 +114,13 @@
                     <div class="outside-hours" style="top: {{ tech.outside_after_top_pct }}%; height: {{ tech.outside_after_height_pct }}%;"></div>
                     {% endif %}
 
-                    {% for gap in tech.free_gaps %}
-                    <div class="free-gap"
-                         style="top: {{ gap.top_pct }}%; height: {{ gap.height_pct }}%;"
-                         title="Free {{ gap.label }}">
-                        <span class="free-gap-label">Free {{ gap.label }}</span>
-                    </div>
-                    {% endfor %}
+                    <!--{% for gap in tech.free_gaps %}-->
+                    <!--<div class="free-gap"-->
+                    <!--     style="top: {{ gap.top_pct }}%; height: {{ gap.height_pct }}%;"-->
+                    <!--     title="Free {{ gap.label }}">-->
+                    <!--    <span class="free-gap-label">Free {{ gap.label }}</span>-->
+                    <!--</div>-->
+                    <!--{% endfor %}-->
                 {% endif %}
 
                 {# Always show appointments — including when staff booked a tech who is off that day #}

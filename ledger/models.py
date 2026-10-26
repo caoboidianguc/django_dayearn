@@ -64,7 +64,7 @@ class Technician(models.Model):
         if self.get_day_off(check_date):
             return None, None
         return self.start_work_at, self.end_work
-    
+
     @property
     def get_experience(self):
         today = timezone.now().date()
@@ -73,18 +73,18 @@ class Technician(models.Model):
         if self.hire_date > today:
             return self.experience
         total = self.experience
-        
+
         gain = today.year - self.hire_date.year
         # if (today.month, today.day) < (self.hire_date.month, self.hire_date.day):
         #     gain -= 1
         total = self.experience + gain
-        
+
         return max(total, 0)
-    
+
     @property
     def total_likes(self):
         return self.liked_technicians.count()
-    
+
     @property
     def get_bio(self):
         if self.bio:
@@ -226,22 +226,22 @@ class Technician(models.Model):
             raise ValidationError("Start time must be before end time")
     def get_absolute_url(self):
         return reverse("datHen:technician_detail", kwargs={"pk": self.pk})
-    
+
     def __str__(self) -> str:
         return self.name
-        
-        
+
+
     def get_clients(self):
         allClients = self.khachs.all()
         return allClients
-    
+
     def get_today_clients(self):
         hnay = self.get_khachVisit().filter(day_comes=datetime.date.today())
         return hnay.order_by('time_at')
-    
+
     def get_khachVisit(self):
         return self.khachvisits.all()
-    
+
     def get_appointment_services_today(self):
         """Services from real appointments (KhachVisit) today, price > 35.
 
@@ -324,7 +324,7 @@ class Technician(models.Model):
         while time_cal < end:
             time_compare = time_cal + datetime.timedelta(minutes=thoigian)
             overlap = False
-            
+
             for client in clients:
                 client_start = datetime.datetime.combine(ngay, client.start_at())
                 client_end = datetime.datetime.combine(ngay, client.get_done_at())
@@ -332,7 +332,7 @@ class Technician(models.Model):
                 if (client_start <= time_cal < client_end) or (time_cal < client_start < time_compare):
                     overlap = True
                     break
-            
+
             if not overlap:
                 yield time_cal.time()
             time_cal += datetime.timedelta(minutes=15)
@@ -360,7 +360,7 @@ class TechWorkDay(models.Model):
             models.UniqueConstraint(fields=['tech', 'day_of_week',],
                                     condition=models.Q(date__isnull=True),
                                     name='unique_tech_date'),
-            models.UniqueConstraint(fields=['tech', 'date'], 
+            models.UniqueConstraint(fields=['tech', 'date'],
                                     condition=models.Q(date__isnull=False),
                                     name='unique_tech_date_specific'),
         ]
@@ -368,14 +368,14 @@ class TechWorkDay(models.Model):
         if self.date:
             return f"{self.tech.name} - {self.date} ({self.get_day_of_week_display()})"
         return f"{self.tech.name} - {self.get_day_of_week_display()} ({'Working' if self.is_working else 'Off'})"
-    
+
 
 class Khach(models.Model):
     class Status(models.TextChoices):
         online = "Confirmed"
         anyone = "Anyone"
         cancel = "Cancel"
-    full_name = models.CharField(max_length=25, validators=[MinLengthValidator(5)])
+    full_name = models.CharField(max_length=25, validators=[MinLengthValidator(2)])
     phone = PhoneNumberField()
     email = models.EmailField(max_length=50, null=True, blank=True, help_text="Enter your email for booking confirmations.")
     technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, related_name='khachs')
@@ -390,19 +390,19 @@ class Khach(models.Model):
     birthday = models.DateField(null=True, blank=True)
     upset_button = models.BooleanField(default=False)
     history = HistoricalRecords()
-    
+
     class Meta:
         unique_together = ('full_name','phone',)
         ordering = ['full_name','-day_comes']
 
     def __str__(self) -> str:
         return self.full_name
-    
+
     def show_upset_button(self):
         if self.today_visit:
             return True
         return False
-    
+
     def phone_formatted(self):
         so = str(self.phone)
         if len(so) == 12:
@@ -414,47 +414,54 @@ class Khach(models.Model):
         today = datetime.date.today()
         return self.khachvisits.filter(
             models.Q(day_comes=today, time_at__gt=timezone.now().time()) | models.Q(day_comes__gt=today))
-        
+
     def get_today_visits(self):
         return self.khachvisits.filter(day_comes=datetime.date.today())
-        
-    
+
+
     @property
     def future_visit(self):
         today = datetime.date.today()
         return self.khachvisits.filter(
             models.Q(day_comes=today, time_at__gt=timezone.now().time()) | models.Q(day_comes__gt=today)).exists()
-        
+
     @property
     def today_visit(self):
         return self.khachvisits.filter(day_comes=datetime.date.today()).exists()
-    
+
     def can_post_chat(self):
         return self.khachvisits.filter(day_comes__lt=datetime.date.today()).exists()
-        
+
     def get_chat_url(self):
         return reverse("ledger:chat_room", kwargs={'pk':self.pk})
-    
+
     def get_cancel_url(self):
         return reverse("datHen:cancel_confirm", kwargs={'pk':self.pk})
-    
+
     def get_client_detail_url(self):
         return reverse("datHen:client_detail", kwargs={'pk':self.pk})
-    
+
+    def get_total_points(self):
+
+        total = self.khachvisits.exclude(status=KhachVisit.Status.cancel).aggregate(
+            total=models.Sum('total_spent')
+        )['total']
+        return total or 0
+
     def get_absolute_url(self):
         return reverse("datHen:exist_found", kwargs={"pk": self.pk})
-    
+
     def unique_error_message(self, model_class, unique_check):
         #override message __all__
         if unique_check == ("full_name", "phone"):
             return "A client with this Full name and Phone already exists."
         return super().unique_error_message(model_class, unique_check)
-    
+
     def get_all_chat(self):
         return self.client_chats.all()
     def get_all_like(self):
         return self.liked_chats.all()
-    
+
 class KhachVisit(models.Model):
     class Status(models.TextChoices):
         online = "Confirmed"
@@ -470,23 +477,23 @@ class KhachVisit(models.Model):
     isPaid = models.BooleanField(default=False, help_text="Has the client paid for this visit?")
     get_paid_at = models.DateTimeField(null=True, blank=True)
     total_spent = models.DecimalField(max_digits=7, decimal_places=2, editable=False, null=True)
-    
+
     class Meta:
         ordering = ['-day_comes']
-        
+
     def __str__(self) -> str:
         return self.client.full_name
-    
+
     def get_visit_detail_url(self):
         return reverse("datHen:visit_detail", kwargs={'pk':self.pk})
-    
+
     def get_cancel_url(self):
         return reverse("datHen:cancel_khachvisit", kwargs={'pk':self.pk})
 
     def get_client_cancel_url(self):
         """Public cancel link for a single visit (client-facing iam_here page)."""
         return reverse("datHen:client_cancel_visit", kwargs={'pk': self.pk})
-    
+
     def get_time_done(sefl):
         tong = 0
         for service in sefl.services.all():
@@ -495,23 +502,23 @@ class KhachVisit(models.Model):
             tong = tong/60
             return tong
         return tong
-    
+
     def get_services(self):
         services = []
         #filter out services with price > 35
         for dv in self.services.filter(price__gt=35):
             services.append(dv)
         return services
-    
+
     def get_done_at(self):
         gio = datetime.datetime(1970,1,1,hour=self.time_at.hour, minute=self.time_at.minute) + timedelta(minutes=self.get_time_done())
         return datetime.time(hour=gio.hour, minute=gio.minute)
     def start_at(self):
         them = datetime.datetime(1970,1,1, hour=self.time_at.hour, minute=self.time_at.minute)
         return datetime.time(hour=them.hour, minute=them.minute)
-   
+
 class TurnService(models.Model):
-    
+
     technician = models.ForeignKey(
         Technician, on_delete=models.CASCADE, related_name='turn_services'
     )
@@ -537,6 +544,7 @@ class Service(models.Model):
         pedi = "Pedicure"
         wax = "Wax"
         yfix = "YFix"
+        ignore = "Ignore"
     service = models.CharField(max_length=30)
     price = models.FloatField(validators=[MinValueValidator(0.0)])
     time_perform = models.DurationField(default=timezone.timedelta(minutes=45))
@@ -558,7 +566,7 @@ class Service(models.Model):
         return reverse("ledger:service_detail", kwargs={'pk':self.pk})
     def time_in_minute(self):
         return self.time_perform.total_seconds()/60
-        
+
 
 class Chat(models.Model):
     isNew = models.BooleanField(default=True)
@@ -568,7 +576,7 @@ class Chat(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chats", null=True)
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="client_chats", null=True, blank=True)
     view_count = models.IntegerField(default=0)
-    
+
     def __str__(self):
         if len(self.text) < 200 : return self.text
         return self.text[:200] + ' ...'
@@ -582,34 +590,34 @@ class Chat(models.Model):
     @property
     def total_likes(self):
         return self.likes.count()
-    
+
     @property
     def client_name(self):
         return self.client.full_name if self.client else "@Manager"
-    
+
     @property
     def get_reply_count(self):
         return self.replies.count()
-    
+
     def get_detail_url(self):
         return reverse('ledger:user_chat_detail', kwargs={'pk': self.pk})
 
- 
+
 class Like(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="likes")
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="liked_chats", null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="owner_likes", null=True)
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="liked_technicians", null=True, blank=True)
-    
+
     class Meta:
         unique_together = [('chat', 'client'), ('chat','owner'), ('client', 'technician')]
-        
+
     def __str__(self):
         if self.client:
             return f"{self.client} liked chat {self.chat.id}"
         return f"{self.owner} liked chat {self.chat.id}"
-    
+
 class Supply(models.Model):
     title = models.CharField(max_length=42, validators=[MinLengthValidator(2)])
     quantity = models.PositiveIntegerField(default=1)
@@ -628,13 +636,13 @@ class Price(models.Model):
     price = models.FloatField(validators=[MinValueValidator(0.0)])
     date = models.DateTimeField(auto_now_add=True)
     stripe_price_id = models.CharField(max_length=100, null=True, blank=True)
-    
+
     class Meta:
         unique_together = ('service', 'price')
-    
+
     def __str__(self):
         return f"{self.service} - {self.price}"
-    
+
 class Complimentary(models.Model):
     class Category(models.TextChoices):
         drink = "Drink"
@@ -654,23 +662,23 @@ class Complimentary(models.Model):
 class OpiColor(models.Model):
     name = models.CharField(max_length=42, validators=[MinLengthValidator(2)])
     hex_code = models.CharField(max_length=7, help_text="Hex code for the color (e.g., #FF5733)")
-    
+
     class Meta:
         unique_together = ('name', 'hex_code')
-    
+
     def __str__(self):
         return self.name
-    
+
 class ClientFavorite(models.Model):
     client = models.ForeignKey(Khach, on_delete=models.CASCADE, related_name="favorites")
     created_at = models.DateTimeField(auto_now_add=True)
     color = models.ForeignKey(OpiColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="favorite_clients", help_text="Optional color for the favorite.")
     note = models.TextField(max_length=250, null=True, blank=True, help_text="Optional note for the favorite.")
-    
+
     def __str__(self):
         return f"{self.client.full_name} - {self.note if self.note else 'No Note'}"
-    
-    
+
+
 # for fun button but later
 class UpSetButton(models.Model):
     class Mood(models.TextChoices):
@@ -681,4 +689,3 @@ class UpSetButton(models.Model):
     mood = models.CharField(max_length=20, choices=Mood.choices, default=Mood.smile, help_text="Mood of the client when they pressed the button.")
     def __str__(self):
         return f"Upset button for {self.client.full_name}"
-    
