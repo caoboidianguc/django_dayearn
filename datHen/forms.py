@@ -8,12 +8,12 @@ from crispy_forms.layout import Layout, Row, Field, Div, Column
 from django.core.exceptions import ValidationError
 
 
-service_queryset = Service.objects.exclude(service="tax")
+service_queryset = Service.objects.exclude(service__in=["tax","skip"])
 
 class ChonNgay(forms.widgets.DateInput):
     input_type = 'date'
     input_formats= "%Y-%m-%d"
-    
+
 class DatePickerInput(forms.Form):
     date = forms.DateField(
         widget=ChonNgay(),
@@ -32,19 +32,19 @@ class DatHenForm(forms.ModelForm):
         widget=ChonNgay(attrs={'min': date.today()}),
         label="Please Pick a date"
         )
-  
+
     time_at = forms.TimeField(
         input_formats=["%H:%M"],
         widget=ChonNgay(attrs={
             "type":"time",
             })
-        )    
+        )
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Search by Phone Number'}),
                         label="")
-    
+
     services = forms.ModelMultipleChoiceField(queryset=service_queryset ,widget=forms.CheckboxSelectMultiple())
-    
+
     full_name = forms.CharField(
         label="",
         widget=forms.TextInput(
@@ -52,6 +52,7 @@ class DatHenForm(forms.ModelForm):
             'placeholder': 'Full Name'
         }
     ))
+    technician = forms.ModelChoiceField(queryset=Technician.objects.all(), required=True, label="Technician")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -68,11 +69,11 @@ class DatHenForm(forms.ModelForm):
         if self.cleaned_data.get('existing_client'):
             return
         return super().validate_unique()
-    
+
     class Meta:
         model = Khach
         fields = ['technician', 'services', 'full_name', 'phone', 'day_comes', 'time_at', 'status']
-        
+
 class UserExistClientForm(forms.ModelForm):
     class Meta:
         model = Khach
@@ -82,7 +83,7 @@ class ExistClientForm(forms.ModelForm):
     class Meta:
         model = Khach
         fields = ['full_name','phone']
-        
+
 
 
 class DateForm(forms.ModelForm):
@@ -100,11 +101,11 @@ class DateForm(forms.ModelForm):
         widget=ChonNgay(attrs={'min': date.today()}),
         label="Please Pick a date"
         )
-    
-     
-  
+
+
+
 class ThirdForm(forms.ModelForm):
-    
+
     class Meta:
         model=Khach
         fields = ['time_at','full_name', 'phone', 'email', 'status','technician']
@@ -120,12 +121,12 @@ class ThirdForm(forms.ModelForm):
         label="Email",
         required=False,
         widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
-    
+
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),
                         label="")
-    
-    
+
+
     full_name = forms.CharField(
         label="",
         min_length = 2,
@@ -134,7 +135,7 @@ class ThirdForm(forms.ModelForm):
             'placeholder': 'Full Name'
         }
     ))
-    
+
     def clean(self):
         cleaned_data = super().clean()
         full_name = cleaned_data.get('full_name')
@@ -175,20 +176,20 @@ class ThirdFormExist(forms.ModelForm):
         widget=forms.widgets.EmailInput(attrs={'placeholder':'For booking confirmations'}))
 
 class ServicesChoiceForm(forms.Form):
-    dichvu = forms.ModelMultipleChoiceField(queryset=service_queryset.order_by('category'), 
+    dichvu = forms.ModelMultipleChoiceField(queryset=service_queryset.order_by('category'),
                                               widget=forms.CheckboxSelectMultiple,
                                               label = "")
-    
+
 class KhachDetailForm(forms.ModelForm):
     class Meta:
         model = Khach
         fields = ['tag','desc','email','full_name','phone']
-   
+
 class VisitForm(forms.ModelForm):
     class Meta:
         model = KhachVisit
         fields = ['technician','time_at' ,'services',]
-        
+
     time_at = forms.TimeField(
         widget=forms.TimeInput(attrs={
             "type":"time",

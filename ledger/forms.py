@@ -5,7 +5,7 @@ from phonenumber_field.formfields import PhoneNumberField
 from datHen.forms import ChonNgay
 from django.utils import timezone
 
-service_queryset = Service.objects.exclude(service="tax")
+service_queryset = Service.objects.exclude(service__in=["tax","skip"])
 
 class ComplimentaryForm(forms.ModelForm):
     class Meta:
@@ -16,11 +16,11 @@ class ComplimentaryForm(forms.ModelForm):
         label="Upload Picture",
         required=False
     )
-    
+
 class TechForm(forms.ModelForm):
     phone = PhoneNumberField(widget=forms.TextInput(
                         attrs={'placeholder': 'Phone Number'}),
-                        label="")
+                        label="", required=False)
     name = forms.CharField(widget=forms.TextInput(
                         attrs={'placeholder': 'Tech Name'}),
                         label="")
@@ -35,7 +35,7 @@ class TechForm(forms.ModelForm):
                         required=False)
     class Meta:
         model = Technician
-        fields = ["name","phone", "email","start_work_at","end_work","experience","bio","picture"]
+        fields = ["name","phone", "email","start_work_at","end_work","experience","bio","picture", "is_accept_booking"]
     picture = forms.ImageField(
         widget=forms.FileInput(),
         label="Upload Picture",
@@ -103,15 +103,15 @@ class TechWorkDayForm(forms.ModelForm):
             cleaned_data['end_time'] = None
 
         return cleaned_data
-        
+
 class ClientForm(forms.ModelForm):
     email = forms.CharField(required=False)
     class Meta:
         model = Khach
         fields = ['full_name', 'phone', 'email', 'services']
-        
 
-    
+
+
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
@@ -136,8 +136,8 @@ class ServiceForm(forms.ModelForm):
 class TaiKhoanCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         fields = UserCreationForm.Meta.fields + ("email",)
-        
-    
+
+
 class VacationForm(forms.ModelForm):
     vacation_end = forms.DateField(
         required=False,
@@ -155,7 +155,7 @@ class VacationForm(forms.ModelForm):
         help_texts = {
             'vacation_start': 'First day off for consecutive days away.',
         }
-        
+
 class ChatForm(forms.ModelForm):
     text = forms.CharField(required=True,min_length=1, max_length=500, strip=True, label="",
                            widget=forms.TextInput(
@@ -163,7 +163,7 @@ class ChatForm(forms.ModelForm):
     class Meta:
         model = Chat
         fields = ['text']
-        
+
 class KhachWalkin(forms.ModelForm):
     class Meta:
         model = Khach
@@ -196,7 +196,7 @@ class SupplyForm(forms.ModelForm):
         fields = ['title','quantity','info']
     info = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Detail for item'}),
                            required=False)
-    
+
 class ContactForm(forms.Form):
     name = forms.CharField(min_length=3,max_length=25, strip=True)
     email = forms.EmailField()
@@ -205,5 +205,4 @@ class ContactForm(forms.Form):
                         attrs={'placeholder': 'Message',
                                'rows': 4,
                                'cols': 50}),)
-    
-    
+
