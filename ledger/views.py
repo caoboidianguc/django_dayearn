@@ -23,13 +23,13 @@ import stripe
 from . import utils
 
 stripe.api_key = os.environ.get('stripe_secret_key')
-            
+
 class PrivacyPolicy(View):
     template = "privacy.html"
     def get(self, request):
         context = {'spaName': utils.tenSpa, "email": utils.privacyEmail}
         return render(request, self.template, context)
-    
+
 class Contact(View):
     receiveEmail = "info@elegantnail.net"
     template = "contact.html"
@@ -58,7 +58,7 @@ class Contact(View):
             except Exception as e:
                 messages.error(request, f"Failed to send message: {str(e)}")
         return render(request, self.template, {'form': form})
-                
+
 
 class AllEmployee(LoginRequiredMixin,ListView):
     template = 'ledger/all_employee.html'
@@ -74,7 +74,7 @@ class AllEmployee(LoginRequiredMixin,ListView):
         sort_tech = sorted(
             list(employee),
             key=lambda tech: (
-                tech.get_services_today(),
+                #tech.get_services_today(),
                 tech.time_come_in or timezone.now(),
                 tech.name,
             ),
@@ -89,7 +89,7 @@ class AllEmployee(LoginRequiredMixin,ListView):
             'services': services,
         }
         return render(request, self.template, cont)
-              
+
 class UpdateTech(LoginRequiredMixin, View):
     """Check-in only: set isWork True once. No toggle off (resets next day)."""
     def post(self, request):
@@ -241,16 +241,16 @@ class TurnBoardStatus(LoginRequiredMixin, View):
         # sort same as AllEmployee
         payload.sort(key=lambda x: (x['services_count'], x['time_come_in'] or '99:99'))
         return JsonResponse({'success': True, 'employees': payload})
-       
+
 
 class AllServices(LoginRequiredMixin, ListView):
-    
+
     template = 'ledger/list_services.html'
     def get(self, request):
         serv = Service.objects.filter(owner=request.user).order_by('category')
         cont = {'dvu': serv}
         return render(request, self.template, cont)
-    
+
 class EmpCreate(LoginRequiredMixin, View):
     template = 'ledger/add_employee.html'
     success_url = reverse_lazy('ledger:add_employee')
@@ -269,12 +269,12 @@ class EmpCreate(LoginRequiredMixin, View):
         form.save_m2m
         messages.success(request, f"{form.instance.name} was created successfully!")
         return redirect(self.success_url)
-    
-    
+
+
 class TaoTaiKhoan(View):
     template = "ledger/user_form.html"
     success_url = reverse_lazy('ledger:all_employee')
-    
+
     def get(self, request):
         form = TaiKhoanCreationForm()
         cont = {'form': form }
@@ -293,7 +293,7 @@ class AddService(LoginRequiredMixin, View):
         form = ServiceForm()
         context = {'form': form}
         return render(request, self.template, context)
-    
+
     def post(self, request):
         form = ServiceForm(request.POST)
         if not form.is_valid():
@@ -306,7 +306,7 @@ class AddService(LoginRequiredMixin, View):
         product = stripe.Product.create(name=ser.service)
         ser.stripe_product_id = product.id
         ser.save()
-        
+
         stripe_price = stripe.Price.create(
             product=ser.stripe_product_id,
             unit_amount=int(ser.price * 100), # convert to cents
@@ -317,7 +317,7 @@ class AddService(LoginRequiredMixin, View):
         form.save_m2m
         messages.success(request, f"{form.instance.service} was added successfully!")
         return redirect(self.success_url)
-       
+
 class SetWorkDayView(LoginRequiredMixin, CreateView):
     model = TechWorkDay
     form_class = TechWorkDayForm
@@ -427,7 +427,7 @@ class SetWorkDayView(LoginRequiredMixin, CreateView):
             form.add_error(None, "Could not save this schedule. Please try again.")
             return self.form_invalid(form)
 
-        
+
 class DeleteWorkDayView(LoginRequiredMixin, View):
     def post(self, request):
         try:
@@ -486,7 +486,7 @@ class ChatView(View):
             'page_obj' : page_obj, 'chat_form': chat_form, 'client' : client
         }
         return render(request, self.template, context)
-    
+
 class ChatLikeView(View):
     def post(sefl, request, chat_id):
         client_id = request.session.get('client_id')
@@ -528,7 +528,7 @@ def chatDetailLike(request, chat_id):
         'liked' : liked,
         'total_likes': total_likes
     })
-        
+
 class ChatUserLikeView(LoginRequiredMixin, View):
     def post(sefl, request, chat_id):
         chu_trang = request.user
@@ -548,7 +548,7 @@ class ChatUserLikeView(LoginRequiredMixin, View):
             'liked' : liked,
             'total_likes': total_likes
         })
-        
+
 class ChatDetailView(View):
     template = "ledger/chat_detail.html"
     def get(self, request, pk):
@@ -567,7 +567,7 @@ class ChatDetailView(View):
             'chat_form' : ChatForm()
         }
         return render(request, self.template, context)
-    
+
     def post(self, request, pk):
         khach_id = request.session['client_id']
         khach_moi = get_object_or_404(Khach, id=khach_id)
@@ -614,7 +614,7 @@ def chat_delete(request, pk):
     return JsonResponse({
             'success': True,
         })
-    
+
 class UserChatView(LoginRequiredMixin, View):
     template = "ledger/user_chat_room.html"
     def get(self, request):
@@ -656,7 +656,7 @@ class UserChatDetailView(LoginRequiredMixin, View):
             'chat_form' : ChatForm()
         }
         return render(request, self.template, context)
-    
+
     def post(self, request, pk):
         chat = get_object_or_404(Chat, id=pk)
         chat.view_count = F('view_count') + 1
@@ -684,7 +684,7 @@ class ServiceDetail(LoginRequiredMixin, View):
         context = {'service': service,
                    'form': form}
         return render(request, self.template, context)
-    
+
     def post(self, request, pk):
         service = get_object_or_404(Service, id=pk)
         form = ServiceForm(request.POST, instance=service)
@@ -695,7 +695,7 @@ class ServiceDetail(LoginRequiredMixin, View):
         context = {'service': service,
                    'form': form}
         return render(request, self.template, context)
-    
+
 
 
 class CustomerVisit(View):
@@ -740,7 +740,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
             khach.status = Khach.Status.anyone
             khach.technician = Technician.objects.get(owner=self.request.user, name="anyOne")
             khach.save()
-            
+
         else:
             khach, _ = Khach.objects.get_or_create(
                 full_name=full_name,
@@ -751,7 +751,7 @@ class ClientWalkinView(LoginRequiredMixin, CreateView):
                     'technician': Technician.objects.get(owner=self.request.user, name="anyOne"),
                 }
             )
-        khach.services.set(dv)    
+        khach.services.set(dv)
         form.instance = khach
         if not khach.today_visit:
             utils.saveKhachVisit(khach, ngay,thoigian,dv, khach.technician, KhachVisit.Status.anyone)
@@ -762,7 +762,7 @@ def services_info(request, category):
     template = "ledger/services_info.html"
     allServices = Service.objects.filter(category=category).exclude(service='tax')
     return render(request, template, {'allServices': allServices, 'category': category})
-    
+
 
 class SupplyCreateView(LoginRequiredMixin, CreateView):
     template_name = "ledger/supply_create.html"
@@ -773,7 +773,7 @@ class SupplyCreateView(LoginRequiredMixin, CreateView):
         form.instance.owner = self.request.user
         messages.success(self.request, f"{form.instance.title} has been added to the supply list.")
         return super().form_valid(form)
-    
+
 class AllSupply(LoginRequiredMixin, ListView):
     model = Supply
     template_name = "ledger/all_supplies.html"
@@ -788,7 +788,7 @@ def supplyWanted(request, supply_id):
     supply.is_wanted = not supply.is_wanted
     supply.save()
     return JsonResponse({'success': True, 'is_wanted': supply.is_wanted}, status=200)
-    
+
 def supplyDelete(request, pk):
     if not request.user.is_authenticated:
         return JsonResponse({'success': False, 'error': 'You need to login first'}, status=401)
@@ -798,12 +798,11 @@ def supplyDelete(request, pk):
 
 class EmployeeBio(DetailView):
     template = "ledger/employee_bio.html"
-    
+
     def get(self, request, pk):
         employee = get_object_or_404(Technician, id=pk)
         Technician.objects.filter(id=pk).update(view_count=F('view_count') + 1)
         work_days = TechWorkDay.objects.filter(tech=employee, date__isnull=True).order_by('day_of_week')
         context = {'employee': employee, 'work_days': work_days}
         return render(request, self.template, context)
-    
-    
+

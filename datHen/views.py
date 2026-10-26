@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from ledger import utils
 
-
+# Timeline display: pixels per minute of shop-open hours.
 # 2.0 → ~30px per 15 minutes.
 _TIMELINE_PX_PER_MIN = 2.0
 _TIMELINE_MIN_BLOCK_MINUTES = 15
@@ -247,6 +247,7 @@ class DatHenView(LoginRequiredMixin,View):
         all_tech = Technician.objects.filter(owner=request.user).order_by('time_come_in')
         now_time = timezone.now().time()
 
+        # Collect work windows so the board opens at earliest open / closes at latest close
         day_starts = []
         day_ends = []
         for tech in all_tech:
@@ -339,7 +340,7 @@ class UserFindClient(LoginRequiredMixin,View):
         khach = Khach.objects.filter(phone=phone)
         cont = {'formDatHen': form, 'khach': khach}
         return render(request, self.template, cont)
-    
+
 class FindClient(View):
     """Look up client by name + phone, then show appointments on iam_here."""
     template = 'complimentary/iam_here.html'
@@ -368,17 +369,17 @@ class FindClient(View):
             'show_lookup_form': True,
         }
         return render(request, self.template, cont)
-    
+
 class ExistPickTech(View):
     template = 'datHen/exist_pick_tech.html'
-    
+
     def get(self, request, pk):
         tech = Technician.objects.filter(is_accept_booking=True).exclude(name="anyOne")
         _annotate_tech_off_notices(tech)
         cont = {'allTech': tech}
         request.session['client_id'] = pk
         return render(request, self.template, cont)
-    
+
 class ExistSecond(View):
     template = 'datHen/exist_second.html'
     def get(self, request, pk):
@@ -410,8 +411,8 @@ class ChoiceServicesExistView(View):
             'form': serviceForm
         }
         return render(request, self.template, cont)
-    
-    
+
+
 class ExistThirdStep(View):
     template = 'datHen/exist_third_step.html'
 
@@ -634,7 +635,7 @@ class ThirdStep(View):
         else:
             messages.info(request, "Appointment booked, but no email provided for confirmation.")
         return redirect(self.get_success_url())
-    
+
 
 class CancelViewConfirm(View):
     """Legacy: cancel all visits for a client. Prefer ClientCancelKhachVisit for single visits."""
@@ -649,7 +650,7 @@ class CancelViewConfirm(View):
             'client': client
         }
         return render(request, self.template, context)
-    
+
     def post(self, request, pk):
         client = get_object_or_404(Khach, id=pk)
         total_point = sum([service.price for service in client.services.all()])
@@ -692,12 +693,12 @@ class CancelKhachVisit(LoginRequiredMixin, DeleteView):
     model = KhachVisit
     template_name = "datHen/user_delete_khachvisit.html"
     success_url = reverse_lazy('datHen:listHen')
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['visit'] = self.object
         return context
-    
+
 class ClientDetailView(LoginRequiredMixin, UpdateView):
     template_name = 'datHen/client_detail.html'
     form_class = KhachDetailForm
@@ -705,13 +706,16 @@ class ClientDetailView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset = None):
         pk=self.kwargs.get('pk')
         return get_object_or_404(Khach, id=pk)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['client'] = self.get_object()
+        client = self.get_object()
+        context['client'] = client
         context['today'] = timezone.now().today().date()
+        context['visits'] = client.khachvisits.select_related('technician').prefetch_related('services')
+        context['total_points'] = client.get_total_points()
         return context
-        
+
     def get_success_url(self):
         return self.success_url
 
@@ -731,7 +735,7 @@ def schedule_get_client(request):
     client_list = Khach.objects.filter(phone=phone)
     data = [{'full_name': client.full_name, 'phone': str(client.phone)} for client in client_list]
     return JsonResponse(data, safe=False)
-    
+
 class ScheduleViewUser(LoginRequiredMixin, View):
     template = "datHen/schedule_user.html"
     success_url = reverse_lazy('datHen:listHen')
@@ -757,7 +761,7 @@ class ScheduleViewUser(LoginRequiredMixin, View):
         status = form.cleaned_data['status']
         total_point = sum([service.price for service in services])
         existing_client = form.cleaned_data.get('existing_client')
-        
+
         if existing_client:
             client = existing_client
             client.day_comes = day_comes
@@ -765,7 +769,7 @@ class ScheduleViewUser(LoginRequiredMixin, View):
             client.time_at = time_at
             client.status = status
             client.save()
-            
+
         else:
             client, _ = Khach.objects.get_or_create(full_name=full_name, phone=phone,
                                                     defaults={'day_comes': day_comes, 'technician': tech,
