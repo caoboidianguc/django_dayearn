@@ -35,7 +35,7 @@
             <h5 class="card-title">Appointment Details</h5>
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Technician:</strong> {{ visit.technician }}</p>
+                    <p><strong>Technician:</strong> {{ visit.technician | title }}</p>
                     <p><strong>Date:</strong> {{ visit.day_comes }}</p>
                     <p><strong>Time:</strong> {{ visit.time_at }}</p>
                 </div>
@@ -43,7 +43,7 @@
                     <p><strong>Services:</strong></p>
                     <ul class="list-group list-group-flush">
                         {% for service in visit.services.all %}
-                        <li class="list-group-item">{{ service.service | title }}</li>
+                        <li class="list-group-item">{{ service.service }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -69,4 +69,4 @@
 {% block footer %}
     <strong>Contact Us somewhere</strong>
 {% endblock footer %}
- 
+

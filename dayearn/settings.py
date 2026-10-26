@@ -17,14 +17,29 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv()
+load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-81w87l+rc-3sv!!^dk=6cl)9@7pscwf*25+zhd(+43j3q_ttos'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-81w87l+rc-3sv!!^dk=6cl)9@7pscwf*25+zhd(+43j3q_ttos')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'elegantnail.onrender.com']
+ALLOWED_HOSTS = [
+    'www.elegantnail.net',
+    'elegantnail.net',
+    '.onrender.com',
+    'quangvu.pythonanywhere.com',
+    'localhost',
+    '127.0.0.1',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.elegantnail.net',
+    'https://elegantnail.net',
+    'https://*.onrender.com',
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -54,13 +69,13 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'datHen.apps.DathenConfig',
     'payment.apps.PaymentConfig',
-    
 ]
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -89,23 +104,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'dayearn.wsgi.application'
+
+# Database & Persistent Disk support (Render persistent disk at /var/data)
+RENDER_DISK_PATH = os.environ.get('RENDER_DISK_PATH', '/var/data')
+if os.path.isdir(RENDER_DISK_PATH):
+    DB_PATH = os.path.join(RENDER_DISK_PATH, 'db.sqlite3')
+    MEDIA_ROOT = os.path.join(RENDER_DISK_PATH, 'media')
+else:
+    DB_PATH = BASE_DIR / 'db.sqlite3'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DB_PATH,
     }
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DBNAME', 'dayearn_db'),
-#         'USER': os.environ.get('DBUSER', 'postgres'),
-#         'PASSWORD': os.environ.get('DBPASS', '7818'),
-#         'HOST': os.environ.get('DBHOST', 'localhost'),
-#         'PORT': os.environ.get('DBPORT', '5432'),
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -140,34 +154,26 @@ PHONENUMBER_DB_FORMAT = 'NATIONAL'
 PHONENUMBER_DEFAULT_REGION = 'US'
 
 
-
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'dayearn/static')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'ledger', 'static'),
-]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # For production
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = "ledger:index"
 
 LOGOUT_REDIRECT_URL = "ledger:index"
+
 EMAIL_BACKEND = 'datHen.custom_email_backend.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST = 'smtp-relay.brevo.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = '9bdb26001@smtp-brevo.com'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '1KU48A5zjSqXs2Ng')
 DEFAULT_FROM_EMAIL = 'Elegant Nail Spa <info@elegantnail.net>'
 SERVER_EMAIL = 'info@elegantnail.net'
 
