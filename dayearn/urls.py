@@ -6,9 +6,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.static import serve
+from django.views.generic.base import RedirectView
 
 
 urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url='/static/ledger/images/dayearn.ico', permanent=False)),
     path('', include('ledger.urls')),
     re_path('accounts/', include("django.contrib.auth.urls")),
     path('sieuadmin/', admin.site.urls),
