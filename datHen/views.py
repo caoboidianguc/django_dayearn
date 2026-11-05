@@ -739,8 +739,17 @@ def schedule_get_client(request):
 class ScheduleViewUser(LoginRequiredMixin, View):
     template = "datHen/schedule_user.html"
     success_url = reverse_lazy('datHen:listHen')
+    # Default technician picked on the booking form (matched by name, any case).
+    # To go back to "no one assigned", change this line to: DEFAULT_TECH_NAME = None
+    DEFAULT_TECH_NAME = 'Quang'
+
     def get(self,request):
-        form = DatHenForm()
+        initial = None
+        if self.DEFAULT_TECH_NAME:
+            tech = Technician.objects.filter(name__icontains=self.DEFAULT_TECH_NAME).order_by('id').first()
+            if tech:  # if no tech has that name, the form stays empty like before
+                initial = {'technician': tech}
+        form = DatHenForm(initial=initial)
         context = {
             'form': form
         }
