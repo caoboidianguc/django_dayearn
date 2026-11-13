@@ -69,6 +69,7 @@
                         </div>
                         <input type="hidden" name="technician_id" id="technician_id">
 
+                        <div class="service-choices-client">
                         <h3 class="mt-4">Select Services</h3>
                         {% for service in services %}
                             <div class="form-check">
@@ -76,6 +77,7 @@
                                 <label class="form-check-label">{{ service.service|title }} - {{ service.price }}</label>
                             </div>
                         {% endfor %}
+                        </div>
                         
                         <button type="submit" class="btn btn-primary mt-3">Proceed to Checkout</button>
                     </form>
@@ -113,16 +115,6 @@
         });
     });
 
-    $(document).ready(function() {
-        $('.form-check input[type="checkbox"]').on('change', function() {
-            var $serviceItem = $(this).closest('.form-check');
-            if ($(this).is(':checked')) {
-                $serviceItem.addClass('fs-4 text-success');
-            } else {
-                $serviceItem.removeClass('fs-4 text-success');
-            }
-        });
-    });
 </script>
 {% endblock content %}
 

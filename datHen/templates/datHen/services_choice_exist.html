@@ -19,7 +19,7 @@
 <form action="{% url 'datHen:third_step_exist' %}" method='get' id="ser_item">
     {% csrf_token %}
     <div class="table-responsive">
-        <div class="container mt-4">
+        <div class="container mt-4 service-choices-client">
             <h3>Pedicure</h3>
             {% for choice in form.dichvu.field.queryset %}
                 {% if choice.category == "Pedicure" %}
@@ -96,17 +96,6 @@
                     alert("Please choose at least one service.");
                     event.preventDefault();
                 }
-            });
-        });
-        $(document).ready(function() {
-            $('.form-check input[type="checkbox"]').on('change', function() {
-                var $dichvu = $(this).closest('.form-check');
-                if ($(this).is(':checked')) {
-                    $dichvu.addClass('fs-4 text-success');
-                } else {
-                    $dichvu.removeClass('fs-4 text-success');
-                }
-            
             });
         });
     </script>

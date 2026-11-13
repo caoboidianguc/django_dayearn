@@ -39,7 +39,7 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="form-group mb-3">
+            <div class="form-group mb-3 service-choices-staff">
                 {% regroup form.services.field.queryset by category as category_list %}
                     {% for category in category_list %}
                         <div class="list">
@@ -102,6 +102,21 @@
                 }
             });
         });
+
+        function updateScheduleTimeBounds() {
+            var dateInput = document.getElementById('id_day_comes');
+            var timeInput = document.getElementById('id_time_at');
+            if (!timeInput) { return; }
+            var max = '19:30';
+            if (dateInput && dateInput.value) {
+                var day = new Date(dateInput.value + 'T00:00:00').getDay();
+                if (day === 0 || day === 6) { max = '19:00'; }
+            }
+            timeInput.min = '09:30';
+            timeInput.max = max;
+        }
+        updateScheduleTimeBounds();
+        $('#id_day_comes').on('change', updateScheduleTimeBounds);
     });
 </script>
 {% endblock content %}
