@@ -2,6 +2,7 @@ from typing import Any
 from django import forms
 from datetime import timedelta, date
 from ledger.models import Khach, Service, Technician, KhachVisit
+from datHen.hours import schedule_time_bounds, format_ampm
 from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Field, Div, Column
@@ -36,7 +37,9 @@ class DatHenForm(forms.ModelForm):
     time_at = forms.TimeField(
         input_formats=["%H:%M"],
         widget=ChonNgay(attrs={
-            "type":"time",
+            "type": "time",
+            "min": "09:30",
+            "max": "19:30",
             })
         )
     phone = PhoneNumberField(widget=forms.TextInput(
@@ -64,6 +67,17 @@ class DatHenForm(forms.ModelForm):
                 cleaned_data['existing_client'] = existing_client
             else:
                 cleaned_data['existing_client'] = None
+        time_at = cleaned_data.get('time_at')
+        day_comes = cleaned_data.get('day_comes')
+        if time_at:
+            min_t, max_t = schedule_time_bounds(day_comes)
+            if time_at < min_t or time_at > max_t:
+                self.add_error(
+                    'time_at',
+                    "Please pick a time between "
+                    f"{format_ampm(min_t)} and {format_ampm(max_t)} "
+                    "(working hours plus 1 hour).",
+                )
         return cleaned_data
     def validate_unique(self):
         if self.cleaned_data.get('existing_client'):

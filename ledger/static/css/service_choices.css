@@ -1,0 +1,101 @@
+/* Scoped service-choice sizing. Unselected text stays the default color;
+   a checked item turns green (Bootstrap text-success / #198754), matching
+   the site's existing selected style. Font size does not change on select. */
+
+
+/* Bootstrap's 1.5em checkbox indent is too tight for the larger boxes.
+   Use flex so the box and label stay on one straight row. */
+.service-choices-client .form-check,
+.service-choices-staff .form-check {
+    display: flex;
+    align-items: flex-start;
+    padding-left: 0;
+    min-height: auto;
+}
+
+.service-choices-client .form-check-input,
+.service-choices-staff .form-check-input {
+    float: none;
+    margin-left: 0;
+}
+
+.service-choices-client .form-check,
+.service-choices-client .form-check-label,
+.service-choices-client .service-item {
+    font-size: 1.5rem; /* +2 Bootstrap steps from 1rem (fs-6) to fs-4 */
+}
+
+.service-choices-client .form-check-input,
+.service-choices-client input[type="checkbox"] {
+    width: 1.35em;
+    height: 1.35em;
+    min-width: 1.35em;
+    min-height: 1.35em;
+    margin-top: 0.2em;
+    margin-right: 0.4em;
+    flex-shrink: 0;
+    vertical-align: middle;
+    accent-color: #198754;
+}
+
+.service-choices-staff .form-check,
+.service-choices-staff .form-check-label,
+.service-choices-staff .service-item,
+.service-choices-staff .service-picker-item {
+    font-size: 1.75rem; /* +3 Bootstrap steps from 1rem (fs-6) to fs-3 */
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.service-choices-staff .form-check-input,
+.service-choices-staff input[type="checkbox"] {
+    width: 1.5em;
+    height: 1.5em;
+    min-width: 1.5em;
+    min-height: 1.5em;
+    margin-top: 0.2em;
+    margin-right: 0.45em;
+    flex-shrink: 0;
+    vertical-align: middle;
+    accent-color: #198754;
+}
+
+/* Green selected state: text, checkbox, and a light highlight. */
+.service-choices-client .form-check:has(input:checked),
+.service-choices-client .form-check:has(input:checked) .form-check-label,
+.service-choices-client .service-item:has(input:checked),
+.service-choices-client label:has(input:checked),
+.service-choices-staff .form-check:has(input:checked),
+.service-choices-staff .form-check:has(input:checked) .form-check-label,
+.service-choices-staff .service-item:has(input:checked),
+.service-choices-staff label:has(input:checked),
+.service-choices-staff .service-picker-item:has(input:checked) {
+    color: #198754;
+    font-weight: 600;
+}
+
+.service-choices-staff .service-item:has(input:checked) {
+    border-color: #198754;
+}
+
+.service-choices-client .form-check-input:checked,
+.service-choices-staff .form-check-input:checked,
+.service-choices-client input[type="checkbox"]:checked,
+.service-choices-staff input[type="checkbox"]:checked {
+    accent-color: #198754;
+    background-color: #198754;
+    border-color: #198754;
+}
+
+@media (max-width: 576px) {
+    .service-choices-client .form-check,
+    .service-choices-client .form-check-label,
+    .service-choices-client .service-item,
+    .service-choices-staff .form-check,
+    .service-choices-staff .form-check-label,
+    .service-choices-staff .service-item,
+    .service-choices-staff .service-picker-item {
+        line-height: 1.25;
+        word-break: break-word;
+    }
+}
