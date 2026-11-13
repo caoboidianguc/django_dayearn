@@ -301,7 +301,7 @@
       </div>
       <div class="modal-body">
         <p class="small text-muted mb-2">Select <strong>1 or 2</strong> services for this turn.</p>
-        <div id="service-picker-list">
+        <div id="service-picker-list" class="service-choices-staff">
           {% regroup services by category as cat_list %}
           {% for cat in cat_list %}
           <div class="fw-semibold text-start mt-2 mb-1 text-secondary">{{ cat.grouper }}</div>

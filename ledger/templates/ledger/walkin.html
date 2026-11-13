@@ -22,7 +22,7 @@
         <div class="table-responsive">
                     <p class="fs-4 text-center">{{ form.services.label }}</p>
                     <span class="fs-5 text-danger">{{ form.services.errors }}</span>
-            <div class="row g3">
+            <div class="row g3 service-choices-staff">
                 <div class="col-md-4 mb-2">
                     {{ form.full_name|as_crispy_field }}
                     {{ form.phone|as_crispy_field }}
@@ -124,19 +124,6 @@
             border-radius: 5px;
         }
     </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js">    </script>
-    <script>
-        $(document).ready(function() {
-            $('.service-item input[type="checkbox"]').on('change', function() {
-                var $serviceItem = $(this).closest('.service-item');
-                if ($(this).is(':checked')) {
-                    $serviceItem.addClass('fs-4 text-success');
-                } else {
-                    $serviceItem.removeClass('fs-4 text-success');
-                }
-            });
-        });
-    </script>
 {% endblock content %}
 
 {% block footer %}
