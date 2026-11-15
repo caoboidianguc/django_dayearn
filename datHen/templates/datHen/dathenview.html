@@ -81,7 +81,7 @@
         </div>
 
         {% for tech in allTech %}
-        <div class="tech-column">
+        <div class="tech-column" style="--col-width: {{ tech.col_width_rem }}rem;">
             <div class="tech-header sticky-header">
                 <a href="{% url 'ledger:workdays' tech.id %}"
                    class="btn btn-sm {% if tech.off_for_date or not tech.isWork %}btn-secondary{% else %}btn-primary{% endif %}"
@@ -127,9 +127,12 @@
                 {% for khach in tech.clients %}
                 <div class="appt-block card
                             {% if khach.is_past %} is-past{% endif %}
-                            {% if khach.status == 'Cancel' %} is-cancel{% endif %}"
-                     style="top: {{ khach.top_pct }}%; height: {{ khach.height_pct }}%;"
-                     id="client_{{ khach.id }}">
+                            {% if khach.status == 'Cancel' %} is-cancel{% endif %}
+                            {% if khach.lane_count > 1 %} is-overlap{% endif %}"
+                     style="top: {{ khach.top_pct }}%; height: {{ khach.height_pct }}%; left: calc({{ khach.left_pct }}% + 3px); width: calc({{ khach.width_pct }}% - 6px);"
+                     id="client_{{ khach.id }}"
+                     data-lane="{{ khach.lane_index }}"
+                     data-lanes="{{ khach.lane_count }}">
                     <a tabindex="0" class="btn btn-sm appt-trigger" role="button"
                        data-bs-trigger="focus" data-bs-toggle="popover"
                        data-bs-title="{{ khach.client.phone_formatted }}"

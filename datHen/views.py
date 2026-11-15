@@ -114,6 +114,106 @@ def _annotate_visit_position(visit, timeline_start_min, total_minutes):
     return visit
 
 
+def assign_overlap_lanes(intervals):
+    """Assign side-by-side lanes so overlapping time ranges are not stacked.
+
+    intervals: sequence of (start, end) comparable numbers (minutes work well).
+    Two ranges overlap when start < other_end and end > other_start; they may
+    share an endpoint without overlapping.
+
+    Returns a list of (lane_index, lane_count) in the same order as intervals.
+    lane_index is 0-based. Events in the same overlap cluster share lane_count,
+    so each cluster splits the column evenly (Google Calendar style).
+    """
+    n = len(intervals)
+    if n == 0:
+        return []
+    items = []
+    for i, interval in enumerate(intervals):
+        start, end = interval
+        if end < start:
+            start, end = end, start
+        items.append((start, end, i))
+
+    # Group into clusters of transitively overlapping intervals.
+    items_sorted = sorted(items, key=lambda x: (x[0], -(x[1] - x[0]), x[2]))
+    clusters = []
+    current = []
+    current_end = None
+    for item in items_sorted:
+        start, end, _idx = item
+        if current and start >= current_end:
+            clusters.append(current)
+            current = [item]
+            current_end = end
+        else:
+            current.append(item)
+            current_end = end if current_end is None else max(current_end, end)
+    if current:
+        clusters.append(current)
+
+    result = [(0, 1)] * n
+    for cluster in clusters:
+        lane_ends = []
+        assigned = []
+        for start, end, idx in cluster:
+            lane = None
+            for i, lane_end in enumerate(lane_ends):
+                if start >= lane_end:
+                    lane_ends[i] = end
+                    lane = i
+                    break
+            if lane is None:
+                lane = len(lane_ends)
+                lane_ends.append(end)
+            assigned.append((idx, lane))
+        lane_count = max(len(lane_ends), 1)
+        for idx, lane in assigned:
+            result[idx] = (lane, lane_count)
+    return result
+
+
+def _visit_display_interval_minutes(visit):
+    """Visual start/end in minutes, using the same 15-minute minimum as the card."""
+    start_min = _time_to_minutes(visit.time_at)
+    try:
+        done = visit.get_done_at()
+        end_min = _time_to_minutes(done)
+    except Exception:
+        end_min = start_min
+    end_min = max(end_min, start_min + _TIMELINE_MIN_BLOCK_MINUTES)
+    return start_min, end_min
+
+
+def _annotate_visit_lanes(visits):
+    """Attach lane_index, lane_count, left_pct, width_pct for side-by-side cards.
+
+    Returns the widest lane_count in this column (1 if the column is empty).
+    """
+    if not visits:
+        return 1
+    lanes = assign_overlap_lanes([_visit_display_interval_minutes(v) for v in visits])
+    max_lanes = 1
+    for visit, (lane_index, lane_count) in zip(visits, lanes):
+        visit.lane_index = lane_index
+        visit.lane_count = lane_count
+        visit.left_pct = (lane_index / lane_count) * 100.0
+        visit.width_pct = 100.0 / lane_count
+        if lane_count > max_lanes:
+            max_lanes = lane_count
+    return max_lanes
+
+
+# Keep names readable when many cards share a slot: at least 5rem each,
+# and never narrower than the default 15rem column.
+_TIMELINE_COL_WIDTH_REM = 15
+_TIMELINE_MIN_LANE_REM = 5
+
+
+def _tech_column_width_rem(max_lanes):
+    return max(_TIMELINE_COL_WIDTH_REM, int(max_lanes) * _TIMELINE_MIN_LANE_REM)
+
+
 def _free_gaps_for_tech(clients, work_start, work_end, timeline_start_min, total_minutes):
     """
     Empty windows between appointments (and before first / after last) inside the tech's work hours.
@@ -293,6 +393,8 @@ class DatHenView(LoginRequiredMixin,View):
                 visit.is_past = visit.get_done_at() < now_time if selected_date == timezone.now().date() else (
                     selected_date < timezone.now().date()
                 )
+            tech.max_lanes = _annotate_visit_lanes(tech.clients)
+            tech.col_width_rem = _tech_column_width_rem(tech.max_lanes)
             if tech.off_for_date or not tech.work_start:
                 tech.free_gaps = []
             else:
