@@ -210,3 +210,143 @@ class ScheduleTimeLimitTests(_TC):
         self.assertTrue(DatHenForm(data=self._data(day, time(19, 0))).is_valid())
         self.assertFalse(DatHenForm(data=self._data(day, time(19, 30))).is_valid())
         self.assertFalse(DatHenForm(data=self._data(day, time(22, 0))).is_valid())
+
+
+from datHen.views import assign_overlap_lanes, _annotate_visit_lanes, _tech_column_width_rem
+
+
+class AssignOverlapLanesTests(_TC):
+    """Pure lane packing: overlapping ranges sit side by side, not on top."""
+
+    def test_empty(self):
+        self.assertEqual(assign_overlap_lanes([]), [])
+
+    def test_single_uses_full_width(self):
+        self.assertEqual(assign_overlap_lanes([(10, 11)]), [(0, 1)])
+
+    def test_same_start_and_end_get_separate_lanes(self):
+        # Walk-ins checked in at the same time (identical 15-min visual blocks)
+        result = assign_overlap_lanes([(10 * 60, 10 * 60 + 15)] * 3)
+        lanes = sorted(lane for lane, count in result)
+        self.assertEqual(lanes, [0, 1, 2])
+        self.assertTrue(all(count == 3 for _lane, count in result))
+
+    def test_partial_overlap_splits_two_ways(self):
+        # 10:00-11:00 and 10:30-11:30
+        result = assign_overlap_lanes([(10 * 60, 11 * 60), (10 * 60 + 30, 11 * 60 + 30)])
+        self.assertEqual({lane for lane, _count in result}, {0, 1})
+        self.assertTrue(all(count == 2 for _lane, count in result))
+
+    def test_touching_endpoints_can_share_a_lane(self):
+        # One ends at 11:00, the next starts at 11:00 — no overlap
+        result = assign_overlap_lanes([(10 * 60, 11 * 60), (11 * 60, 12 * 60)])
+        self.assertEqual(result, [(0, 1), (0, 1)])
+
+    def test_non_overlapping_clusters_stay_independent(self):
+        # Two morning walk-ins, then one afternoon appointment
+        result = assign_overlap_lanes([
+            (10 * 60, 10 * 60 + 15),
+            (10 * 60, 10 * 60 + 15),
+            (14 * 60, 15 * 60),
+        ])
+        self.assertEqual(result[0][1], 2)
+        self.assertEqual(result[1][1], 2)
+        self.assertNotEqual(result[0][0], result[1][0])
+        self.assertEqual(result[2], (0, 1))
+
+    def test_chain_reuses_a_free_lane(self):
+        # A 10-12, B 10-11, C 11-12: C can sit in B's lane, so only 2 columns
+        result = assign_overlap_lanes([
+            (10 * 60, 12 * 60),
+            (10 * 60, 11 * 60),
+            (11 * 60, 12 * 60),
+        ])
+        self.assertTrue(all(count == 2 for _lane, count in result))
+        self.assertEqual(result[1][0], result[2][0])
+        self.assertNotEqual(result[0][0], result[1][0])
+
+    def test_reversed_interval_is_normalized(self):
+        result = assign_overlap_lanes([(11, 10), (10, 11)])
+        self.assertEqual({lane for lane, count in result}, {0, 1})
+        self.assertTrue(all(count == 2 for _lane, count in result))
+
+    def test_column_widens_when_four_or_more_lanes(self):
+        self.assertEqual(_tech_column_width_rem(1), 15)
+        self.assertEqual(_tech_column_width_rem(3), 15)
+        self.assertEqual(_tech_column_width_rem(4), 20)
+        self.assertEqual(_tech_column_width_rem(5), 25)
+
+
+class DatHenOverlapViewTests(_TC):
+    """The schedule board renders overlapping cards with different left offsets."""
+
+    def setUp(self):
+        self.user = _gum().objects.create_user(username='staff', password='pw12345!x')
+        self.tech = _Tech.objects.create(
+            name='Quang', phone='+14045551234', owner=self.user,
+            start_work_at=_time(9, 30), end_work=_time(18, 30),
+        )
+        self.hour_service = Service.objects.create(
+            service='Gel Pedicure', price=45, owner=self.user,
+            category=Service.Category.pedi,
+            time_perform=timedelta(minutes=60),
+        )
+        self.day = date.today()
+        self.client.force_login(self.user)
+
+    def _client(self, name, phone, at, status=KhachVisit.Status.anyone):
+        khach = Khach.objects.create(
+            full_name=name, phone=phone,
+            technician=self.tech, day_comes=self.day, time_at=at,
+        )
+        visit = KhachVisit.objects.create(
+            client=khach, technician=self.tech,
+            day_comes=self.day, time_at=at, status=status,
+        )
+        return visit
+
+    def test_annotate_same_time_walkins_get_three_lanes(self):
+        visits = [
+            self._client('Mai', '+14045550101', time(10, 0)),
+            self._client('Linh', '+14045550102', time(10, 0)),
+            self._client('Hoa', '+14045550103', time(10, 0)),
+        ]
+        self.assertEqual(_annotate_visit_lanes(visits), 3)
+        self.assertEqual(sorted(v.lane_index for v in visits), [0, 1, 2])
+        self.assertTrue(all(v.lane_count == 3 for v in visits))
+        lefts = sorted(v.left_pct for v in visits)
+        expected = sorted((i / 3) * 100.0 for i in range(3))
+        self.assertEqual(lefts, expected)
+        self.assertTrue(all(abs(v.width_pct - (100.0 / 3)) < 1e-9 for v in visits))
+
+    def test_board_shows_all_same_time_walkins_side_by_side(self):
+        self._client('Mai', '+14045550101', time(10, 0))
+        self._client('Linh', '+14045550102', time(10, 0))
+        self._client('Hoa', '+14045550103', time(10, 0))
+        r = self.client.get(_rev('datHen:listHen'), {'date': self.day.isoformat()})
+        self.assertEqual(r.status_code, 200)
+        for name in ('Mai', 'Linh', 'Hoa'):
+            self.assertContains(r, name)
+        html = r.content.decode()
+        # Three walk-in cards share a cluster of 3 lanes
+        self.assertEqual(html.count('data-lanes="3"'), 3)
+        self.assertIn('data-lane="0"', html)
+        self.assertIn('data-lane="1"', html)
+        self.assertIn('data-lane="2"', html)
+        self.assertIn('is-overlap', html)
+        self.assertIn('left: calc(', html)
+        self.assertIn('width: calc(', html)
+
+    def test_board_splits_overlapping_scheduled_appointments(self):
+        first = self._client('Trang', '+14045550201', time(11, 0), status=KhachVisit.Status.phone)
+        first.services.add(self.hour_service)
+        second = self._client('Ngoc', '+14045550202', time(11, 30), status=KhachVisit.Status.phone)
+        second.services.add(self.hour_service)
+        r = self.client.get(_rev('datHen:listHen'), {'date': self.day.isoformat()})
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Trang')
+        self.assertContains(r, 'Ngoc')
+        html = r.content.decode()
+        self.assertEqual(html.count('data-lanes="2"'), 2)
+        self.assertIn('data-lane="0"', html)
+        self.assertIn('data-lane="1"', html)
